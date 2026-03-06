@@ -1,0 +1,106 @@
+#root {
+  min-height: 100vh;
+}
+
+.landing {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 56px 20px;
+}
+
+.hero {
+  text-align: center;
+}
+
+.badge {
+  display: inline-block;
+  margin: 0 0 14px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #e8f0ff;
+  color: #2356d1;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  line-height: 1.2;
+  color: #1b1f2a;
+}
+
+.intro {
+  max-width: 620px;
+  margin: 18px auto 0;
+  color: #4d5566;
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.btn {
+  border: 0;
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn.primary {
+  background: #2563eb;
+  color: #fff;
+}
+
+.btn.secondary {
+  background: #eef1f6;
+  color: #2a3242;
+}
+
+.card-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 36px;
+}
+
+.feature-card {
+  padding: 20px;
+  border-radius: 14px;
+  border: 1px solid #dde3ee;
+  background: #fff;
+}
+
+.feature-card h2 {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+  color: #1d2432;
+}
+
+.feature-card p {
+  margin: 0;
+  color: #5b6476;
+  line-height: 1.6;
+}
+
+@media (max-width: 800px) {
+  .card-list {
+    grid-template-columns: 1fr;
+  }
+
+  .actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .btn {
+    width: 220px;
+  }
+}
