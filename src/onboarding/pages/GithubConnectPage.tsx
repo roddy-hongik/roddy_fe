@@ -6,6 +6,8 @@ function GithubConnectPage() {
   const navigate = useNavigate()
   const [isConnected, setIsConnected] = useState(false)
   const [isConnecting, setIsConnecting] = useState(false)
+  const [showConnectedBadge, setShowConnectedBadge] = useState(false)
+  const [canGoNext, setCanGoNext] = useState(false)
 
   const handleConnectGithub = () => {
     if (isConnected || isConnecting) {
@@ -17,12 +19,27 @@ function GithubConnectPage() {
     window.setTimeout(() => {
       setIsConnecting(false)
       setIsConnected(true)
+      setShowConnectedBadge(true)
+
+      window.setTimeout(() => {
+        setShowConnectedBadge(false)
+        setCanGoNext(true)
+      }, 1200)
     }, 900)
   }
 
   return (
     <main className="github-connect-page">
       <section className="login-card github-connect-card">
+        {showConnectedBadge && (
+          <div className="github-float-check" role="status" aria-live="polite">
+            <span className="check-icon" aria-hidden="true">
+              ✓
+            </span>
+            GitHub 연동완료
+          </div>
+        )}
+
         <header className="github-connect-header">
           <p className="brand-pill">Onboarding Step 2</p>
           <h1>GitHub 연동</h1>
@@ -50,12 +67,11 @@ function GithubConnectPage() {
           </button>
         </div>
 
-        {isConnected && (
-          <div className="github-connected-check" role="status" aria-live="polite">
-            <span className="check-icon" aria-hidden="true">
-              ✓
-            </span>
-            GitHub 연동완료
+        {isConnected && canGoNext && (
+          <div className="github-next-wrap">
+            <button type="button" className="github-analyze-button" onClick={() => navigate('/onboarding/analysis-waiting')}>
+              다음으로
+            </button>
           </div>
         )}
       </section>

@@ -3,7 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { MainPage } from './home'
 import { JobPostingDetailPage, JobPostingsPage } from './jobs'
 import { LoginPage } from './login'
-import { GithubConnectPage, OnboardingPage } from './onboarding'
+import { AnalysisWaitingPage, GithubConnectPage, OnboardingPage } from './onboarding'
 import ProtectedRoute from './routes/ProtectedRoute'
 
 function App() {
@@ -27,6 +27,14 @@ function App() {
           element={
             <ProtectedRoute>
               <GithubConnectPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/onboarding/analysis-waiting"
+          element={
+            <ProtectedRoute>
+              <AnalysisWaitingPage />
             </ProtectedRoute>
           }
         />

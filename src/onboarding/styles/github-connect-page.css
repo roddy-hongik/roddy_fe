@@ -11,6 +11,8 @@
 }
 
 .github-connect-card.login-card {
+  position: relative;
+  overflow: hidden;
   width: min(680px, 100%);
   background: rgba(7, 13, 31, 0.9);
   border: 1px solid rgba(114, 142, 224, 0.35);
@@ -115,9 +117,12 @@
   color: #dbe6ff;
 }
 
-.github-connected-check {
-  margin-top: 18px;
-  min-height: 44px;
+.github-float-check {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  min-height: 40px;
   border-radius: 12px;
   border: 1px solid rgba(129, 244, 200, 0.45);
   background: rgba(16, 55, 44, 0.6);
@@ -127,7 +132,25 @@
   padding: 0 14px;
   color: #c8ffe8;
   font-weight: 700;
-  animation: success-fade 320ms ease-out;
+  animation: success-fade 260ms ease-out;
+}
+
+.github-analyze-button {
+  margin-top: 14px;
+  height: 44px;
+  border: 0;
+  border-radius: 10px;
+  padding: 0 14px;
+  background: linear-gradient(90deg, #2a57d8 0%, #4f79ef 100%);
+  color: #f5f8ff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.github-next-wrap {
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
 }
 
 .check-icon {
