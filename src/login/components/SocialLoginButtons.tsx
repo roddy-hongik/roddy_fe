@@ -1,11 +1,28 @@
+import { useLocation, useNavigate } from 'react-router-dom'
+
+type LoginLocationState = {
+  from?: {
+    pathname?: string
+  }
+}
+
 function SocialLoginButtons() {
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  const redirectPath = (location.state as LoginLocationState | null)?.from?.pathname ?? '/onboarding'
+
+  const handleLoginClick = () => {
+    navigate(redirectPath, { replace: true })
+  }
+
   return (
     <div className="social-wrap">
-      <button className="social-btn kakao" type="button">
+      <button className="social-btn kakao" type="button" onClick={handleLoginClick}>
         <span className="social-icon">K</span>
         카카오로 로그인
       </button>
-      <button className="social-btn google" type="button">
+      <button className="social-btn google" type="button" onClick={handleLoginClick}>
         <span className="social-icon">G</span>
         구글로 로그인
       </button>

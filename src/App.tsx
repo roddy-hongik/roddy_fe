@@ -1,10 +1,25 @@
 import './App.css'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import { LoginPage } from './login'
+import { OnboardingPage } from './onboarding'
+import ProtectedRoute from './routes/ProtectedRoute'
 
 function App() {
   return (
     <div className="app-shell">
-      <LoginPage />
+      <Routes>
+        <Route path="/" element={<LoginPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/onboarding"
+          element={
+            <ProtectedRoute>
+              <OnboardingPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
     </div>
   )
 }
