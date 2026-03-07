@@ -1,7 +1,7 @@
 import './App.css'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { LoginPage } from './login'
-import { OnboardingPage } from './onboarding'
+import { GithubConnectPage, OnboardingPage } from './onboarding'
 import ProtectedRoute from './routes/ProtectedRoute'
 
 function App() {
@@ -15,6 +15,14 @@ function App() {
           element={
             <ProtectedRoute>
               <OnboardingPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/onboarding/github"
+          element={
+            <ProtectedRoute>
+              <GithubConnectPage />
             </ProtectedRoute>
           }
         />

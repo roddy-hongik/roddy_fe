@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
+import { useNavigate } from 'react-router-dom'
 import JobCategorySelector from '../components/JobCategorySelector'
 import type { JobCategory } from '../components/JobCategorySelector'
 import '../styles/onboarding-page.css'
@@ -41,12 +42,13 @@ const companiesByCategory: Record<string, string[]> = {
 }
 
 function OnboardingPage() {
+  const navigate = useNavigate()
   const [name, setName] = useState('')
   const [age, setAge] = useState('')
   const [careerType, setCareerType] = useState<'none' | 'years'>('none')
   const [careerYears, setCareerYears] = useState('')
   const [companyQuery, setCompanyQuery] = useState('')
-  const [targetCompany, setTargetCompany] = useState('')
+  const [selectedCompanies, setSelectedCompanies] = useState<string[]>([])
   const [companyError, setCompanyError] = useState('')
   const [portfolioFile, setPortfolioFile] = useState<File | null>(null)
   const [portfolioError, setPortfolioError] = useState('')
@@ -69,17 +71,19 @@ function OnboardingPage() {
   }, [availableCompanies, companyQuery])
 
   useEffect(() => {
-    if (!targetCompany) {
+    if (selectedCompanies.length === 0) {
       return
     }
 
-    const canKeepCompany = availableCompanies.includes(targetCompany)
+    const nextSelectedCompanies = selectedCompanies.filter((company) => availableCompanies.includes(company))
 
-    if (!canKeepCompany) {
-      setTargetCompany('')
-      setCompanyQuery('')
+    if (nextSelectedCompanies.length !== selectedCompanies.length) {
+      setSelectedCompanies(nextSelectedCompanies)
+      if (nextSelectedCompanies.length === 0) {
+        setCompanyQuery('')
+      }
     }
-  }, [availableCompanies, targetCompany])
+  }, [availableCompanies, selectedCompanies])
 
   const handlePortfolioChange = (event: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0] ?? null
@@ -105,11 +109,24 @@ function OnboardingPage() {
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    setCategoryError('')
+    setCompanyError('')
 
-    if (!targetCompany) {
-      setCompanyError('희망 기업은 검색 결과에서 선택해 주세요.')
+    if (selectedCategories.length === 0) {
+      setCategoryError('희망 직군 카테고리는 필수 입력입니다.')
       return
     }
+
+    if (careerType === 'years' && careerYears.trim() === '') {
+      return
+    }
+
+    if (selectedCompanies.length === 0) {
+      setCompanyError('선호 기업은 최소 1개 이상 선택해 주세요.')
+      return
+    }
+
+    navigate('/onboarding/github')
   }
 
   const handleToggleCategory = (categoryId: string) => {
@@ -126,6 +143,23 @@ function OnboardingPage() {
 
       setCategoryError('')
       return [...current, categoryId]
+    })
+  }
+
+  const handleToggleCompany = (company: string) => {
+    setSelectedCompanies((current) => {
+      if (current.includes(company)) {
+        setCompanyError('')
+        return current.filter((item) => item !== company)
+      }
+
+      if (current.length >= 5) {
+        setCompanyError('선호 기업은 최대 5개까지 선택할 수 있습니다.')
+        return current
+      }
+
+      setCompanyError('')
+      return [...current, company]
     })
   }
 
@@ -192,6 +226,7 @@ function OnboardingPage() {
                       onChange={(event) => setCareerYears(event.target.value)}
                       className="career-year-input"
                       placeholder="3"
+                      required={careerType === 'years'}
                     />
                     <span className="career-year-unit">년</span>
                   </>
@@ -239,22 +274,23 @@ function OnboardingPage() {
                     <button
                       key={company}
                       type="button"
-                      className={`company-option ${targetCompany === company ? 'selected' : ''}`}
-                      onClick={() => {
-                        setTargetCompany(company)
-                        setCompanyQuery(company)
-                        setCompanyError('')
-                      }}
+                      className={`company-option ${selectedCompanies.includes(company) ? 'selected' : ''}`}
+                      onClick={() => handleToggleCompany(company)}
                     >
                       {company}
                     </button>
                   ))}
               </div>
             </div>
-            {targetCompany && (
-              <span className="file-meta">
-                선택한 기업: <strong>{targetCompany}</strong>
-              </span>
+            <span className="field-meta">최대 5개까지 선택 가능</span>
+            {selectedCompanies.length > 0 && (
+              <div className="selected-company-list">
+                {selectedCompanies.map((company) => (
+                  <button key={company} type="button" className="selected-company-chip" onClick={() => handleToggleCompany(company)}>
+                    {company} <span aria-hidden="true">×</span>
+                  </button>
+                ))}
+              </div>
             )}
             {companyError && <span className="field-error">{companyError}</span>}
           </fieldset>
@@ -269,7 +305,7 @@ function OnboardingPage() {
           </label>
 
           <button type="submit" className="start-button">
-            Roddy 시작하기
+            다음으로
           </button>
         </form>
       </section>

@@ -215,6 +215,23 @@
   padding: 8px 6px;
 }
 
+.selected-company-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.selected-company-chip {
+  border: 1px solid rgba(149, 178, 255, 0.85);
+  border-radius: 999px;
+  min-height: 32px;
+  padding: 0 10px;
+  background: rgba(51, 94, 220, 0.22);
+  color: #dfe9ff;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
 .job-category-wrap {
   display: block;
 }
