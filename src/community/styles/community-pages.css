@@ -112,9 +112,11 @@
   color: #edf4ff;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   cursor: pointer;
   font-size: 0.88rem;
+  text-align: center;
 }
 
 .community-primary-btn {
@@ -213,6 +215,10 @@
 .community-post-tag {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  justify-self: start;
+  width: fit-content;
+  max-width: 100%;
   height: 26px;
   border-radius: 999px;
   font-size: 0.78rem;
@@ -296,6 +302,8 @@
 .community-submit-btn {
   justify-self: end;
   min-width: 140px;
+  min-height: 42px;
+  padding: 0 18px;
 }
 
 .community-detail-header {
