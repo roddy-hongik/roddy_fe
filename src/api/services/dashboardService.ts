@@ -18,6 +18,7 @@ const mockDashboardData: DashboardData = {
       location: 'Seoul · Hybrid',
       matchPercent: 91,
       techTags: ['React', 'TypeScript', 'GraphQL'],
+      applyUrl: 'https://example.com/jobs/novabyte-frontend',
     },
     {
       id: 2,
@@ -26,6 +27,7 @@ const mockDashboardData: DashboardData = {
       location: 'Remote',
       matchPercent: 87,
       techTags: ['Design System', 'Next.js', 'Storybook'],
+      applyUrl: 'https://example.com/jobs/cloudframe-ui-platform',
     },
     {
       id: 3,
@@ -34,6 +36,7 @@ const mockDashboardData: DashboardData = {
       location: 'Seoul',
       matchPercent: 84,
       techTags: ['A/B Test', 'Analytics', 'React'],
+      applyUrl: 'https://example.com/jobs/dataspring-frontend-growth',
     },
   ],
   radarMetrics: [

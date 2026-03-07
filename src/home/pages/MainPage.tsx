@@ -75,6 +75,10 @@ function MainPage() {
     navigate('/login', { replace: true })
   }
 
+  const handleOpenJobPosting = (applyUrl: string) => {
+    window.open(applyUrl, '_blank', 'noopener,noreferrer')
+  }
+
   const radarMetrics = dashboardData?.radarMetrics ?? [
     { subject: 'Data Modeling', score: 0, fullMark: 100 },
     { subject: 'Architecture', score: 0, fullMark: 100 },
@@ -110,10 +114,10 @@ function MainPage() {
             <strong>Roddy</strong>
           </button>
           <nav className="main-menu" aria-label="main menu">
-            <button type="button" className="nav-link">
+            <button type="button" className="nav-link nav-link-active" onClick={() => navigate('/')}>
               홈
             </button>
-            <button type="button" className="nav-link">
+            <button type="button" className="nav-link" onClick={() => navigate('/jobs')}>
               채용공고
             </button>
             <button type="button" className="nav-link">
@@ -145,64 +149,79 @@ function MainPage() {
 
       <section className="hero">
         <div className={`hero-content ${isLoggedIn ? '' : 'is-blurred'}`}>
-          <section className="glass-panel chart-panel">
-            <h2>기술 스택 대시보드</h2>
-            <p className="chart-guide">육각형 그래프 카테고리에 마우스를 올리면 상세 기술 분석이 오른쪽에 표시됩니다.</p>
-            <div className="chart-wrap">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart
-                  key={chartAnimationKey}
-                  outerRadius="74%"
-                  data={radarMetrics}
-                  onMouseMove={(state) => {
-                    const label = state?.activeLabel
-                    if (typeof label === 'string') {
-                      setHoveredCategory(label)
-                    }
-                    if (typeof label === 'number') {
-                      setHoveredCategory(String(label))
-                    }
-                  }}
-                  onMouseLeave={() => setHoveredCategory(null)}
-                >
-                  <PolarGrid stroke="rgba(178, 203, 255, 0.34)" />
-                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#dbe7ff', fontSize: 13 }} />
-                  <Radar
-                    name="Score"
-                    dataKey="score"
-                    stroke="#79a8ff"
-                    fill="#79a8ff"
-                    fillOpacity={0.45}
-                    strokeWidth={2.4}
-                    isAnimationActive
-                    animationBegin={120}
-                    animationDuration={1400}
-                    animationEasing="ease-out"
-                  />
-                  <Tooltip cursor={false} content={() => null} />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
-          </section>
-
-          <aside className="glass-panel analysis-panel">
-            <h2>분석 내용</h2>
-
-            <article className="info-card active-detail">
-              <p className="label">현재 포커스</p>
-              <h3>{activeRadarDetail?.subject ?? 'Data Modeling'}</h3>
-              <p className="score-line">
-                현재 {activeRadarDetail?.current ?? 0} / 목표 {activeRadarDetail?.target ?? 0}
-              </p>
-              <p className="detail-note">{activeRadarDetail?.note ?? '로그인 시 상세 분석 정보를 확인할 수 있습니다.'}</p>
-              <div className="tags">
-                {(activeRadarDetail?.relatedStacks ?? []).map((stack) => (
-                  <span key={stack}>{stack}</span>
-                ))}
+          <div className="hero-top">
+            <section className="glass-panel chart-panel">
+              <h2>기술 스택 대시보드</h2>
+              <p className="chart-guide">육각형 그래프 카테고리에 마우스를 올리면 상세 기술 분석이 오른쪽에 표시됩니다.</p>
+              <div className="chart-wrap">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart
+                    key={chartAnimationKey}
+                    outerRadius="74%"
+                    data={radarMetrics}
+                    onMouseMove={(state) => {
+                      const label = state?.activeLabel
+                      if (typeof label === 'string') {
+                        setHoveredCategory(label)
+                      }
+                      if (typeof label === 'number') {
+                        setHoveredCategory(String(label))
+                      }
+                    }}
+                    onMouseLeave={() => setHoveredCategory(null)}
+                  >
+                    <PolarGrid stroke="rgba(178, 203, 255, 0.34)" />
+                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#dbe7ff', fontSize: 13 }} />
+                    <Radar
+                      name="Score"
+                      dataKey="score"
+                      stroke="#79a8ff"
+                      fill="#79a8ff"
+                      fillOpacity={0.45}
+                      strokeWidth={2.4}
+                      isAnimationActive
+                      animationBegin={120}
+                      animationDuration={1400}
+                      animationEasing="ease-out"
+                    />
+                    <Tooltip cursor={false} content={() => null} />
+                  </RadarChart>
+                </ResponsiveContainer>
               </div>
-            </article>
+            </section>
 
-            <article className="info-card compact-card">
+            <aside className="glass-panel analysis-panel">
+              <h2>분석 내용</h2>
+
+              <article className="info-card active-detail">
+                <p className="label">현재 포커스</p>
+                <h3>{activeRadarDetail?.subject ?? 'Data Modeling'}</h3>
+                <p className="score-line">
+                  현재 {activeRadarDetail?.current ?? 0} / 목표 {activeRadarDetail?.target ?? 0}
+                </p>
+                <p className="detail-note">{activeRadarDetail?.note ?? '로그인 시 상세 분석 정보를 확인할 수 있습니다.'}</p>
+                <div className="tags">
+                  {(activeRadarDetail?.relatedStacks ?? []).map((stack) => (
+                    <span key={stack}>{stack}</span>
+                  ))}
+                </div>
+              </article>
+
+              <article className="info-card compact-card">
+                <h3>분석된 기술</h3>
+                <div className="keyword-wrap">
+                  {techKeywords.map((keyword) => (
+                    <span key={keyword} className="keyword-tag">
+                      {keyword}
+                    </span>
+                  ))}
+                </div>
+              </article>
+            </aside>
+          </div>
+
+          <section className="hero-bottom">
+            <article className="glass-panel compact-card bottom-card merged-card">
               <h3>전체 매칭률</h3>
               <strong className="match-rate">{matchPercent}%</strong>
               <p className="match-desc">
@@ -211,32 +230,22 @@ function MainPage() {
               <div className="progress-track" aria-hidden="true">
                 <span className="progress-value" style={{ width: `${matchPercent}%` }} />
               </div>
-            </article>
 
-            <article className="info-card compact-card">
-              <h3>추천 채용공고</h3>
+              <h3 className="job-section-title">추천 채용공고</h3>
               <div className="job-list">
                 {recommendedJobs.map((job) => (
                   <article key={job.id} className="job-card">
                     <p className="company">{job.company}</p>
                     <p className="title">{job.title}</p>
                     <p className="meta">매칭 {job.matchPercent}%</p>
+                    <button type="button" className="job-action-btn" onClick={() => handleOpenJobPosting(job.applyUrl)}>
+                      공고 보러가기
+                    </button>
                   </article>
                 ))}
               </div>
             </article>
-
-            <article className="info-card compact-card">
-              <h3>분석된 기술</h3>
-              <div className="keyword-wrap">
-                {techKeywords.map((keyword) => (
-                  <span key={keyword} className="keyword-tag">
-                    {keyword}
-                  </span>
-                ))}
-              </div>
-            </article>
-          </aside>
+          </section>
         </div>
 
         {!isLoggedIn && (

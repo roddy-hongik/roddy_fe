@@ -25,6 +25,7 @@ export type JobPosting = {
   location: string
   matchPercent: number
   techTags: string[]
+  applyUrl: string
 }
 
 export type DashboardData = {
