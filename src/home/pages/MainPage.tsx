@@ -129,7 +129,7 @@ function MainPage() {
         <div className="nav-right">
           {isLoggedIn ? (
             <>
-              <button type="button" className="nav-link nav-page-btn">
+              <button type="button" className="nav-link nav-page-btn" onClick={() => navigate('/profile')}>
                 마이페이지
               </button>
               <span className="nav-divider">|</span>

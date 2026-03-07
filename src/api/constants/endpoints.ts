@@ -6,4 +6,10 @@ export const API_ENDPOINTS = {
   dashboard: {
     summary: '/dashboard/summary',
   },
+  profile: {
+    summary: '/profile',
+    update: '/profile',
+    reanalyze: '/profile/re-analyze',
+    deleteAccount: '/profile',
+  },
 } as const
