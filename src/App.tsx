@@ -4,6 +4,7 @@ import { MainPage } from './home'
 import { JobPostingDetailPage, JobPostingsPage } from './jobs'
 import { LoginPage } from './login'
 import { AnalysisWaitingPage, GithubConnectPage, OnboardingPage } from './onboarding'
+import { ProfileEditPage, ProfileLayout, ProfilePage, ProfileReanalyzePage, TermsPage } from './profile'
 import ProtectedRoute from './routes/ProtectedRoute'
 
 function App() {
@@ -14,6 +15,19 @@ function App() {
         <Route path="/jobs" element={<JobPostingsPage />} />
         <Route path="/jobs/:jobId" element={<JobPostingDetailPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfileLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<ProfilePage />} />
+          <Route path="edit" element={<ProfileEditPage />} />
+          <Route path="re-analyze" element={<ProfileReanalyzePage />} />
+        </Route>
+        <Route path="/terms" element={<TermsPage />} />
         <Route
           path="/onboarding"
           element={
