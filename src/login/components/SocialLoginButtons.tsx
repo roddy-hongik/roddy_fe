@@ -10,9 +10,11 @@ function SocialLoginButtons() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const redirectPath = (location.state as LoginLocationState | null)?.from?.pathname ?? '/onboarding'
+  const redirectPath = (location.state as LoginLocationState | null)?.from?.pathname ?? '/'
 
   const handleLoginClick = () => {
+    localStorage.setItem('accessToken', 'mock-access-token')
+    localStorage.setItem('userName', '신애')
     navigate(redirectPath, { replace: true })
   }
 

@@ -10,7 +10,7 @@ function BrandSection() {
       <p className="brand-copy">
         막막한 시작부터 성장의 과정까지.
         <br />
-        Roddy와 함께 매일 더 나은 개발 습관을 만들어보세요.
+        Roddy와 함께 매일 더 나은 개발자로 성장해보세요.
       </p>
 
       <div className="mascot" aria-hidden="true">

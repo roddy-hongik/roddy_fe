@@ -3,4 +3,7 @@ export const API_ENDPOINTS = {
     kakaoLogin: '/auth/kakao',
     googleLogin: '/auth/google',
   },
+  dashboard: {
+    summary: '/dashboard/summary',
+  },
 } as const
