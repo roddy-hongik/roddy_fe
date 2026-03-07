@@ -12,4 +12,8 @@ export const API_ENDPOINTS = {
     reanalyze: '/profile/re-analyze',
     deleteAccount: '/profile',
   },
+  community: {
+    posts: '/community/posts',
+    comments: '/community/comments',
+  },
 } as const

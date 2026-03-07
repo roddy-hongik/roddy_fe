@@ -120,7 +120,7 @@ function MainPage() {
             <button type="button" className="nav-link" onClick={() => navigate('/jobs')}>
               채용공고
             </button>
-            <button type="button" className="nav-link">
+            <button type="button" className="nav-link" onClick={() => navigate('/community')}>
               커뮤니티
             </button>
           </nav>
