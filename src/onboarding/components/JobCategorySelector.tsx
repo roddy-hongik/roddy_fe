@@ -8,51 +8,43 @@ type JobCategory = {
 
 type JobCategorySelectorProps = {
   categories: JobCategory[]
-  selectedCategory: string
-  onSelectCategory: (id: string) => void
+  selectedCategories: string[]
+  onToggleCategory: (id: string) => void
 }
 
 function JobCategorySelector({
   categories,
-  selectedCategory,
-  onSelectCategory,
+  selectedCategories,
+  onToggleCategory,
 }: JobCategorySelectorProps) {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null)
 
-  const activeId = hoveredCategory ?? selectedCategory
-  const activeCategory = categories.find((category) => category.id === activeId)
-
   return (
     <div className="job-category-wrap">
-      <div className="job-category-list" role="radiogroup" aria-label="희망 직군 카테고리">
+      <div className="job-category-list" role="group" aria-label="희망 직군 카테고리">
         {categories.map((category) => {
-          const isSelected = selectedCategory === category.id
+          const isSelected = selectedCategories.includes(category.id)
+          const isExpanded = hoveredCategory === category.id
 
           return (
             <button
               key={category.id}
               type="button"
-              className={`job-category-item ${isSelected ? 'selected' : ''}`}
-              role="radio"
+              className={`job-category-item ${isSelected ? 'selected' : ''} ${isExpanded ? 'expanded' : ''}`}
+              role="checkbox"
               aria-checked={isSelected}
               onMouseEnter={() => setHoveredCategory(category.id)}
               onMouseLeave={() => setHoveredCategory(null)}
               onFocus={() => setHoveredCategory(category.id)}
               onBlur={() => setHoveredCategory(null)}
-              onClick={() => onSelectCategory(category.id)}
+              onClick={() => onToggleCategory(category.id)}
             >
-              {category.label}
+              <span className="job-category-title">{category.label}</span>
+              <span className="job-category-description">{category.description}</span>
             </button>
           )
         })}
       </div>
-
-      <aside className="job-category-detail" aria-live="polite">
-        <p className="job-category-detail-label">{activeCategory?.label ?? '카테고리를 선택해 주세요'}</p>
-        <p className="job-category-detail-copy">
-          {activeCategory?.description ?? '마우스를 올리거나 선택하면 상세 설명을 확인할 수 있습니다.'}
-        </p>
-      </aside>
     </div>
   )
 }

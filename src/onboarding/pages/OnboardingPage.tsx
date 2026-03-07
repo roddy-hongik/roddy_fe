@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import JobCategorySelector from '../components/JobCategorySelector'
 import type { JobCategory } from '../components/JobCategorySelector'
@@ -32,15 +32,54 @@ const jobCategories: JobCategory[] = [
   },
 ]
 
+const companiesByCategory: Record<string, string[]> = {
+  b2c: ['네이버', '카카오', '배달의민족', '당근', '쿠팡'],
+  fintech: ['토스', '카카오뱅크', '신한은행', '국민은행', '하나은행'],
+  b2b: ['채널톡', '토스페이먼츠', '센드버드', '리멤버앤컴퍼니', '스윗'],
+  infra: ['네이버클라우드', '카카오엔터프라이즈', 'AWS 코리아', 'NHN Cloud', '메가존클라우드'],
+  generalist: ['마켓컬리', '직방', '오늘의집', '강남언니', '리디'],
+}
+
 function OnboardingPage() {
   const [name, setName] = useState('')
   const [age, setAge] = useState('')
   const [careerType, setCareerType] = useState<'none' | 'years'>('none')
   const [careerYears, setCareerYears] = useState('')
+  const [companyQuery, setCompanyQuery] = useState('')
   const [targetCompany, setTargetCompany] = useState('')
+  const [companyError, setCompanyError] = useState('')
   const [portfolioFile, setPortfolioFile] = useState<File | null>(null)
   const [portfolioError, setPortfolioError] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState(jobCategories[0].id)
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+  const [categoryError, setCategoryError] = useState('')
+
+  const availableCompanies = useMemo(() => {
+    const merged = selectedCategories.flatMap((categoryId) => companiesByCategory[categoryId] ?? [])
+    return Array.from(new Set(merged))
+  }, [selectedCategories])
+
+  const filteredCompanies = useMemo(() => {
+    const normalizedQuery = companyQuery.trim().toLowerCase()
+
+    if (!normalizedQuery) {
+      return availableCompanies
+    }
+
+    return availableCompanies.filter((company) => company.toLowerCase().includes(normalizedQuery))
+  }, [availableCompanies, companyQuery])
+
+  useEffect(() => {
+    if (!targetCompany) {
+      return
+    }
+
+    const canKeepCompany = availableCompanies.includes(targetCompany)
+
+    if (!canKeepCompany) {
+      setTargetCompany('')
+      setCompanyQuery('')
+    }
+  }, [availableCompanies, targetCompany])
 
   const handlePortfolioChange = (event: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0] ?? null
@@ -66,6 +105,28 @@ function OnboardingPage() {
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+
+    if (!targetCompany) {
+      setCompanyError('희망 기업은 검색 결과에서 선택해 주세요.')
+      return
+    }
+  }
+
+  const handleToggleCategory = (categoryId: string) => {
+    setSelectedCategories((current) => {
+      if (current.includes(categoryId)) {
+        setCategoryError('')
+        return current.filter((id) => id !== categoryId)
+      }
+
+      if (current.length >= 2) {
+        setCategoryError('희망 직군 카테고리는 최대 2개까지 선택할 수 있습니다.')
+        return current
+      }
+
+      setCategoryError('')
+      return [...current, categoryId]
+    })
   }
 
   return (
@@ -109,41 +170,96 @@ function OnboardingPage() {
                     setCareerYears('')
                   }}
                 />
-                없음
+                신입
               </label>
-              <label className={`career-toggle ${careerType === 'years' ? 'active' : ''}`}>
-                <input
-                  type="radio"
-                  name="careerType"
-                  value="years"
-                  checked={careerType === 'years'}
-                  onChange={() => setCareerType('years')}
-                />
-                경력 n년
-              </label>
+              <div className={`career-experience ${careerType === 'years' ? 'active' : ''}`}>
+                <label className={`career-toggle ${careerType === 'years' ? 'active' : ''}`}>
+                  <input
+                    type="radio"
+                    name="careerType"
+                    value="years"
+                    checked={careerType === 'years'}
+                    onChange={() => setCareerType('years')}
+                  />
+                  경력
+                </label>
+                {careerType === 'years' && (
+                  <>
+                    <input
+                      type="number"
+                      min={0}
+                      value={careerYears}
+                      onChange={(event) => setCareerYears(event.target.value)}
+                      className="career-year-input"
+                      placeholder="3"
+                    />
+                    <span className="career-year-unit">년</span>
+                  </>
+                )}
+              </div>
             </div>
-            <input
-              type="number"
-              min={0}
-              value={careerYears}
-              onChange={(event) => setCareerYears(event.target.value)}
-              placeholder="예: 3"
-              disabled={careerType !== 'years'}
-            />
           </fieldset>
 
-          <label className="field-group">
-            <span className="field-label">희망 기업</span>
-            <input
-              type="text"
-              value={targetCompany}
-              onChange={(event) => setTargetCompany(event.target.value)}
-              placeholder="예: 네이버, 토스, 채널톡"
-              required
+          <fieldset className="field-group full-width">
+            <legend className="field-label">희망 직군 카테고리</legend>
+            <JobCategorySelector
+              categories={jobCategories}
+              selectedCategories={selectedCategories}
+              onToggleCategory={handleToggleCategory}
             />
-          </label>
+            <span className="field-meta">최대 2개까지 선택 가능</span>
+            {categoryError && <span className="field-error">{categoryError}</span>}
+          </fieldset>
 
-          <label className="field-group">
+          <fieldset className="field-group full-width">
+            <legend className="field-label">희망 기업</legend>
+            <div className="company-search-wrap">
+              <input
+                type="text"
+                value={companyQuery}
+                onChange={(event) => {
+                  setCompanyQuery(event.target.value)
+                  setCompanyError('')
+                }}
+                placeholder={
+                  selectedCategories.length === 0
+                    ? '먼저 희망 직무 카테고리를 선택해 주세요'
+                    : '기업명을 검색해 주세요'
+                }
+                disabled={selectedCategories.length === 0}
+              />
+
+              <div className="company-option-list" role="listbox" aria-label="희망 기업 검색 결과">
+                {selectedCategories.length === 0 && <p className="company-option-empty">직군 카테고리를 먼저 선택해 주세요.</p>}
+                {selectedCategories.length > 0 && filteredCompanies.length === 0 && (
+                  <p className="company-option-empty">검색 결과가 없습니다.</p>
+                )}
+                {selectedCategories.length > 0 &&
+                  filteredCompanies.map((company) => (
+                    <button
+                      key={company}
+                      type="button"
+                      className={`company-option ${targetCompany === company ? 'selected' : ''}`}
+                      onClick={() => {
+                        setTargetCompany(company)
+                        setCompanyQuery(company)
+                        setCompanyError('')
+                      }}
+                    >
+                      {company}
+                    </button>
+                  ))}
+              </div>
+            </div>
+            {targetCompany && (
+              <span className="file-meta">
+                선택한 기업: <strong>{targetCompany}</strong>
+              </span>
+            )}
+            {companyError && <span className="field-error">{companyError}</span>}
+          </fieldset>
+
+          <label className="field-group full-width">
             <span className="field-label">포트폴리오 (PDF)</span>
             <input type="file" accept=".pdf,application/pdf" onChange={handlePortfolioChange} />
             <span className="file-meta">
@@ -151,15 +267,6 @@ function OnboardingPage() {
             </span>
             {portfolioError && <span className="field-error">{portfolioError}</span>}
           </label>
-
-          <fieldset className="field-group">
-            <legend className="field-label">희망 직군 카테고리</legend>
-            <JobCategorySelector
-              categories={jobCategories}
-              selectedCategory={selectedCategory}
-              onSelectCategory={setSelectedCategory}
-            />
-          </fieldset>
 
           <button type="submit" className="start-button">
             Roddy 시작하기
