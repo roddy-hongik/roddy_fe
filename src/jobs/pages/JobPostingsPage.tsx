@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { jobPostings } from '../data/jobPostings'
 import '../styles/job-pages.css'
@@ -24,7 +24,34 @@ const extractChoseong = (value: string) =>
 
 function JobPostingsPage() {
   const navigate = useNavigate()
+  const [isLoggedIn, setIsLoggedIn] = useState(Boolean(localStorage.getItem('accessToken')))
   const [companyQuery, setCompanyQuery] = useState('')
+
+  useEffect(() => {
+    const syncLoginStatus = () => {
+      setIsLoggedIn(Boolean(localStorage.getItem('accessToken')))
+    }
+
+    syncLoginStatus()
+    window.addEventListener('storage', syncLoginStatus)
+
+    return () => {
+      window.removeEventListener('storage', syncLoginStatus)
+    }
+  }, [])
+
+  const userName = useMemo(() => localStorage.getItem('userName') ?? '신애', [])
+
+  const handleLoginRedirect = () => {
+    navigate('/login', { state: { from: { pathname: '/jobs' } } })
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken')
+    localStorage.removeItem('userName')
+    setIsLoggedIn(false)
+    navigate('/login', { replace: true })
+  }
 
   const filteredJobs = useMemo(() => {
     const trimmedQuery = companyQuery.trim()
@@ -72,16 +99,30 @@ function JobPostingsPage() {
             <button type="button" className="nav-link nav-link-active" onClick={() => navigate('/jobs')}>
               채용공고
             </button>
-            <button type="button" className="nav-link">
+            <button type="button" className="nav-link" onClick={() => navigate('/community')}>
               커뮤니티
             </button>
           </nav>
         </div>
 
         <div className="nav-right">
-          <button type="button" className="logout-btn" onClick={() => navigate('/login')}>
-            로그인
-          </button>
+          {isLoggedIn ? (
+            <>
+              <button type="button" className="nav-link nav-page-btn" onClick={() => navigate('/profile')}>
+                마이페이지
+              </button>
+              <span className="nav-divider">|</span>
+              <span className="user-name">{userName}님</span>
+              <span className="nav-divider">|</span>
+              <button type="button" className="logout-btn" onClick={handleLogout}>
+                로그아웃
+              </button>
+            </>
+          ) : (
+            <button type="button" className="logout-btn" onClick={handleLoginRedirect}>
+              로그인
+            </button>
+          )}
         </div>
       </header>
 

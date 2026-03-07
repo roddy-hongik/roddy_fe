@@ -110,6 +110,10 @@
   border-radius: 999px;
 }
 
+.nav-page-btn {
+  border: 1px solid rgba(136, 177, 255, 0.28);
+}
+
 .nav-link:hover {
   background: rgba(104, 145, 234, 0.16);
 }
@@ -126,6 +130,15 @@
   background: rgba(101, 144, 255, 0.2);
   color: #f2f7ff;
   font-size: 0.88rem;
+}
+
+.nav-divider {
+  color: rgba(202, 221, 255, 0.55);
+}
+
+.user-name {
+  color: #dae7ff;
+  font-size: 0.92rem;
 }
 
 .glass-panel {

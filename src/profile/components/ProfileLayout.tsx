@@ -32,9 +32,9 @@ function ProfileLayout() {
             <NavLink to="/jobs" className={({ isActive }) => `profile-nav-link ${isActive ? 'active' : ''}`}>
               채용공고
             </NavLink>
-            <button type="button" className="profile-nav-link" disabled>
+            <NavLink to="/community" className={({ isActive }) => `profile-nav-link ${isActive ? 'active' : ''}`}>
               커뮤니티
-            </button>
+            </NavLink>
           </nav>
         </div>
 

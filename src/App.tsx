@@ -5,6 +5,7 @@ import { JobPostingDetailPage, JobPostingsPage } from './jobs'
 import { LoginPage } from './login'
 import { AnalysisWaitingPage, GithubConnectPage, OnboardingPage } from './onboarding'
 import { ProfileEditPage, ProfileLayout, ProfilePage, ProfileReanalyzePage, TermsPage } from './profile'
+import { CommunityDetailPage, CommunityListPage, CommunityWritePage } from './community'
 import ProtectedRoute from './routes/ProtectedRoute'
 
 function App() {
@@ -49,6 +50,30 @@ function App() {
           element={
             <ProtectedRoute>
               <AnalysisWaitingPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/community"
+          element={
+            <ProtectedRoute>
+              <CommunityListPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/community/write"
+          element={
+            <ProtectedRoute>
+              <CommunityWritePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/community/:id"
+          element={
+            <ProtectedRoute>
+              <CommunityDetailPage />
             </ProtectedRoute>
           }
         />
