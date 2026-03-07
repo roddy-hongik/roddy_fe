@@ -1,5 +1,6 @@
 import './App.css'
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { MainPage } from './home'
 import { LoginPage } from './login'
 import { GithubConnectPage, OnboardingPage } from './onboarding'
 import ProtectedRoute from './routes/ProtectedRoute'
@@ -8,7 +9,7 @@ function App() {
   return (
     <div className="app-shell">
       <Routes>
-        <Route path="/" element={<LoginPage />} />
+        <Route path="/" element={<MainPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route
           path="/onboarding"
@@ -26,7 +27,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
   )

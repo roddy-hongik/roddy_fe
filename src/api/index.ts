@@ -1,4 +1,6 @@
 export * from './constants/endpoints'
 export * from './types/auth'
+export * from './types/dashboard'
 export * from './services/authService'
+export * from './services/dashboardService'
 export * from './hooks/useSocialAuth'
