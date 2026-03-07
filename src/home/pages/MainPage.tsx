@@ -79,6 +79,10 @@ function MainPage() {
     window.open(applyUrl, '_blank', 'noopener,noreferrer')
   }
 
+  const handleOpenDetailedReport = () => {
+    navigate('/profile')
+  }
+
   const radarMetrics = dashboardData?.radarMetrics ?? [
     { subject: 'Data Modeling', score: 0, fullMark: 100 },
     { subject: 'Architecture', score: 0, fullMark: 100 },
@@ -217,6 +221,10 @@ function MainPage() {
                   ))}
                 </div>
               </article>
+
+              <button type="button" className="analysis-report-btn" onClick={handleOpenDetailedReport}>
+                상세 리포트 확인하기
+              </button>
             </aside>
           </div>
 
