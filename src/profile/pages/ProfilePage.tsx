@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { deleteAccount, getProfileSummary } from '../../api/services/profileService'
+import { ROUTES } from '../../routes/paths'
 import type { ProfileSummary } from '../types/profile'
 
 const FALLBACK_PROFILE: ProfileSummary = {
@@ -67,7 +68,7 @@ function ProfilePage() {
       localStorage.removeItem('userImageUrl')
       localStorage.removeItem('userTargetRole')
       localStorage.removeItem('userTargetIndustry')
-      navigate('/login', { replace: true })
+      navigate(ROUTES.login, { replace: true })
     }
   }
 
@@ -103,7 +104,7 @@ function ProfilePage() {
                 </div>
               </div>
             )}
-            <button type="button" className="profile-action-btn" onClick={() => navigate('/profile/edit')}>
+            <button type="button" className="profile-action-btn" onClick={() => navigate(ROUTES.profileEdit)}>
               수정
             </button>
           </article>
@@ -111,7 +112,7 @@ function ProfilePage() {
           <article className="profile-section glass-style">
             <h2>데이터 관리</h2>
             <p className="profile-meta-text">이력서와 희망 직무를 다시 분석해 최신 기술 스택 지표로 갱신합니다.</p>
-            <button type="button" className="profile-action-btn" onClick={() => navigate('/profile/re-analyze')}>
+            <button type="button" className="profile-action-btn" onClick={() => navigate(ROUTES.profileReanalyze)}>
               다시 분석하기
             </button>
           </article>
@@ -122,7 +123,7 @@ function ProfilePage() {
               <button type="button" className="profile-danger-btn" onClick={() => setIsDeleteModalOpen(true)}>
                 회원 탈퇴
               </button>
-              <Link to="/terms" className="profile-terms-link">
+              <Link to={ROUTES.terms} className="profile-terms-link">
                 이용 약관 보기
               </Link>
             </div>

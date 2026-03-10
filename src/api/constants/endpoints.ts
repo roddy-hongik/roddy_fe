@@ -12,6 +12,12 @@ export const API_ENDPOINTS = {
     reanalyze: '/profile/re-analyze',
     deleteAccount: '/profile',
   },
+  reports: {
+    myReports: '/reports/me',
+    detail: '/reports/:id',
+    detailAnalysis: '/reports/:id/detail-analysis',
+    payment: '/reports/payment',
+  },
   community: {
     posts: '/community/posts',
     comments: '/community/comments',

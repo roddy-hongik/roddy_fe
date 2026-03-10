@@ -309,6 +309,13 @@
   cursor: pointer;
 }
 
+.dashboard-job-action {
+  margin-top: 14px;
+  width: auto;
+  min-width: 180px;
+  padding: 0 14px;
+}
+
 .tags,
 .keyword-wrap {
   display: flex;

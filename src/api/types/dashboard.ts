@@ -19,13 +19,12 @@ export type MatchRate = {
 }
 
 export type JobPosting = {
-  id: number
+  id: string
   company: string
   title: string
   location: string
   matchPercent: number
   techTags: string[]
-  applyUrl: string
 }
 
 export type DashboardData = {

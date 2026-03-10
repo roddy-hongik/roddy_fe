@@ -43,6 +43,7 @@ const companiesByCategory: Record<string, string[]> = {
 
 function OnboardingPage() {
   const navigate = useNavigate()
+  const [reportTitle, setReportTitle] = useState(localStorage.getItem('pendingReportTitle') ?? '')
   const [name, setName] = useState('')
   const [age, setAge] = useState('')
   const [careerType, setCareerType] = useState<'none' | 'years'>('none')
@@ -126,6 +127,7 @@ function OnboardingPage() {
       return
     }
 
+    localStorage.setItem('pendingReportTitle', reportTitle.trim())
     navigate('/onboarding/github')
   }
 
@@ -173,6 +175,18 @@ function OnboardingPage() {
         </header>
 
         <form className="onboarding-form" onSubmit={handleSubmit}>
+          <label className="field-group full-width">
+            <span className="field-label">리포트 제목</span>
+            <input
+              type="text"
+              value={reportTitle}
+              onChange={(event) => setReportTitle(event.target.value)}
+              placeholder="예: 2026 상반기 백엔드 분석 리포트"
+              required
+            />
+            <span className="field-meta">분석 결과 리포트에 표시될 제목입니다.</span>
+          </label>
+
           <label className="field-group">
             <span className="field-label">이름</span>
             <input type="text" value={name} onChange={(event) => setName(event.target.value)} placeholder="이름을 입력해 주세요" required />

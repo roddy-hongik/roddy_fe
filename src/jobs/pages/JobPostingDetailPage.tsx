@@ -1,5 +1,7 @@
 import { useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { ROUTES } from '../../routes/paths'
+import JobsTopNav from '../components/JobsTopNav'
 import { jobPostings } from '../data/jobPostings'
 import '../styles/job-pages.css'
 
@@ -16,36 +18,13 @@ function JobPostingDetailPage() {
 
   return (
     <main className="jobs-page detail-page">
-      <header className="main-nav">
-        <div className="nav-left">
-          <button type="button" className="brand-anchor" aria-label="Roddy 메인으로 이동" onClick={() => navigate('/')}>
-            <div className="roddy-logo">
-              <span className="logo-ear left" />
-              <span className="logo-ear right" />
-              <span className="logo-face" />
-            </div>
-            <strong>Roddy</strong>
-          </button>
-
-          <nav className="main-menu" aria-label="main menu">
-            <button type="button" className="nav-link" onClick={() => navigate('/')}>
-              홈
-            </button>
-            <button type="button" className="nav-link nav-link-active" onClick={() => navigate('/jobs')}>
-              채용공고
-            </button>
-            <button type="button" className="nav-link">
-              커뮤니티
-            </button>
-          </nav>
-        </div>
-
-        <div className="nav-right">
-          <button type="button" className="logout-btn" onClick={() => navigate('/jobs')}>
+      <JobsTopNav
+        rightSlot={
+          <button type="button" className="logout-btn" onClick={() => navigate(ROUTES.jobs)}>
             목록으로
           </button>
-        </div>
-      </header>
+        }
+      />
 
       <section className="detail-layout">
         <article className="glass-panel detail-main">
