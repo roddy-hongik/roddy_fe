@@ -23,10 +23,24 @@ function CommunityDetailPage() {
   const [post, setPost] = useState<CommunityPostDetail | null>(null)
   const [comments, setComments] = useState<CommunityComment[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isLoggedIn, setIsLoggedIn] = useState(Boolean(localStorage.getItem('accessToken')))
   const [commentInput, setCommentInput] = useState('')
   const [replyInput, setReplyInput] = useState('')
   const [replyingToId, setReplyingToId] = useState<string | null>(null)
   const [isCommentSubmitting, setIsCommentSubmitting] = useState(false)
+
+  useEffect(() => {
+    const syncLoginStatus = () => {
+      setIsLoggedIn(Boolean(localStorage.getItem('accessToken')))
+    }
+
+    syncLoginStatus()
+    window.addEventListener('storage', syncLoginStatus)
+
+    return () => {
+      window.removeEventListener('storage', syncLoginStatus)
+    }
+  }, [])
 
   useEffect(() => {
     if (!id) {
@@ -97,7 +111,10 @@ function CommunityDetailPage() {
   const getRepliesByParentId = (parentId: string) => comments.filter((comment) => comment.depth === 1 && comment.parentId === parentId)
 
   const handleLike = async () => {
-    if (!post) {
+    if (!post || !isLoggedIn) {
+      if (!isLoggedIn) {
+        navigate('/login', { state: { from: { pathname: `/community/${id}` } } })
+      }
       return
     }
 
@@ -112,7 +129,10 @@ function CommunityDetailPage() {
   }
 
   const handleReportPost = async () => {
-    if (!post) {
+    if (!post || !isLoggedIn) {
+      if (!isLoggedIn) {
+        navigate('/login', { state: { from: { pathname: `/community/${id}` } } })
+      }
       return
     }
 
@@ -124,6 +144,10 @@ function CommunityDetailPage() {
   }
 
   const handleReportComment = async (commentId: string) => {
+    if (!isLoggedIn) {
+      navigate('/login', { state: { from: { pathname: `/community/${id}` } } })
+      return
+    }
     try {
       await reportCommunityComment(commentId)
     } finally {
@@ -132,6 +156,10 @@ function CommunityDetailPage() {
   }
 
   const handleDeleteComment = async (commentId: string) => {
+    if (!isLoggedIn) {
+      navigate('/login', { state: { from: { pathname: `/community/${id}` } } })
+      return
+    }
     const previousComments = comments
 
     setComments((current) => current.filter((comment) => comment.id !== commentId && comment.parentId !== commentId))
@@ -150,6 +178,11 @@ function CommunityDetailPage() {
 
   const createComment = async (parentId: string | null, content: string) => {
     if (!post || !content.trim()) {
+      return
+    }
+
+    if (!isLoggedIn) {
+      navigate('/login', { state: { from: { pathname: `/community/${id}` } } })
       return
     }
 
@@ -237,10 +270,16 @@ function CommunityDetailPage() {
             </div>
           </div>
 
-          <button type="button" className="community-outline-btn" onClick={handleReportPost}>
-            <AlertIcon className="community-icon" />
-            신고하기
-          </button>
+          {isLoggedIn ? (
+            <button type="button" className="community-outline-btn" onClick={handleReportPost}>
+              <AlertIcon className="community-icon" />
+              신고하기
+            </button>
+          ) : (
+            <button type="button" className="community-outline-btn" onClick={() => navigate('/login', { state: { from: { pathname: `/community/${id}` } } })}>
+              로그인 후 신고
+            </button>
+          )}
         </header>
 
         <section className="community-detail-body">
@@ -255,9 +294,13 @@ function CommunityDetailPage() {
         </section>
 
         <footer className="community-detail-actions">
-          <button type="button" className="community-primary-btn" onClick={handleLike}>
+          <button
+            type="button"
+            className="community-primary-btn"
+            onClick={handleLike}
+          >
             <HeartIcon className="community-icon" />
-            좋아요
+            {isLoggedIn ? '좋아요' : '로그인 후 좋아요'}
           </button>
           <strong>{post.likes}</strong>
         </footer>
@@ -274,14 +317,16 @@ function CommunityDetailPage() {
                   <div key={comment.id} className="community-comment-thread">
                     <CommentItem
                       comment={comment}
-                      canReply
+                      canReply={isLoggedIn}
+                      canReport={isLoggedIn}
+                      canDelete={isLoggedIn}
                       isReplying={replyingToId === comment.id}
                       onReplyToggle={handleReplyToggle}
                       onReport={handleReportComment}
                       onDelete={handleDeleteComment}
                     />
 
-                    {replyingToId === comment.id && (
+                    {isLoggedIn && replyingToId === comment.id && (
                       <form className="community-reply-form" onSubmit={handleCreateReply}>
                         <span className="community-reply-prefix">└</span>
                         <input
@@ -302,6 +347,8 @@ function CommunityDetailPage() {
                         comment={reply}
                         isReply
                         canReply={false}
+                        canReport={isLoggedIn}
+                        canDelete={isLoggedIn}
                         onReplyToggle={handleReplyToggle}
                         onReport={handleReportComment}
                         onDelete={handleDeleteComment}
@@ -313,17 +360,26 @@ function CommunityDetailPage() {
             </div>
           </div>
 
-          <form className="community-comment-form" onSubmit={handleCreateRootComment}>
-            <input
-              type="text"
-              value={commentInput}
-              onChange={(event) => setCommentInput(event.target.value)}
-              placeholder="댓글을 입력해 주세요"
-            />
-            <button type="submit" className="community-primary-btn" disabled={isCommentSubmitting}>
-              {isCommentSubmitting ? '등록 중...' : '댓글 쓰기'}
-            </button>
-          </form>
+          {isLoggedIn ? (
+            <form className="community-comment-form" onSubmit={handleCreateRootComment}>
+              <input
+                type="text"
+                value={commentInput}
+                onChange={(event) => setCommentInput(event.target.value)}
+                placeholder="댓글을 입력해 주세요"
+              />
+              <button type="submit" className="community-primary-btn" disabled={isCommentSubmitting}>
+                {isCommentSubmitting ? '등록 중...' : '댓글 쓰기'}
+              </button>
+            </form>
+          ) : (
+            <div className="community-auth-notice">
+              <p>댓글 작성, 답글, 좋아요, 신고는 로그인 후 이용할 수 있습니다.</p>
+              <button type="button" className="community-outline-btn" onClick={() => navigate('/login', { state: { from: { pathname: `/community/${id}` } } })}>
+                로그인 하러 가기
+              </button>
+            </div>
+          )}
         </section>
       </article>
     </main>

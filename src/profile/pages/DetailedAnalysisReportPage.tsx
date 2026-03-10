@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { getLatestDetailedReport } from '../../api/services/reportService'
+import { useNavigate, useParams } from 'react-router-dom'
+import { getDetailedReport, getLatestDetailedReport } from '../../api/services/reportService'
 import { ROUTES } from '../../routes/paths'
 import CategoryScoreCard from '../components/CategoryScoreCard'
 import ProfileTopNav from '../components/ProfileTopNav'
-import ReportNav from '../components/ReportNav'
 import ReportSummaryCard from '../components/ReportSummaryCard'
 import TechStackSection from '../components/TechStackSection'
 import type { DetailedReport } from '../types/report'
@@ -13,6 +12,7 @@ const normalizeStackKey = (value: string) => value.toLowerCase().replace(/[^a-z0
 
 function DetailedAnalysisReportPage() {
   const navigate = useNavigate()
+  const { reportId } = useParams()
   const [report, setReport] = useState<DetailedReport | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isError, setIsError] = useState(false)
@@ -20,7 +20,9 @@ function DetailedAnalysisReportPage() {
   useEffect(() => {
     let isMounted = true
 
-    getLatestDetailedReport()
+    const reportPromise = reportId ? getDetailedReport(Number(reportId)) : getLatestDetailedReport()
+
+    reportPromise
       .then((data) => {
         if (!isMounted) {
           return
@@ -42,7 +44,7 @@ function DetailedAnalysisReportPage() {
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [reportId])
 
   if (isLoading) {
     return <p className="profile-meta-text">상세 분석 리포트를 준비하는 중...</p>
@@ -58,7 +60,6 @@ function DetailedAnalysisReportPage() {
               <h1>상세 분석 데이터를 불러오지 못했습니다</h1>
               <p>리포트 데이터를 확인한 뒤 다시 시도해 주세요.</p>
             </header>
-            <ReportNav />
           </section>
         </section>
       </main>
@@ -87,19 +88,9 @@ function DetailedAnalysisReportPage() {
             <h1>상세 분석 리포트</h1>
             <p>GitHub와 이력서 기준으로 추출한 스택과 카테고리별 점수를 한 번에 확인합니다.</p>
           </header>
-          <ReportNav />
 
-        <div className="report-detail-grid">
+        <div className="report-detail-grid report-detail-grid-single">
           <ReportSummaryCard report={report} />
-          <section className="report-section glass-style">
-            <div className="report-section-title">
-              <h2>종합 해석</h2>
-            </div>
-            <p className="report-overview-copy">{report.summary}</p>
-            <div className="report-score-orb" aria-hidden="true">
-              <span>{report.overallScore}</span>
-            </div>
-          </section>
         </div>
 
         <div className="report-stack-grid">

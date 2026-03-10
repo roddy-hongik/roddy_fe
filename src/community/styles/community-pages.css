@@ -481,6 +481,23 @@
   min-height: 42px;
 }
 
+.community-auth-notice {
+  margin-top: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(123, 163, 255, 0.22);
+  background: rgba(12, 22, 49, 0.62);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.community-auth-notice p {
+  margin: 0;
+  color: #cfe0ff;
+}
+
 .community-reply-form {
   margin-top: 8px;
   margin-left: 24px;

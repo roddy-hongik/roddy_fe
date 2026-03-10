@@ -5,6 +5,8 @@ interface CommentItemProps {
   comment: CommunityComment
   isReply?: boolean
   canReply?: boolean
+  canReport?: boolean
+  canDelete?: boolean
   isReplying?: boolean
   onReplyToggle: (commentId: string) => void
   onReport: (commentId: string) => void
@@ -15,6 +17,8 @@ function CommentItem({
   comment,
   isReply = false,
   canReply = true,
+  canReport = true,
+  canDelete = true,
   isReplying = false,
   onReplyToggle,
   onReport,
@@ -37,13 +41,17 @@ function CommentItem({
             {isReplying ? '답글 취소' : '답글 달기'}
           </button>
         )}
-        <button type="button" onClick={() => onReport(comment.id)}>
-          <AlertIcon className="community-icon" />
-          신고
-        </button>
-        <button type="button" onClick={() => onDelete(comment.id)}>
-          삭제
-        </button>
+        {canReport ? (
+          <button type="button" onClick={() => onReport(comment.id)}>
+            <AlertIcon className="community-icon" />
+            신고
+          </button>
+        ) : null}
+        {canDelete ? (
+          <button type="button" onClick={() => onDelete(comment.id)}>
+            삭제
+          </button>
+        ) : null}
       </div>
     </article>
   )

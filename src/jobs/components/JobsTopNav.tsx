@@ -59,6 +59,11 @@ function JobsTopNav({ rightSlot }: JobsTopNavProps) {
           <NavLink to={ROUTES.community} className={({ isActive }) => `nav-link ${isActive ? 'nav-link-active' : ''}`}>
             커뮤니티
           </NavLink>
+          {isLoggedIn ? (
+            <NavLink to={ROUTES.reports} className={({ isActive }) => `nav-link ${isActive ? 'nav-link-active' : ''}`}>
+              내 리포트
+            </NavLink>
+          ) : null}
         </nav>
       </div>
 

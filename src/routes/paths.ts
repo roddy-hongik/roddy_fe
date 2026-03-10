@@ -3,6 +3,7 @@ export const ROUTES = {
   login: '/login',
   jobs: '/jobs',
   community: '/community',
+  reports: '/reports',
   reportsDetailAnalysis: '/reports/detail-analysis',
   reportsPayment: '/reports/payment',
   terms: '/terms',
@@ -16,8 +17,10 @@ export const ROUTES = {
 
 export const routePaths = {
   jobDetail: (jobId: string) => `${ROUTES.jobs}/${jobId}`,
+  reportDetailAnalysis: (reportId: string | number) => `${ROUTES.reports}/${reportId}/detail-analysis`,
 } as const
 
 export const routePatterns = {
   jobDetail: `${ROUTES.jobs}/:jobId`,
+  reportDetailAnalysis: `${ROUTES.reports}/:reportId/detail-analysis`,
 } as const

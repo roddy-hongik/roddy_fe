@@ -34,6 +34,9 @@ function ProfileTopNav() {
           <NavLink to={ROUTES.community} className={({ isActive }) => `profile-nav-link ${isActive ? 'active' : ''}`}>
             커뮤니티
           </NavLink>
+          <NavLink to={ROUTES.reports} className={({ isActive }) => `profile-nav-link ${isActive ? 'active' : ''}`}>
+            내 리포트
+          </NavLink>
         </nav>
       </div>
 

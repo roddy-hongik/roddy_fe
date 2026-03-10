@@ -54,6 +54,11 @@ function CommunityTopNav() {
           <button type="button" className="community-menu-link is-active" onClick={() => navigate(ROUTES.community)}>
             커뮤니티
           </button>
+          {isLoggedIn ? (
+            <button type="button" className="community-menu-link" onClick={() => navigate(ROUTES.reports)}>
+              내 리포트
+            </button>
+          ) : null}
         </nav>
       </div>
 

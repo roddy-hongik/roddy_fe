@@ -7,6 +7,7 @@ import { AnalysisWaitingPage, GithubConnectPage, OnboardingPage } from './onboar
 import {
   AnalysisPaymentPage,
   DetailedAnalysisReportPage,
+  MyReportsPage,
   ProfileEditPage,
   ProfileLayout,
   ProfilePage,
@@ -25,6 +26,22 @@ function App() {
         <Route path={ROUTES.jobs} element={<JobPostingsPage />} />
         <Route path={routePatterns.jobDetail} element={<JobPostingDetailPage />} />
         <Route path={ROUTES.login} element={<LoginPage />} />
+        <Route
+          path={ROUTES.reports}
+          element={
+            <ProtectedRoute>
+              <MyReportsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={routePatterns.reportDetailAnalysis}
+          element={
+            <ProtectedRoute>
+              <DetailedAnalysisReportPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path={ROUTES.reportsDetailAnalysis}
           element={
@@ -80,11 +97,7 @@ function App() {
         />
         <Route
           path={ROUTES.community}
-          element={
-            <ProtectedRoute>
-              <CommunityListPage />
-            </ProtectedRoute>
-          }
+          element={<CommunityListPage />}
         />
         <Route
           path={`${ROUTES.community}/write`}
@@ -96,11 +109,7 @@ function App() {
         />
         <Route
           path={`${ROUTES.community}/:id`}
-          element={
-            <ProtectedRoute>
-              <CommunityDetailPage />
-            </ProtectedRoute>
-          }
+          element={<CommunityDetailPage />}
         />
         <Route path="*" element={<Navigate to={ROUTES.home} replace />} />
       </Routes>
