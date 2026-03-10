@@ -13,6 +13,7 @@ export interface UpdateProfilePayload {
 }
 
 export interface ReanalyzePayload {
+  reportTitle: string
   portfolioFileName: string
   categories: string[]
   preferredCompanies: string[]

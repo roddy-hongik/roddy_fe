@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ROUTES } from '../../routes/paths'
 
 function CommunityTopNav() {
   const navigate = useNavigate()
@@ -21,20 +22,20 @@ function CommunityTopNav() {
   const userName = useMemo(() => localStorage.getItem('userName') ?? '신애', [])
 
   const handleLoginRedirect = () => {
-    navigate('/login', { state: { from: { pathname: '/community' } } })
+    navigate(ROUTES.login, { state: { from: { pathname: ROUTES.community } } })
   }
 
   const handleLogout = () => {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('userName')
     setIsLoggedIn(false)
-    navigate('/login', { replace: true })
+    navigate(ROUTES.login, { replace: true })
   }
 
   return (
     <header className="community-nav">
       <div className="community-nav-left">
-        <button type="button" className="community-brand" aria-label="Roddy 메인으로 이동" onClick={() => navigate('/')}>
+        <button type="button" className="community-brand" aria-label="Roddy 메인으로 이동" onClick={() => navigate(ROUTES.home)}>
           <div className="roddy-logo">
             <span className="logo-ear left" />
             <span className="logo-ear right" />
@@ -44,13 +45,13 @@ function CommunityTopNav() {
         </button>
 
         <nav className="community-menu" aria-label="커뮤니티 메뉴">
-          <button type="button" className="community-menu-link" onClick={() => navigate('/')}>
+          <button type="button" className="community-menu-link" onClick={() => navigate(ROUTES.home)}>
             홈
           </button>
-          <button type="button" className="community-menu-link" onClick={() => navigate('/jobs')}>
+          <button type="button" className="community-menu-link" onClick={() => navigate(ROUTES.jobs)}>
             채용공고
           </button>
-          <button type="button" className="community-menu-link is-active" onClick={() => navigate('/community')}>
+          <button type="button" className="community-menu-link is-active" onClick={() => navigate(ROUTES.community)}>
             커뮤니티
           </button>
         </nav>
@@ -59,7 +60,7 @@ function CommunityTopNav() {
       <div className="community-nav-right">
         {isLoggedIn ? (
           <>
-            <button type="button" className="community-menu-link community-nav-page-btn" onClick={() => navigate('/profile')}>
+            <button type="button" className="community-menu-link community-nav-page-btn" onClick={() => navigate(ROUTES.profile)}>
               마이페이지
             </button>
             <span className="community-nav-divider">|</span>

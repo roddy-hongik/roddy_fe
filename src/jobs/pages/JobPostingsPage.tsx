@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { routePaths } from '../../routes/paths'
+import JobsTopNav from '../components/JobsTopNav'
 import { jobPostings } from '../data/jobPostings'
 import '../styles/job-pages.css'
 
@@ -24,34 +26,7 @@ const extractChoseong = (value: string) =>
 
 function JobPostingsPage() {
   const navigate = useNavigate()
-  const [isLoggedIn, setIsLoggedIn] = useState(Boolean(localStorage.getItem('accessToken')))
   const [companyQuery, setCompanyQuery] = useState('')
-
-  useEffect(() => {
-    const syncLoginStatus = () => {
-      setIsLoggedIn(Boolean(localStorage.getItem('accessToken')))
-    }
-
-    syncLoginStatus()
-    window.addEventListener('storage', syncLoginStatus)
-
-    return () => {
-      window.removeEventListener('storage', syncLoginStatus)
-    }
-  }, [])
-
-  const userName = useMemo(() => localStorage.getItem('userName') ?? '신애', [])
-
-  const handleLoginRedirect = () => {
-    navigate('/login', { state: { from: { pathname: '/jobs' } } })
-  }
-
-  const handleLogout = () => {
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('userName')
-    setIsLoggedIn(false)
-    navigate('/login', { replace: true })
-  }
 
   const filteredJobs = useMemo(() => {
     const trimmedQuery = companyQuery.trim()
@@ -81,50 +56,7 @@ function JobPostingsPage() {
 
   return (
     <main className="jobs-page">
-      <header className="main-nav">
-        <div className="nav-left">
-          <button type="button" className="brand-anchor" aria-label="Roddy 메인으로 이동" onClick={() => navigate('/')}>
-            <div className="roddy-logo">
-              <span className="logo-ear left" />
-              <span className="logo-ear right" />
-              <span className="logo-face" />
-            </div>
-            <strong>Roddy</strong>
-          </button>
-
-          <nav className="main-menu" aria-label="main menu">
-            <button type="button" className="nav-link" onClick={() => navigate('/')}>
-              홈
-            </button>
-            <button type="button" className="nav-link nav-link-active" onClick={() => navigate('/jobs')}>
-              채용공고
-            </button>
-            <button type="button" className="nav-link" onClick={() => navigate('/community')}>
-              커뮤니티
-            </button>
-          </nav>
-        </div>
-
-        <div className="nav-right">
-          {isLoggedIn ? (
-            <>
-              <button type="button" className="nav-link nav-page-btn" onClick={() => navigate('/profile')}>
-                마이페이지
-              </button>
-              <span className="nav-divider">|</span>
-              <span className="user-name">{userName}님</span>
-              <span className="nav-divider">|</span>
-              <button type="button" className="logout-btn" onClick={handleLogout}>
-                로그아웃
-              </button>
-            </>
-          ) : (
-            <button type="button" className="logout-btn" onClick={handleLoginRedirect}>
-              로그인
-            </button>
-          )}
-        </div>
-      </header>
+      <JobsTopNav />
 
       <section className="jobs-content">
         <div className="jobs-main-panel">
@@ -148,7 +80,7 @@ function JobPostingsPage() {
             {filteredJobs.length > 0 ? (
               <div className="headline-grid">
                 {topPostings.map((job) => (
-                  <article key={job.id} className="headline-card" onClick={() => navigate(`/jobs/${job.id}`)}>
+                  <article key={job.id} className="headline-card" onClick={() => navigate(routePaths.jobDetail(job.id))}>
                     <p className="company">{job.company}</p>
                     <h2>{job.title}</h2>
                     <p className="meta">
@@ -168,7 +100,7 @@ function JobPostingsPage() {
             <h2>전체 공고</h2>
             <div className="jobs-table-list">
               {filteredJobs.map((job) => (
-                <button key={job.id} type="button" className="jobs-row" onClick={() => navigate(`/jobs/${job.id}`)}>
+                <button key={job.id} type="button" className="jobs-row" onClick={() => navigate(routePaths.jobDetail(job.id))}>
                   <span>{job.company}</span>
                   <strong>{job.title}</strong>
                   <span>{job.experience}</span>

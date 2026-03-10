@@ -6,6 +6,7 @@ import { requestProfileReanalysis } from '../../api/services/profileService'
 import { PROFILE_COMPANIES_BY_CATEGORY, PROFILE_JOB_CATEGORIES } from '../constants'
 
 type ReanalyzeFormState = {
+  reportTitle: string
   portfolioFile: File | null
   selectedCategories: string[]
   preferredCompanies: string[]
@@ -15,6 +16,7 @@ type ReanalyzeFormState = {
 function ProfileReanalyzePage() {
   const navigate = useNavigate()
   const [form, setForm] = useState<ReanalyzeFormState>({
+    reportTitle: '',
     portfolioFile: null,
     selectedCategories: [],
     preferredCompanies: [],
@@ -38,8 +40,8 @@ function ProfileReanalyzePage() {
   }, [isAnalyzing, navigate])
 
   const canSubmit = useMemo(() => {
-    return Boolean(form.selectedCategories.length > 0 && form.preferredCompanies.length > 0)
-  }, [form.preferredCompanies.length, form.selectedCategories.length])
+    return Boolean(form.reportTitle.trim() && form.selectedCategories.length > 0 && form.preferredCompanies.length > 0)
+  }, [form.preferredCompanies.length, form.reportTitle, form.selectedCategories.length])
 
   const availableCompanies = useMemo(() => {
     const merged = form.selectedCategories.flatMap((categoryId) => PROFILE_COMPANIES_BY_CATEGORY[categoryId] ?? [])
@@ -134,6 +136,11 @@ function ProfileReanalyzePage() {
       return
     }
 
+    if (!form.reportTitle.trim()) {
+      setErrorMessage('리포트 제목을 입력해 주세요.')
+      return
+    }
+
     if (form.preferredCompanies.length === 0) {
       setErrorMessage('희망 기업을 1개 이상 입력해 주세요.')
       return
@@ -143,6 +150,7 @@ function ProfileReanalyzePage() {
 
     try {
       await requestProfileReanalysis({
+        reportTitle: form.reportTitle.trim(),
         portfolioFileName: form.portfolioFile?.name ?? '',
         categories: form.selectedCategories,
         preferredCompanies: form.preferredCompanies,
@@ -178,6 +186,20 @@ function ProfileReanalyzePage() {
         </header>
 
         <form className="profile-edit-form" onSubmit={handleSubmit}>
+          <label className="profile-field">
+            <span>리포트 제목</span>
+            <input
+              type="text"
+              value={form.reportTitle}
+              placeholder="예: 2026 3월 기술 재분석 리포트"
+              onChange={(event) => {
+                setErrorMessage('')
+                setForm((current) => ({ ...current, reportTitle: event.target.value }))
+              }}
+            />
+            <small>재분석 결과 리포트 제목으로 사용됩니다.</small>
+          </label>
+
           <label className="profile-field">
             <span>이력서(포트폴리오) 재업로드</span>
             <input type="file" accept="application/pdf,.pdf" onChange={handlePortfolioChange} />

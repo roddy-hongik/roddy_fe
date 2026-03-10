@@ -4,20 +4,45 @@ import { MainPage } from './home'
 import { JobPostingDetailPage, JobPostingsPage } from './jobs'
 import { LoginPage } from './login'
 import { AnalysisWaitingPage, GithubConnectPage, OnboardingPage } from './onboarding'
-import { ProfileEditPage, ProfileLayout, ProfilePage, ProfileReanalyzePage, TermsPage } from './profile'
+import {
+  AnalysisPaymentPage,
+  DetailedAnalysisReportPage,
+  ProfileEditPage,
+  ProfileLayout,
+  ProfilePage,
+  ProfileReanalyzePage,
+  TermsPage,
+} from './profile'
 import { CommunityDetailPage, CommunityListPage, CommunityWritePage } from './community'
 import ProtectedRoute from './routes/ProtectedRoute'
+import { ROUTES, routePatterns } from './routes/paths'
 
 function App() {
   return (
     <div className="app-shell">
       <Routes>
-        <Route path="/" element={<MainPage />} />
-        <Route path="/jobs" element={<JobPostingsPage />} />
-        <Route path="/jobs/:jobId" element={<JobPostingDetailPage />} />
-        <Route path="/login" element={<LoginPage />} />
+        <Route path={ROUTES.home} element={<MainPage />} />
+        <Route path={ROUTES.jobs} element={<JobPostingsPage />} />
+        <Route path={routePatterns.jobDetail} element={<JobPostingDetailPage />} />
+        <Route path={ROUTES.login} element={<LoginPage />} />
         <Route
-          path="/profile"
+          path={ROUTES.reportsDetailAnalysis}
+          element={
+            <ProtectedRoute>
+              <DetailedAnalysisReportPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.reportsPayment}
+          element={
+            <ProtectedRoute>
+              <AnalysisPaymentPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.profile}
           element={
             <ProtectedRoute>
               <ProfileLayout />
@@ -28,9 +53,9 @@ function App() {
           <Route path="edit" element={<ProfileEditPage />} />
           <Route path="re-analyze" element={<ProfileReanalyzePage />} />
         </Route>
-        <Route path="/terms" element={<TermsPage />} />
+        <Route path={ROUTES.terms} element={<TermsPage />} />
         <Route
-          path="/onboarding"
+          path={ROUTES.onboarding}
           element={
             <ProtectedRoute>
               <OnboardingPage />
@@ -38,7 +63,7 @@ function App() {
           }
         />
         <Route
-          path="/onboarding/github"
+          path={ROUTES.onboardingGithub}
           element={
             <ProtectedRoute>
               <GithubConnectPage />
@@ -46,7 +71,7 @@ function App() {
           }
         />
         <Route
-          path="/onboarding/analysis-waiting"
+          path={ROUTES.onboardingWaiting}
           element={
             <ProtectedRoute>
               <AnalysisWaitingPage />
@@ -54,7 +79,7 @@ function App() {
           }
         />
         <Route
-          path="/community"
+          path={ROUTES.community}
           element={
             <ProtectedRoute>
               <CommunityListPage />
@@ -62,7 +87,7 @@ function App() {
           }
         />
         <Route
-          path="/community/write"
+          path={`${ROUTES.community}/write`}
           element={
             <ProtectedRoute>
               <CommunityWritePage />
@@ -70,14 +95,14 @@ function App() {
           }
         />
         <Route
-          path="/community/:id"
+          path={`${ROUTES.community}/:id`}
           element={
             <ProtectedRoute>
               <CommunityDetailPage />
             </ProtectedRoute>
           }
         />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to={ROUTES.home} replace />} />
       </Routes>
     </div>
   )

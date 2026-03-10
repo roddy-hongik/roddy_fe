@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PolarAngleAxis, PolarGrid, Radar, RadarChart, ResponsiveContainer, Tooltip } from 'recharts'
 import { getDashboardData } from '../../api/services/dashboardService'
+import { ROUTES, routePaths } from '../../routes/paths'
 import type { DashboardData } from '../../api/types/dashboard'
 import '../styles/main-page.css'
 
@@ -65,22 +66,22 @@ function MainPage() {
   }, [dashboardData])
 
   const handleLoginRedirect = () => {
-    navigate('/login', { state: { from: { pathname: '/' } } })
+    navigate(ROUTES.login, { state: { from: { pathname: ROUTES.home } } })
   }
 
   const handleLogout = () => {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('userName')
     setIsLoggedIn(false)
-    navigate('/login', { replace: true })
+    navigate(ROUTES.login, { replace: true })
   }
 
-  const handleOpenJobPosting = (applyUrl: string) => {
-    window.open(applyUrl, '_blank', 'noopener,noreferrer')
+  const handleOpenJobPosting = (jobId: string) => {
+    navigate(routePaths.jobDetail(jobId))
   }
 
   const handleOpenDetailedReport = () => {
-    navigate('/profile')
+    navigate(ROUTES.reportsDetailAnalysis)
   }
 
   const radarMetrics = dashboardData?.radarMetrics ?? [
@@ -104,12 +105,13 @@ function MainPage() {
   const recommendedJobs = dashboardData?.recommendedJobs ?? []
   const techKeywords = dashboardData?.techKeywords ?? []
   const matchPercent = dashboardData?.matchRate.percent ?? 0
+  const bestMatchedJob = recommendedJobs[0] ?? null
 
   return (
     <main className="main-page">
       <header className="main-nav">
         <div className="nav-left">
-          <button type="button" className="brand-anchor" aria-label="Roddy 메인으로 이동" onClick={() => navigate('/')}>
+          <button type="button" className="brand-anchor" aria-label="Roddy 메인으로 이동" onClick={() => navigate(ROUTES.home)}>
             <div className="roddy-logo">
               <span className="logo-ear left" />
               <span className="logo-ear right" />
@@ -118,13 +120,13 @@ function MainPage() {
             <strong>Roddy</strong>
           </button>
           <nav className="main-menu" aria-label="main menu">
-            <button type="button" className="nav-link nav-link-active" onClick={() => navigate('/')}>
+            <button type="button" className="nav-link nav-link-active" onClick={() => navigate(ROUTES.home)}>
               홈
             </button>
-            <button type="button" className="nav-link" onClick={() => navigate('/jobs')}>
+            <button type="button" className="nav-link" onClick={() => navigate(ROUTES.jobs)}>
               채용공고
             </button>
-            <button type="button" className="nav-link" onClick={() => navigate('/community')}>
+            <button type="button" className="nav-link" onClick={() => navigate(ROUTES.community)}>
               커뮤니티
             </button>
           </nav>
@@ -133,7 +135,7 @@ function MainPage() {
         <div className="nav-right">
           {isLoggedIn ? (
             <>
-              <button type="button" className="nav-link nav-page-btn" onClick={() => navigate('/profile')}>
+              <button type="button" className="nav-link nav-page-btn" onClick={() => navigate(ROUTES.profile)}>
                 마이페이지
               </button>
               <span className="nav-divider">|</span>
@@ -238,6 +240,11 @@ function MainPage() {
               <div className="progress-track" aria-hidden="true">
                 <span className="progress-value" style={{ width: `${matchPercent}%` }} />
               </div>
+              {bestMatchedJob ? (
+                <button type="button" className="job-action-btn dashboard-job-action" onClick={() => handleOpenJobPosting(bestMatchedJob.id)}>
+                  최고 매칭 공고 보기
+                </button>
+              ) : null}
 
               <h3 className="job-section-title">추천 채용공고</h3>
               <div className="job-list">
@@ -246,7 +253,7 @@ function MainPage() {
                     <p className="company">{job.company}</p>
                     <p className="title">{job.title}</p>
                     <p className="meta">매칭 {job.matchPercent}%</p>
-                    <button type="button" className="job-action-btn" onClick={() => handleOpenJobPosting(job.applyUrl)}>
+                    <button type="button" className="job-action-btn" onClick={() => handleOpenJobPosting(job.id)}>
                       공고 보러가기
                     </button>
                   </article>

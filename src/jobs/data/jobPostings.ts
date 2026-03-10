@@ -24,7 +24,7 @@ export type JobPosting = {
 
 export const jobPostings: JobPosting[] = [
   {
-    id: 'ididbio-sales-md',
+    id: '1',
     company: '(주)에이디입바이오',
     title: '오랫동안 함께할 인플루언서 영업 MD 모집',
     team: 'Growth Sales Team',
@@ -60,7 +60,7 @@ export const jobPostings: JobPosting[] = [
     ],
   },
   {
-    id: 'cloudframe-frontend',
+    id: '2',
     company: 'CloudFrame',
     title: '프론트엔드 엔지니어 (UI Platform)',
     team: 'Platform Engineering',
@@ -83,7 +83,7 @@ export const jobPostings: JobPosting[] = [
     ],
   },
   {
-    id: 'dataspring-growth',
+    id: '3',
     company: 'DataSpring',
     title: '그로스 프론트엔드 개발자',
     team: 'Growth Squad',
@@ -106,7 +106,7 @@ export const jobPostings: JobPosting[] = [
     ],
   },
   {
-    id: 'alto-service-planner',
+    id: '4',
     company: '(주)알토',
     title: '서비스 기획자 (물류 디지털 전환)',
     team: 'Product Team',
@@ -129,7 +129,7 @@ export const jobPostings: JobPosting[] = [
     ],
   },
   {
-    id: 'oasis-logistics',
+    id: '5',
     company: '오아시스마켓',
     title: '물류센터 운영 매니저',
     team: 'Fulfillment',
@@ -152,7 +152,7 @@ export const jobPostings: JobPosting[] = [
     ],
   },
   {
-    id: 'hyundai-construction',
+    id: '6',
     company: '현대건설',
     title: '디지털 전환 PM',
     team: 'DX 추진실',
@@ -175,7 +175,7 @@ export const jobPostings: JobPosting[] = [
     ],
   },
   {
-    id: 'nova-pay-frontend',
+    id: '7',
     company: 'NovaPay',
     title: '프론트엔드 개발자 (결제 UI)',
     team: 'Payments Product',
@@ -198,7 +198,7 @@ export const jobPostings: JobPosting[] = [
     ],
   },
   {
-    id: 'pixelcraft-product-designer',
+    id: '8',
     company: 'PixelCraft',
     title: '프로덕트 디자이너',
     team: 'Design Chapter',
