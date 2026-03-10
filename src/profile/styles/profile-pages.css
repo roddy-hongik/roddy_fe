@@ -172,6 +172,77 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.profile-hero-section {
+  margin-top: 24px;
+  width: min(760px, 100%);
+  margin-left: auto;
+  margin-right: auto;
+  border-radius: 22px;
+  padding: 28px;
+}
+
+.profile-hero-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+}
+
+.profile-hero-avatar-wrap {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.profile-avatar-large {
+  width: 132px;
+  height: 132px;
+  border-radius: 28px;
+  font-size: 2.2rem;
+}
+
+.profile-info-stack {
+  display: grid;
+  gap: 16px;
+  min-width: min(420px, 100%);
+}
+
+.profile-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(129, 166, 255, 0.16);
+}
+
+.profile-info-row span {
+  color: #9eb4e6;
+  font-size: 0.95rem;
+}
+
+.profile-info-row strong {
+  color: #eef3ff;
+  font-size: 1.05rem;
+  text-align: right;
+}
+
+.profile-hero-actions {
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.profile-secondary-grid {
+  width: min(760px, 100%);
+  margin: 16px auto 0;
+}
+
+.profile-account-card {
+  min-height: auto;
+}
+
 .profile-section {
   border-radius: 16px;
   padding: 18px;
@@ -796,6 +867,17 @@
 
   .profile-grid {
     grid-template-columns: 1fr;
+  }
+
+  .profile-info-stack {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .profile-info-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
   }
 
   .report-list-grid,

@@ -6,6 +6,29 @@ import { ROUTES, routePaths } from '../../routes/paths'
 import type { DashboardData } from '../../api/types/dashboard'
 import '../styles/main-page.css'
 
+const getRadarLabel = (subject: string) => {
+  if (subject.includes('Data Modeling')) {
+    return 'Data Modeling'
+  }
+  if (subject.includes('Architecture')) {
+    return 'Architecture'
+  }
+  if (subject.includes('Scalability')) {
+    return 'Scalability'
+  }
+  if (subject.includes('Stability')) {
+    return 'Stability'
+  }
+  if (subject.includes('DevOps')) {
+    return 'DevOps/CI-CD'
+  }
+  if (subject.includes('Monitoring')) {
+    return 'Monitoring'
+  }
+
+  return subject
+}
+
 function MainPage() {
   const navigate = useNavigate()
   const [isLoggedIn, setIsLoggedIn] = useState(Boolean(localStorage.getItem('accessToken')))
@@ -94,9 +117,13 @@ function MainPage() {
   ]
 
   const radarDetails = dashboardData?.radarDetails ?? []
+  const chartRadarMetrics = radarMetrics.map((metric) => ({
+    ...metric,
+    chartLabel: getRadarLabel(metric.subject),
+  }))
   const activeRadarDetail = useMemo(() => {
     if (hoveredCategory) {
-      return radarDetails.find((detail) => detail.subject === hoveredCategory) ?? radarDetails[0] ?? null
+      return radarDetails.find((detail) => getRadarLabel(detail.subject) === hoveredCategory) ?? radarDetails[0] ?? null
     }
 
     return radarDetails[0] ?? null
@@ -164,7 +191,7 @@ function MainPage() {
                   <RadarChart
                     key={chartAnimationKey}
                     outerRadius="74%"
-                    data={radarMetrics}
+                    data={chartRadarMetrics}
                     onMouseMove={(state) => {
                       const label = state?.activeLabel
                       if (typeof label === 'string') {
@@ -177,7 +204,7 @@ function MainPage() {
                     onMouseLeave={() => setHoveredCategory(null)}
                   >
                     <PolarGrid stroke="rgba(178, 203, 255, 0.34)" />
-                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#dbe7ff', fontSize: 13 }} />
+                    <PolarAngleAxis dataKey="chartLabel" tick={{ fill: '#dbe7ff', fontSize: 16, fontWeight: 600 }} />
                     <Radar
                       name="Score"
                       dataKey="score"

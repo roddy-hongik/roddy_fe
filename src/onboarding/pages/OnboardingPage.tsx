@@ -128,6 +128,7 @@ function OnboardingPage() {
     }
 
     localStorage.setItem('pendingReportTitle', reportTitle.trim())
+    localStorage.setItem('userPreferredCompanies', selectedCompanies.join(', '))
     navigate('/onboarding/github')
   }
 

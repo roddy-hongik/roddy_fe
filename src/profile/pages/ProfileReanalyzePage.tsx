@@ -149,6 +149,7 @@ function ProfileReanalyzePage() {
     setErrorMessage('')
 
     try {
+      localStorage.setItem('userPreferredCompanies', form.preferredCompanies.join(', '))
       await requestProfileReanalysis({
         reportTitle: form.reportTitle.trim(),
         portfolioFileName: form.portfolioFile?.name ?? '',

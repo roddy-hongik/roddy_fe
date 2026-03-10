@@ -17,6 +17,7 @@ function ProfilePage() {
   const [profile, setProfile] = useState<ProfileSummary>(FALLBACK_PROFILE)
   const [isLoading, setIsLoading] = useState(true)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const preferredCompanies = localStorage.getItem('userPreferredCompanies') ?? '-'
 
   useEffect(() => {
     let isMounted = true
@@ -80,44 +81,50 @@ function ProfilePage() {
           <p>개인 정보와 커리어 설정을 한 화면에서 관리하세요.</p>
         </header>
 
-        <div className="profile-grid">
-          <article className="profile-section glass-style">
-            <h2>프로필 요약</h2>
-            {isLoading ? (
-              <p className="profile-meta-text">불러오는 중...</p>
-            ) : (
-              <div className="profile-summary-row">
+        <section className="profile-hero-section glass-style">
+          {isLoading ? (
+            <p className="profile-meta-text">불러오는 중...</p>
+          ) : (
+            <div className="profile-hero-content">
+              <div className="profile-hero-avatar-wrap">
                 {profile.imageUrl ? (
-                  <img className="profile-avatar" src={profile.imageUrl} alt="프로필 이미지" />
+                  <img className="profile-avatar profile-avatar-large" src={profile.imageUrl} alt="프로필 이미지" />
                 ) : (
-                  <div className="profile-avatar profile-avatar-fallback" aria-hidden="true">
+                  <div className="profile-avatar profile-avatar-fallback profile-avatar-large" aria-hidden="true">
                     {profileInitial}
                   </div>
                 )}
+              </div>
 
-                <div>
-                  <strong className="profile-name">{profile.name}</strong>
-                  <p className="profile-meta-text">나이 {profile.age}세</p>
-                  <p className="profile-meta-text">희망 직무 {profile.targetRole || '-'}</p>
-                  <p className="profile-meta-text">희망 업종 {profile.targetIndustry || '-'}</p>
-                  <p className="profile-meta-text">희망 직무/업종 변경은 데이터 관리에서 가능합니다.</p>
+              <div className="profile-info-stack">
+                <div className="profile-info-row">
+                  <span>이름</span>
+                  <strong>{profile.name}</strong>
+                </div>
+                <div className="profile-info-row">
+                  <span>나이</span>
+                  <strong>{profile.age}세</strong>
+                </div>
+                <div className="profile-info-row">
+                  <span>희망 직무</span>
+                  <strong>{profile.targetRole || '-'}</strong>
+                </div>
+                <div className="profile-info-row">
+                  <span>희망 기업</span>
+                  <strong>{preferredCompanies}</strong>
                 </div>
               </div>
-            )}
+            </div>
+          )}
+          <div className="profile-hero-actions">
             <button type="button" className="profile-action-btn" onClick={() => navigate(ROUTES.profileEdit)}>
               수정
             </button>
-          </article>
+          </div>
+        </section>
 
-          <article className="profile-section glass-style">
-            <h2>데이터 관리</h2>
-            <p className="profile-meta-text">이력서와 희망 직무를 다시 분석해 최신 기술 스택 지표로 갱신합니다.</p>
-            <button type="button" className="profile-action-btn" onClick={() => navigate(ROUTES.profileReanalyze)}>
-              다시 분석하기
-            </button>
-          </article>
-
-          <article className="profile-section glass-style">
+        <div className="profile-secondary-grid">
+          <article className="profile-section glass-style profile-account-card">
             <h2>계정 및 정보</h2>
             <div className="profile-info-links">
               <button type="button" className="profile-danger-btn" onClick={() => setIsDeleteModalOpen(true)}>
