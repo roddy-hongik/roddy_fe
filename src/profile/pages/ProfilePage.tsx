@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { deleteAccount, getProfileSummary } from '../../api/services/profileService'
+import { emitAuthChange } from '../../auth/utils/authEvents'
 import { ROUTES } from '../../routes/paths'
 import type { ProfileSummary } from '../types/profile'
 
@@ -69,6 +70,7 @@ function ProfilePage() {
       localStorage.removeItem('userImageUrl')
       localStorage.removeItem('userTargetRole')
       localStorage.removeItem('userTargetIndustry')
+      emitAuthChange()
       navigate(ROUTES.login, { replace: true })
     }
   }

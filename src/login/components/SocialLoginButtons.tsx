@@ -1,4 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom'
+import { emitAuthChange } from '../../auth/utils/authEvents'
 
 type LoginLocationState = {
   from?: {
@@ -15,6 +16,7 @@ function SocialLoginButtons() {
   const handleLoginClick = () => {
     localStorage.setItem('accessToken', 'mock-access-token')
     localStorage.setItem('userName', '신애')
+    emitAuthChange()
     navigate(redirectPath, { replace: true })
   }
 

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { routePaths } from '../../routes/paths'
 import JobsTopNav from '../components/JobsTopNav'
@@ -27,6 +27,20 @@ const extractChoseong = (value: string) =>
 function JobPostingsPage() {
   const navigate = useNavigate()
   const [companyQuery, setCompanyQuery] = useState('')
+  const [isLoggedIn, setIsLoggedIn] = useState(Boolean(localStorage.getItem('accessToken')))
+
+  useEffect(() => {
+    const syncLoginStatus = () => {
+      setIsLoggedIn(Boolean(localStorage.getItem('accessToken')))
+    }
+
+    syncLoginStatus()
+    window.addEventListener('storage', syncLoginStatus)
+
+    return () => {
+      window.removeEventListener('storage', syncLoginStatus)
+    }
+  }, [])
 
   const filteredJobs = useMemo(() => {
     const trimmedQuery = companyQuery.trim()
@@ -86,7 +100,7 @@ function JobPostingsPage() {
                     <p className="meta">
                       {job.location} · {job.experience}
                     </p>
-                    <p className="match">매칭률 {job.matchRate}%</p>
+                    <p className="match">{isLoggedIn ? '상세에서 매칭 분석 확인' : '로그인 후 매칭 분석 확인'}</p>
                     <p className="deadline">마감 {job.deadline}</p>
                   </article>
                 ))}
@@ -105,7 +119,7 @@ function JobPostingsPage() {
                   <strong>{job.title}</strong>
                   <span>{job.experience}</span>
                   <span>{job.location}</span>
-                  <span className="row-match">{job.matchRate}%</span>
+                  <span className="row-match">{isLoggedIn ? '상세 보기' : '-'}</span>
                 </button>
               ))}
             </div>

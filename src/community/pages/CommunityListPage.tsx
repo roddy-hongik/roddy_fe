@@ -13,6 +13,20 @@ function CommunityListPage() {
   const [selectedTag, setSelectedTag] = useState<JobTrackTagKey | 'all'>('all')
   const [posts, setPosts] = useState<CommunityPostSummary[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isLoggedIn, setIsLoggedIn] = useState(Boolean(localStorage.getItem('accessToken')))
+
+  useEffect(() => {
+    const syncLoginStatus = () => {
+      setIsLoggedIn(Boolean(localStorage.getItem('accessToken')))
+    }
+
+    syncLoginStatus()
+    window.addEventListener('storage', syncLoginStatus)
+
+    return () => {
+      window.removeEventListener('storage', syncLoginStatus)
+    }
+  }, [])
 
   useEffect(() => {
     let isMounted = true
@@ -60,9 +74,15 @@ function CommunityListPage() {
             <h1>개발자 커뮤니티</h1>
             <p>직무 트랙 기반으로 질문과 경험을 나누고, 실무 중심의 인사이트를 빠르게 확인하세요.</p>
           </div>
-          <button type="button" className="community-primary-btn" onClick={() => navigate('/community/write')}>
-            새 글 작성
-          </button>
+          {isLoggedIn ? (
+            <button type="button" className="community-primary-btn" onClick={() => navigate('/community/write')}>
+              새 글 작성
+            </button>
+          ) : (
+            <button type="button" className="community-outline-btn" onClick={() => navigate('/login', { state: { from: { pathname: '/community' } } })}>
+              로그인 후 글쓰기
+            </button>
+          )}
         </div>
 
         <TagSelector selectedTag={selectedTag} onSelectTag={setSelectedTag} includeAll />

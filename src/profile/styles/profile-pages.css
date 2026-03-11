@@ -641,6 +641,14 @@
   align-items: start;
 }
 
+.profile-card-header + .report-detail-grid {
+  margin-top: 26px;
+}
+
+.report-detail-grid-single {
+  grid-template-columns: 1fr;
+}
+
 .report-stack-grid {
   margin-top: 14px;
   grid-template-columns: repeat(2, minmax(0, 1fr));

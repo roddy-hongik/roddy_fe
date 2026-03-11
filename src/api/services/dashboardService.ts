@@ -63,11 +63,11 @@ const recommendedJobsById = mockDashboardData.recommendedJobs.map((job) => {
   }
 
   return {
+    ...job,
     id: matchedJob.id,
     company: matchedJob.company,
     title: matchedJob.title,
     location: matchedJob.location,
-    matchPercent: matchedJob.matchRate,
     techTags: matchedJob.techStacks.slice(0, 3),
   }
 })

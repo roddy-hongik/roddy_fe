@@ -1,4 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom'
+import { emitAuthChange } from '../../auth/utils/authEvents'
 import { ROUTES } from '../../routes/paths'
 
 function ProfileTopNav() {
@@ -9,6 +10,7 @@ function ProfileTopNav() {
   const handleLogout = () => {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('userName')
+    emitAuthChange()
     navigate(ROUTES.login, { replace: true })
   }
 
@@ -33,6 +35,9 @@ function ProfileTopNav() {
           </NavLink>
           <NavLink to={ROUTES.community} className={({ isActive }) => `profile-nav-link ${isActive ? 'active' : ''}`}>
             커뮤니티
+          </NavLink>
+          <NavLink to={ROUTES.reports} className={({ isActive }) => `profile-nav-link ${isActive ? 'active' : ''}`}>
+            내 리포트
           </NavLink>
         </nav>
       </div>

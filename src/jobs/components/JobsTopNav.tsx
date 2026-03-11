@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
+import { AUTH_CHANGE_EVENT, emitAuthChange } from '../../auth/utils/authEvents'
 import { ROUTES } from '../../routes/paths'
 
 type JobsTopNavProps = {
@@ -17,9 +18,11 @@ function JobsTopNav({ rightSlot }: JobsTopNavProps) {
     }
 
     syncLoginStatus()
+    window.addEventListener(AUTH_CHANGE_EVENT, syncLoginStatus)
     window.addEventListener('storage', syncLoginStatus)
 
     return () => {
+      window.removeEventListener(AUTH_CHANGE_EVENT, syncLoginStatus)
       window.removeEventListener('storage', syncLoginStatus)
     }
   }, [])
@@ -33,6 +36,7 @@ function JobsTopNav({ rightSlot }: JobsTopNavProps) {
   const handleLogout = () => {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('userName')
+    emitAuthChange()
     setIsLoggedIn(false)
     navigate(ROUTES.login, { replace: true })
   }
@@ -59,6 +63,11 @@ function JobsTopNav({ rightSlot }: JobsTopNavProps) {
           <NavLink to={ROUTES.community} className={({ isActive }) => `nav-link ${isActive ? 'nav-link-active' : ''}`}>
             커뮤니티
           </NavLink>
+          {isLoggedIn ? (
+            <NavLink to={ROUTES.reports} className={({ isActive }) => `nav-link ${isActive ? 'nav-link-active' : ''}`}>
+              내 리포트
+            </NavLink>
+          ) : null}
         </nav>
       </div>
 
