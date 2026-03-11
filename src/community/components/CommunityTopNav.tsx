@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { AUTH_CHANGE_EVENT, emitAuthChange } from '../../auth/utils/authEvents'
 import { ROUTES } from '../../routes/paths'
 
 function CommunityTopNav() {
@@ -12,9 +13,11 @@ function CommunityTopNav() {
     }
 
     syncLoginStatus()
+    window.addEventListener(AUTH_CHANGE_EVENT, syncLoginStatus)
     window.addEventListener('storage', syncLoginStatus)
 
     return () => {
+      window.removeEventListener(AUTH_CHANGE_EVENT, syncLoginStatus)
       window.removeEventListener('storage', syncLoginStatus)
     }
   }, [])
@@ -28,6 +31,7 @@ function CommunityTopNav() {
   const handleLogout = () => {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('userName')
+    emitAuthChange()
     setIsLoggedIn(false)
     navigate(ROUTES.login, { replace: true })
   }

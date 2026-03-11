@@ -24,6 +24,7 @@ function CommunityDetailPage() {
   const [comments, setComments] = useState<CommunityComment[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isLoggedIn, setIsLoggedIn] = useState(Boolean(localStorage.getItem('accessToken')))
+  const [currentUserName, setCurrentUserName] = useState(localStorage.getItem('userName')?.trim() ?? '')
   const [commentInput, setCommentInput] = useState('')
   const [replyInput, setReplyInput] = useState('')
   const [replyingToId, setReplyingToId] = useState<string | null>(null)
@@ -32,6 +33,7 @@ function CommunityDetailPage() {
   useEffect(() => {
     const syncLoginStatus = () => {
       setIsLoggedIn(Boolean(localStorage.getItem('accessToken')))
+      setCurrentUserName(localStorage.getItem('userName')?.trim() ?? '')
     }
 
     syncLoginStatus()
@@ -107,6 +109,8 @@ function CommunityDetailPage() {
   }, [post])
 
   const rootComments = useMemo(() => comments.filter((comment) => comment.depth === 0), [comments])
+  const canDeleteComment = (comment: CommunityComment) =>
+    isLoggedIn && Boolean(currentUserName) && comment.author.trim() === currentUserName
 
   const getRepliesByParentId = (parentId: string) => comments.filter((comment) => comment.depth === 1 && comment.parentId === parentId)
 
@@ -178,12 +182,12 @@ function CommunityDetailPage() {
 
   const createComment = async (parentId: string | null, content: string) => {
     if (!post || !content.trim()) {
-      return
+      return false
     }
 
     if (!isLoggedIn) {
       navigate('/login', { state: { from: { pathname: `/community/${id}` } } })
-      return
+      return false
     }
 
     setIsCommentSubmitting(true)
@@ -191,16 +195,12 @@ function CommunityDetailPage() {
     try {
       const response = await addCommunityComment(post.id, { content: content.trim(), parentId })
       setComments((current) => [...current, response])
+      return true
     } catch {
-      const fallbackComment: CommunityComment = {
-        id: `local-${Date.now()}`,
-        author: '나',
-        content: content.trim(),
-        depth: parentId ? 1 : 0,
-        parentId,
-        createdAt: new Date().toISOString(),
+      if (localStorage.getItem('accessToken') === null) {
+        navigate('/login', { state: { from: { pathname: `/community/${id}` } } })
       }
-      setComments((current) => [...current, fallbackComment])
+      return false
     } finally {
       setIsCommentSubmitting(false)
     }
@@ -208,8 +208,10 @@ function CommunityDetailPage() {
 
   const handleCreateRootComment = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    await createComment(null, commentInput)
-    setCommentInput('')
+    const isCreated = await createComment(null, commentInput)
+    if (isCreated) {
+      setCommentInput('')
+    }
   }
 
   const handleCreateReply = async (event: FormEvent<HTMLFormElement>) => {
@@ -219,9 +221,11 @@ function CommunityDetailPage() {
       return
     }
 
-    await createComment(replyingToId, replyInput)
-    setReplyInput('')
-    setReplyingToId(null)
+    const isCreated = await createComment(replyingToId, replyInput)
+    if (isCreated) {
+      setReplyInput('')
+      setReplyingToId(null)
+    }
   }
 
   const handleReplyToggle = (commentId: string) => {
@@ -319,7 +323,7 @@ function CommunityDetailPage() {
                       comment={comment}
                       canReply={isLoggedIn}
                       canReport={isLoggedIn}
-                      canDelete={isLoggedIn}
+                      canDelete={canDeleteComment(comment)}
                       isReplying={replyingToId === comment.id}
                       onReplyToggle={handleReplyToggle}
                       onReport={handleReportComment}
@@ -348,7 +352,7 @@ function CommunityDetailPage() {
                         isReply
                         canReply={false}
                         canReport={isLoggedIn}
-                        canDelete={isLoggedIn}
+                        canDelete={canDeleteComment(reply)}
                         onReplyToggle={handleReplyToggle}
                         onReport={handleReportComment}
                         onDelete={handleDeleteComment}

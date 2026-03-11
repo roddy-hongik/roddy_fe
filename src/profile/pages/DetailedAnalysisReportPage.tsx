@@ -20,7 +20,9 @@ function DetailedAnalysisReportPage() {
   useEffect(() => {
     let isMounted = true
 
-    const reportPromise = reportId ? getDetailedReport(Number(reportId)) : getLatestDetailedReport()
+    const parsedReportId = reportId ? Number(reportId) : null
+    const isValidReportId = parsedReportId !== null && Number.isInteger(parsedReportId) && Number.isFinite(parsedReportId)
+    const reportPromise = isValidReportId ? getDetailedReport(parsedReportId) : getLatestDetailedReport()
 
     reportPromise
       .then((data) => {

@@ -1,14 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { getJobPostingMatch } from '../../api/services/jobService'
 import { ROUTES } from '../../routes/paths'
+import { AUTH_CHANGE_EVENT } from '../../auth/utils/authEvents'
 import JobsTopNav from '../components/JobsTopNav'
 import { jobPostings } from '../data/jobPostings'
+import type { JobPostingMatch } from '../types/jobMatching'
 import '../styles/job-pages.css'
 
 function JobPostingDetailPage() {
   const navigate = useNavigate()
   const { jobId } = useParams()
   const [isLoggedIn, setIsLoggedIn] = useState(Boolean(localStorage.getItem('accessToken')))
+  const [jobMatch, setJobMatch] = useState<JobPostingMatch | null>(null)
+  const [isJobMatchLoading, setIsJobMatchLoading] = useState(false)
 
   const job = useMemo(() => jobPostings.find((item) => item.id === jobId) ?? jobPostings[0], [jobId])
 
@@ -18,17 +23,59 @@ function JobPostingDetailPage() {
     }
 
     syncLoginStatus()
+    window.addEventListener(AUTH_CHANGE_EVENT, syncLoginStatus)
     window.addEventListener('storage', syncLoginStatus)
 
     return () => {
+      window.removeEventListener(AUTH_CHANGE_EVENT, syncLoginStatus)
       window.removeEventListener('storage', syncLoginStatus)
     }
   }, [])
 
   const averageGap = useMemo(() => {
-    const totalGap = job.matchingInsights.reduce((acc, item) => acc + (item.userScore - item.requiredScore), 0)
-    return Math.round(totalGap / job.matchingInsights.length)
-  }, [job.matchingInsights])
+    if (!jobMatch || jobMatch.matchingInsights.length === 0) {
+      return null
+    }
+
+    const totalGap = jobMatch.matchingInsights.reduce((acc, item) => acc + (item.userScore - item.requiredScore), 0)
+    return Math.round(totalGap / jobMatch.matchingInsights.length)
+  }, [jobMatch])
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setJobMatch(null)
+      setIsJobMatchLoading(false)
+      return
+    }
+
+    let isMounted = true
+    setIsJobMatchLoading(true)
+
+    getJobPostingMatch(job.id)
+      .then((response) => {
+        if (!isMounted) {
+          return
+        }
+
+        setJobMatch(response)
+      })
+      .catch(() => {
+        if (!isMounted) {
+          return
+        }
+
+        setJobMatch(null)
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsJobMatchLoading(false)
+        }
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [isLoggedIn, job.id])
 
   return (
     <main className="jobs-page detail-page">
@@ -45,7 +92,7 @@ function JobPostingDetailPage() {
           <div className="detail-badge-row">
             <span>{job.workType}</span>
             <span>마감 {job.deadline}</span>
-            {isLoggedIn ? <span>매칭률 {job.matchRate}%</span> : null}
+            {isLoggedIn && jobMatch ? <span>매칭률 {jobMatch.matchRate}%</span> : null}
           </div>
 
           <h1>{job.title}</h1>
@@ -56,10 +103,16 @@ function JobPostingDetailPage() {
             <div>
               <p className="label">지금 공고와 사용자 스택 적합도</p>
               {isLoggedIn ? (
-                <>
-                  <strong className="hero-match">{job.matchRate}% Match</strong>
-                  <p className="detail-note">핵심 스택 평균 대비 {averageGap >= 0 ? `+${averageGap}` : averageGap}점</p>
-                </>
+                isJobMatchLoading ? (
+                  <p className="detail-note">매칭 분석을 불러오는 중입니다.</p>
+                ) : jobMatch && averageGap !== null ? (
+                  <>
+                    <strong className="hero-match">{jobMatch.matchRate}% Match</strong>
+                    <p className="detail-note">핵심 스택 평균 대비 {averageGap >= 0 ? `+${averageGap}` : averageGap}점</p>
+                  </>
+                ) : (
+                  <p className="detail-note">개인화된 매칭 분석을 아직 불러오지 못했습니다.</p>
+                )
               ) : (
                 <p className="detail-note">로그인 후 내 기술 스택과의 매칭률을 확인할 수 있습니다.</p>
               )}
@@ -72,26 +125,32 @@ function JobPostingDetailPage() {
           {isLoggedIn ? (
             <section className="detail-section">
               <h2>기술 스택 매칭 분석</h2>
-              <div className="stack-fit-list">
-                {job.matchingInsights.map((insight) => {
-                  const percentage = Math.max(insight.userScore, insight.requiredScore)
-                  const scoreLine = Math.min(insight.userScore, 100)
-                  return (
-                    <article key={insight.stack} className="stack-fit-card">
-                      <div className="stack-fit-head">
-                        <h3>{insight.stack}</h3>
-                        <p>
-                          사용자 {insight.userScore} / 요구 {insight.requiredScore}
-                        </p>
-                      </div>
-                      <div className="stack-progress-track" aria-hidden="true" style={{ width: `${percentage}%` }}>
-                        <span style={{ width: `${scoreLine}%` }} />
-                      </div>
-                      <p className="stack-note">{insight.note}</p>
-                    </article>
-                  )
-                })}
-              </div>
+              {isJobMatchLoading ? (
+                <p className="detail-note">매칭 분석을 준비하고 있습니다.</p>
+              ) : jobMatch ? (
+                <div className="stack-fit-list">
+                  {jobMatch.matchingInsights.map((insight) => {
+                    const percentage = Math.max(insight.userScore, insight.requiredScore)
+                    const scoreLine = Math.min(insight.userScore, 100)
+                    return (
+                      <article key={insight.stack} className="stack-fit-card">
+                        <div className="stack-fit-head">
+                          <h3>{insight.stack}</h3>
+                          <p>
+                            사용자 {insight.userScore} / 요구 {insight.requiredScore}
+                          </p>
+                        </div>
+                        <div className="stack-progress-track" aria-hidden="true" style={{ width: `${percentage}%` }}>
+                          <span style={{ width: `${scoreLine}%` }} />
+                        </div>
+                        <p className="stack-note">{insight.note}</p>
+                      </article>
+                    )
+                  })}
+                </div>
+              ) : (
+                <p className="detail-note">로그인은 확인되었지만 개인화된 매칭 데이터를 가져오지 못했습니다.</p>
+              )}
             </section>
           ) : null}
 

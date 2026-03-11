@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PolarAngleAxis, PolarGrid, Radar, RadarChart, ResponsiveContainer, Tooltip } from 'recharts'
 import { getDashboardData } from '../../api/services/dashboardService'
+import { AUTH_CHANGE_EVENT, emitAuthChange } from '../../auth/utils/authEvents'
 import { ROUTES, routePaths } from '../../routes/paths'
 import type { DashboardData } from '../../api/types/dashboard'
 import '../styles/main-page.css'
@@ -42,9 +43,11 @@ function MainPage() {
     }
 
     syncLoginStatus()
+    window.addEventListener(AUTH_CHANGE_EVENT, syncLoginStatus)
     window.addEventListener('storage', syncLoginStatus)
 
     return () => {
+      window.removeEventListener(AUTH_CHANGE_EVENT, syncLoginStatus)
       window.removeEventListener('storage', syncLoginStatus)
     }
   }, [])
@@ -95,6 +98,7 @@ function MainPage() {
   const handleLogout = () => {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('userName')
+    emitAuthChange()
     setIsLoggedIn(false)
     navigate(ROUTES.login, { replace: true })
   }

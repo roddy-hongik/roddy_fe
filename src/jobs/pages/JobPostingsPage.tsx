@@ -100,7 +100,7 @@ function JobPostingsPage() {
                     <p className="meta">
                       {job.location} · {job.experience}
                     </p>
-                    {isLoggedIn ? <p className="match">매칭률 {job.matchRate}%</p> : null}
+                    <p className="match">{isLoggedIn ? '상세에서 매칭 분석 확인' : '로그인 후 매칭 분석 확인'}</p>
                     <p className="deadline">마감 {job.deadline}</p>
                   </article>
                 ))}
@@ -119,7 +119,7 @@ function JobPostingsPage() {
                   <strong>{job.title}</strong>
                   <span>{job.experience}</span>
                   <span>{job.location}</span>
-                  <span className="row-match">{isLoggedIn ? `${job.matchRate}%` : '-'}</span>
+                  <span className="row-match">{isLoggedIn ? '상세 보기' : '-'}</span>
                 </button>
               ))}
             </div>

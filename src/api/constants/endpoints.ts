@@ -6,6 +6,9 @@ export const API_ENDPOINTS = {
   dashboard: {
     summary: '/dashboard/summary',
   },
+  jobs: {
+    match: '/jobs/:id/match',
+  },
   profile: {
     summary: '/profile',
     update: '/profile',
