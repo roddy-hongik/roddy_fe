@@ -45,8 +45,13 @@ function NotificationsPage() {
                 <p>맞춤 공고와 성장 리포트 알림을 한곳에서 관리하세요.</p>
               </div>
               <div className="notification-page-actions">
-                <span className="notification-summary-pill">읽지 않음 {unreadCount}</span>
-                <button type="button" className="profile-action-btn" disabled={isUpdating || unreadCount === 0} onClick={() => void markAllAsRead()}>
+                <span className="notification-toolbar-chip">읽지 않음 {unreadCount}</span>
+                <button
+                  type="button"
+                  className="notification-toolbar-button"
+                  disabled={isUpdating || unreadCount === 0}
+                  onClick={() => void markAllAsRead()}
+                >
                   모두 읽음 처리
                 </button>
               </div>
