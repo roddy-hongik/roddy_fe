@@ -1,0 +1,201 @@
+.mock-interview-card {
+  padding: clamp(20px, 3.2vw, 30px);
+}
+
+.mock-interview-grid {
+  margin-top: 20px;
+  display: grid;
+  gap: 14px;
+}
+
+.mock-summary-card,
+.mock-panel {
+  border-radius: 16px;
+  padding: 18px;
+}
+
+.mock-summary-card h2,
+.mock-panel h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.mock-summary-grid {
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.mock-summary-grid article {
+  border: 1px solid rgba(124, 163, 255, 0.22);
+  border-radius: 12px;
+  background: rgba(10, 20, 45, 0.62);
+  padding: 12px;
+}
+
+.mock-summary-grid h3 {
+  margin: 0;
+  color: #a3bae9;
+  font-size: 0.9rem;
+}
+
+.mock-summary-grid p {
+  margin: 8px 0 0;
+  line-height: 1.5;
+}
+
+.mock-ai-guide {
+  margin: 10px 0 0;
+  color: #c3d5f8;
+}
+
+.mock-question-list {
+  margin-top: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.mock-question-item {
+  border: 1px solid rgba(124, 163, 255, 0.22);
+  border-radius: 12px;
+  background: rgba(9, 18, 43, 0.66);
+  padding: 12px;
+}
+
+.mock-question-item.active {
+  border-color: rgba(149, 178, 255, 0.82);
+  box-shadow: 0 0 0 1px rgba(149, 178, 255, 0.22);
+}
+
+.mock-question-bubble {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.mock-question-order {
+  min-width: 34px;
+  height: 24px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  border: 1px solid rgba(143, 173, 255, 0.4);
+  background: rgba(51, 94, 220, 0.24);
+  color: #dbe7ff;
+}
+
+.mock-question-bubble p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.mock-answer-field {
+  margin-top: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.mock-answer-field span {
+  font-size: 0.85rem;
+  color: #aec2eb;
+}
+
+.mock-answer-field textarea {
+  border-radius: 10px;
+  border: 1px solid rgba(114, 142, 224, 0.35);
+  background: rgba(7, 15, 36, 0.85);
+  color: #eef3ff;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.mock-answer-field textarea:focus {
+  outline: none;
+  border-color: rgba(146, 173, 255, 0.8);
+  box-shadow: 0 0 0 3px rgba(104, 142, 255, 0.18);
+}
+
+.mock-actions-row {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mock-actions-row .profile-action-btn,
+.mock-actions-row .profile-ghost-btn {
+  margin-top: 0;
+}
+
+.mock-finish-note {
+  margin: 10px 0 0;
+  color: #90bcff;
+  font-size: 0.9rem;
+}
+
+.mock-roadmap-link-btn {
+  margin-top: 12px;
+}
+
+.mock-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mock-panel-head .profile-action-btn {
+  margin-top: 0;
+}
+
+.mock-roadmap-title {
+  margin: 14px 0 0;
+  font-size: 1rem;
+}
+
+.mock-roadmap-steps {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.mock-roadmap-step {
+  border: 1px solid rgba(124, 163, 255, 0.22);
+  border-radius: 12px;
+  background: rgba(10, 20, 45, 0.62);
+  padding: 12px;
+}
+
+.mock-roadmap-step h4 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.mock-step-goal,
+.mock-step-label,
+.mock-step-output {
+  margin: 10px 0 0;
+  color: #c7d7f8;
+}
+
+.mock-roadmap-step ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: #dce8ff;
+}
+
+@media (max-width: 860px) {
+  .mock-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mock-panel-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

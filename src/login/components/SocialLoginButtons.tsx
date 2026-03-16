@@ -16,6 +16,7 @@ function SocialLoginButtons() {
   const handleLoginClick = () => {
     localStorage.setItem('accessToken', 'mock-access-token')
     localStorage.setItem('userName', '신애')
+    localStorage.setItem('userRole', 'admin')
     emitAuthChange()
     navigate(redirectPath, { replace: true })
   }

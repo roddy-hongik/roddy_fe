@@ -28,6 +28,7 @@ function JobsTopNav({ rightSlot }: JobsTopNavProps) {
   }, [])
 
   const userName = useMemo(() => localStorage.getItem('userName') ?? '신애', [])
+  const isAdmin = useMemo(() => localStorage.getItem('userRole') === 'admin' || userName === '신애', [userName])
 
   const handleLoginRedirect = () => {
     navigate(ROUTES.login, { state: { from: { pathname: ROUTES.jobs } } })
@@ -36,6 +37,7 @@ function JobsTopNav({ rightSlot }: JobsTopNavProps) {
   const handleLogout = () => {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('userName')
+    localStorage.removeItem('userRole')
     emitAuthChange()
     setIsLoggedIn(false)
     navigate(ROUTES.login, { replace: true })
@@ -60,12 +62,23 @@ function JobsTopNav({ rightSlot }: JobsTopNavProps) {
           <NavLink to={ROUTES.jobs} className={({ isActive }) => `nav-link ${isActive ? 'nav-link-active' : ''}`}>
             채용공고
           </NavLink>
+          <NavLink to={ROUTES.mockInterview} className={({ isActive }) => `nav-link ${isActive ? 'nav-link-active' : ''}`}>
+            모의면접
+          </NavLink>
+          <NavLink to={ROUTES.roadmap} className={({ isActive }) => `nav-link ${isActive ? 'nav-link-active' : ''}`}>
+            로드맵
+          </NavLink>
           <NavLink to={ROUTES.community} className={({ isActive }) => `nav-link ${isActive ? 'nav-link-active' : ''}`}>
             커뮤니티
           </NavLink>
           {isLoggedIn ? (
             <NavLink to={ROUTES.reports} className={({ isActive }) => `nav-link ${isActive ? 'nav-link-active' : ''}`}>
               내 리포트
+            </NavLink>
+          ) : null}
+          {isLoggedIn && isAdmin ? (
+            <NavLink to={ROUTES.adminCrawling} className={({ isActive }) => `nav-link ${isActive ? 'nav-link-active' : ''}`}>
+              관리자
             </NavLink>
           ) : null}
         </nav>

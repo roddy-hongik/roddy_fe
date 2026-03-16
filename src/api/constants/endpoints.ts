@@ -25,4 +25,16 @@ export const API_ENDPOINTS = {
     posts: '/community/posts',
     comments: '/community/comments',
   },
+  admin: {
+    crawlingDashboard: '/admin/crawling/dashboard',
+    users: '/admin/users',
+    reportedContents: '/admin/reported-contents',
+    graphSearch: '/admin/graph/search',
+    graphEdges: '/admin/graph/edges',
+  },
+  roadmap: {
+    summary: '/roadmap/summary',
+    generate: '/roadmap/generate',
+    saved: '/roadmap/saved',
+  },
 } as const
