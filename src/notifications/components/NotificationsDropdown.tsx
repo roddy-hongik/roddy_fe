@@ -20,6 +20,7 @@ function NotificationsDropdown() {
   const panelRef = useRef<HTMLDivElement | null>(null)
   const [isOpen, setIsOpen] = useState(false)
   const { notifications, unreadCount, isLoading, isError, isUpdating, markAsRead, markAllAsRead } = useNotifications()
+  const recentNotifications = notifications.slice(0, 3)
 
   useEffect(() => {
     if (!isOpen) {
@@ -83,7 +84,7 @@ function NotificationsDropdown() {
             {isLoading ? <p className="notification-status">알림을 불러오는 중입니다...</p> : null}
             {!isLoading && isError ? <p className="notification-status">알림을 불러오지 못했습니다.</p> : null}
             {!isLoading && !isError && notifications.length === 0 ? <p className="notification-status">새 알림이 없습니다.</p> : null}
-            {!isLoading && !isError && notifications.slice(0, 5).map((notification) => (
+            {!isLoading && !isError && recentNotifications.map((notification) => (
               <NotificationListItem key={notification.id} notification={notification} onClick={(item) => void handleNotificationClick(item)} />
             ))}
           </div>
