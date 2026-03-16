@@ -1,5 +1,6 @@
 import { mockNotifications } from '../data/mockNotifications'
 import type { NotificationItem } from '../types/notification'
+import { getCurrentAccountStorageId } from '../../auth/utils/accountStorage'
 import { cloneValue, emitRoddyDataChange, parseStoredJson } from '../../shared/utils/localStorageSync'
 
 const NOTIFICATIONS_STORAGE_KEY = 'roddy.notifications.v1'
@@ -9,17 +10,19 @@ const wait = (ms: number) =>
     window.setTimeout(resolve, ms)
   })
 
+const getNotificationsStorageKey = () => `${NOTIFICATIONS_STORAGE_KEY}:${getCurrentAccountStorageId()}`
+
 function readStoredNotifications() {
-  return parseStoredJson<NotificationItem[]>(localStorage.getItem(NOTIFICATIONS_STORAGE_KEY), cloneValue(mockNotifications))
+  return parseStoredJson<NotificationItem[]>(localStorage.getItem(getNotificationsStorageKey()), cloneValue(mockNotifications))
 }
 
-function writeStoredNotifications(notifications: NotificationItem[]) {
-  localStorage.setItem(NOTIFICATIONS_STORAGE_KEY, JSON.stringify(notifications))
-  emitRoddyDataChange(NOTIFICATIONS_STORAGE_KEY)
+function writeStoredNotifications(notifications: NotificationItem[], senderId?: string) {
+  localStorage.setItem(getNotificationsStorageKey(), JSON.stringify(notifications))
+  emitRoddyDataChange(NOTIFICATIONS_STORAGE_KEY, senderId)
 }
 
 function ensureSeedData() {
-  if (!localStorage.getItem(NOTIFICATIONS_STORAGE_KEY)) {
+  if (!localStorage.getItem(getNotificationsStorageKey())) {
     writeStoredNotifications(cloneValue(mockNotifications))
   }
 }
@@ -30,7 +33,7 @@ export async function getNotifications(): Promise<NotificationItem[]> {
   return readStoredNotifications().sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
 }
 
-export async function markNotificationAsRead(notificationId: string): Promise<NotificationItem[]> {
+export async function markNotificationAsRead(notificationId: string, senderId?: string): Promise<NotificationItem[]> {
   ensureSeedData()
   await wait(80)
 
@@ -38,11 +41,11 @@ export async function markNotificationAsRead(notificationId: string): Promise<No
     notification.id === notificationId ? { ...notification, isRead: true } : notification,
   )
 
-  writeStoredNotifications(notifications)
+  writeStoredNotifications(notifications, senderId)
   return notifications
 }
 
-export async function markAllNotificationsAsRead(): Promise<NotificationItem[]> {
+export async function markAllNotificationsAsRead(senderId?: string): Promise<NotificationItem[]> {
   ensureSeedData()
   await wait(100)
 
@@ -51,6 +54,8 @@ export async function markAllNotificationsAsRead(): Promise<NotificationItem[]> 
     isRead: true,
   }))
 
-  writeStoredNotifications(notifications)
+  writeStoredNotifications(notifications, senderId)
   return notifications
 }
+
+export { NOTIFICATIONS_STORAGE_KEY, getNotificationsStorageKey }

@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
-import { isJobScrapped, toggleJobScrap } from '../services/jobScrapService'
+import { AUTH_CHANGE_EVENT } from '../../auth/utils/authEvents'
+import { isJobScrapped, JOB_SCRAP_STORAGE_KEY, toggleJobScrap, getJobScrapStorageKey } from '../services/jobScrapService'
 import { RODDY_DATA_CHANGE_EVENT } from '../../shared/utils/localStorageSync'
-
-const JOB_SCRAP_STORAGE_KEY = 'roddy.jobs.scraps.v1'
 
 export function useJobScrap(jobId: string) {
   const [isScrapped, setIsScrapped] = useState(() => isJobScrapped(jobId))
@@ -22,12 +21,22 @@ export function useJobScrap(jobId: string) {
       }
     }
 
-    window.addEventListener('storage', syncState)
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key !== null && event.key !== getJobScrapStorageKey()) {
+        return
+      }
+
+      syncState()
+    }
+
+    window.addEventListener('storage', handleStorageChange)
     window.addEventListener(RODDY_DATA_CHANGE_EVENT, handleDataChange)
+    window.addEventListener(AUTH_CHANGE_EVENT, syncState)
 
     return () => {
-      window.removeEventListener('storage', syncState)
+      window.removeEventListener('storage', handleStorageChange)
       window.removeEventListener(RODDY_DATA_CHANGE_EVENT, handleDataChange)
+      window.removeEventListener(AUTH_CHANGE_EVENT, syncState)
     }
   }, [jobId])
 

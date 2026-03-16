@@ -8,6 +8,7 @@ import { getRoadmapShareCandidates } from '../services/roadmapShareService'
 import type { CommunityPostType, InterviewSubtype, JobTrackTagKey, RoadmapShareCandidate } from '../types/community'
 import { normalizeTagInput } from '../utils/communityFormat'
 import '../styles/community-pages.css'
+import type { CreateCommunityPostPayload } from '../types/community'
 
 function CommunityWritePage() {
   const navigate = useNavigate()
@@ -144,6 +145,46 @@ function CommunityWritePage() {
     return true
   }
 
+  const buildGeneralPayload = (): CreateCommunityPostPayload => ({
+    type: 'general',
+    tag: selectedTag,
+    title: title.trim(),
+    content: content.trim(),
+    image: imageFile,
+  })
+
+  const buildRoadmapPayload = (): CreateCommunityPostPayload => ({
+    type: 'roadmap',
+    tag: selectedTag,
+    title: title.trim(),
+    summary: roadmapSummary.trim(),
+    description: roadmapSummary.trim(),
+    roadmapId: selectedRoadmap!.id,
+    roadmapTitle: selectedRoadmap!.roadmapTitle,
+    targetJob: selectedRoadmap!.targetJob,
+    targetCompany: selectedRoadmap!.targetCompany,
+    recommendedSkills: selectedRoadmap!.recommendedSkills,
+    roadmapSteps: selectedRoadmap!.roadmapSteps,
+    tags: normalizeTagInput(roadmapTagInput),
+  })
+
+  const buildInterviewPayload = (): CreateCommunityPostPayload => ({
+    type: 'interview',
+    tag: selectedTag,
+    title: title.trim(),
+    subtype: interviewSubtype,
+    company: company.trim(),
+    jobRole: jobRole.trim(),
+    preparationPeriod: preparationPeriod.trim(),
+    techStacks: normalizeTagInput(techStacksInput),
+    processSummary: processSummary.trim(),
+    background: background.trim(),
+    preparationProcess: preparationProcess.trim(),
+    experienceDetail: experienceDetail.trim(),
+    advice: advice.trim(),
+    tags: normalizeTagInput(interviewTagInput),
+  })
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
@@ -154,46 +195,13 @@ function CommunityWritePage() {
     setIsSubmitting(true)
 
     try {
-      const response =
+      const payload =
         postType === 'general'
-          ? await createCommunityPost({
-              type: 'general',
-              tag: selectedTag,
-              title: title.trim(),
-              content: content.trim(),
-              image: imageFile,
-            })
+          ? buildGeneralPayload()
           : postType === 'roadmap' && selectedRoadmap
-            ? await createCommunityPost({
-                type: 'roadmap',
-                tag: selectedTag,
-                title: title.trim(),
-                summary: roadmapSummary.trim(),
-                description: roadmapSummary.trim(),
-                roadmapId: selectedRoadmap.id,
-                roadmapTitle: selectedRoadmap.roadmapTitle,
-                targetJob: selectedRoadmap.targetJob,
-                targetCompany: selectedRoadmap.targetCompany,
-                recommendedSkills: selectedRoadmap.recommendedSkills,
-                roadmapSteps: selectedRoadmap.roadmapSteps,
-                tags: normalizeTagInput(roadmapTagInput),
-              })
-            : await createCommunityPost({
-                type: 'interview',
-                tag: selectedTag,
-                title: title.trim(),
-                subtype: interviewSubtype,
-                company: company.trim(),
-                jobRole: jobRole.trim(),
-                preparationPeriod: preparationPeriod.trim(),
-                techStacks: normalizeTagInput(techStacksInput),
-                processSummary: processSummary.trim(),
-                background: background.trim(),
-                preparationProcess: preparationProcess.trim(),
-                experienceDetail: experienceDetail.trim(),
-                advice: advice.trim(),
-                tags: normalizeTagInput(interviewTagInput),
-              })
+            ? buildRoadmapPayload()
+            : buildInterviewPayload()
+      const response = await createCommunityPost(payload)
 
       navigate(`/community/${response.id}`)
     } catch {

@@ -143,7 +143,7 @@
 .notification-unread-dot {
   width: 8px;
   height: 8px;
-  border-radius: 50%;
+  border-radius: 999px;
   background: #80b5ff;
 }
 
@@ -287,14 +287,11 @@
 @media (max-width: 860px) {
   .notification-page-header {
     width: 100%;
+    flex-direction: column;
   }
 
   .notification-panel {
     width: auto;
     max-width: calc(100vw - 32px);
-  }
-
-  .notification-page-header {
-    flex-direction: column;
   }
 }

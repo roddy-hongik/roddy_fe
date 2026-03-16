@@ -111,7 +111,13 @@ function JobPostingsPage() {
                     <p className="meta">
                       {job.location} · {job.experience}
                     </p>
-                    <p className="match">{isLoggedIn && job.matchingScore ? `매칭률 ${job.matchingScore}%` : isLoggedIn ? '상세에서 매칭 분석 확인' : '로그인 후 매칭 분석 확인'}</p>
+                    <p className="match">
+                      {isLoggedIn && job.matchingScore != null
+                        ? `매칭률 ${job.matchingScore}%`
+                        : isLoggedIn
+                          ? '상세에서 매칭 분석 확인'
+                          : '로그인 후 매칭 분석 확인'}
+                    </p>
                     <p className="deadline">등록 {formatDateLabel(job.postedAt)} · 마감 {job.deadline}</p>
                   </article>
                 ))}
@@ -131,7 +137,7 @@ function JobPostingsPage() {
                     <strong>{job.title}</strong>
                     <span>{job.experience}</span>
                     <span>{job.location}</span>
-                    <span className="row-match">{isLoggedIn && job.matchingScore ? `${job.matchingScore}%` : isLoggedIn ? '상세 보기' : '-'}</span>
+                    <span className="row-match">{isLoggedIn && job.matchingScore != null ? `${job.matchingScore}%` : isLoggedIn ? '상세 보기' : '-'}</span>
                   </button>
                   <JobScrapButton jobId={job.id} className="jobs-row-scrap-button" />
                 </article>

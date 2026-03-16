@@ -129,12 +129,18 @@ const matchesFilters = (post: CommunityPostSummary, filters: CommunityPostFilter
     return false
   }
 
-  if (filters.company && post.type === 'interview' && post.company !== filters.company) {
-    return false
-  }
+  if (filters.company) {
+    if (post.type === 'interview' && post.company !== filters.company) {
+      return false
+    }
 
-  if (filters.company && post.type !== 'interview') {
-    return false
+    if (post.type === 'roadmap' && post.targetCompany !== filters.company) {
+      return false
+    }
+
+    if (post.type !== 'interview' && post.type !== 'roadmap') {
+      return false
+    }
   }
 
   if (filters.jobRole) {

@@ -67,7 +67,21 @@ function CommunityListPage() {
 
   const companyOptions = useMemo(
     () =>
-      Array.from(new Set(posts.filter((post) => post.type === 'interview').map((post) => post.company))).sort((a, b) => a.localeCompare(b, 'ko')),
+      Array.from(
+        new Set(
+          posts.flatMap((post) => {
+            if (post.type === 'interview') {
+              return [post.company]
+            }
+
+            if (post.type === 'roadmap' && post.targetCompany) {
+              return [post.targetCompany]
+            }
+
+            return []
+          }),
+        ),
+      ).sort((a, b) => a.localeCompare(b, 'ko')),
     [posts],
   )
 
@@ -124,7 +138,15 @@ function CommunityListPage() {
       }
 
       if (selectedCompany) {
-        if (post.type !== 'interview' || post.company !== selectedCompany) {
+        if (post.type === 'interview' && post.company !== selectedCompany) {
+          return false
+        }
+
+        if (post.type === 'roadmap' && post.targetCompany !== selectedCompany) {
+          return false
+        }
+
+        if (post.type !== 'interview' && post.type !== 'roadmap') {
           return false
         }
       }
@@ -189,6 +211,9 @@ function CommunityListPage() {
 
     if (tab !== 'interview') {
       setSelectedCompany('')
+    }
+
+    if (tab === 'general' || tab === 'all') {
       setSelectedJob('')
       setSelectedTech('')
     }

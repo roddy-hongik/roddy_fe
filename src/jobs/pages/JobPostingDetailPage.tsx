@@ -53,11 +53,7 @@ function JobPostingDetailPage() {
 
     let isMounted = true
     setJobMatch(null)
-    const loadingTimer = window.setTimeout(() => {
-      if (isMounted) {
-        setIsJobMatchLoading(true)
-      }
-    }, 0)
+    setIsJobMatchLoading(true)
 
     getJobPostingMatch(job.id)
       .then((response) => {
@@ -82,7 +78,6 @@ function JobPostingDetailPage() {
 
     return () => {
       isMounted = false
-      window.clearTimeout(loadingTimer)
     }
   }, [isLoggedIn, job.id])
 
@@ -104,7 +99,7 @@ function JobPostingDetailPage() {
           <div className="detail-badge-row">
             <span>{job.workType}</span>
             <span>마감 {job.deadline}</span>
-            {jobPreview.matchingScore ? <span>추천 매칭률 {jobPreview.matchingScore}%</span> : null}
+            {jobPreview.matchingScore != null ? <span>추천 매칭률 {jobPreview.matchingScore}%</span> : null}
             {isLoggedIn && resolvedJobMatch ? <span>매칭률 {resolvedJobMatch.matchRate}%</span> : null}
           </div>
 

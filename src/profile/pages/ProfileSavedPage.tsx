@@ -23,7 +23,6 @@ function ProfileSavedPage() {
 
   useEffect(() => {
     let isMounted = true
-    let refreshTimer: number | undefined
 
     const loadSavedContents = async () => {
       setIsLoading(true)
@@ -59,10 +58,7 @@ function ProfileSavedPage() {
     void loadSavedContents()
 
     const refreshSavedContents = () => {
-      window.clearTimeout(refreshTimer)
-      refreshTimer = window.setTimeout(() => {
-        void loadSavedContents()
-      }, 0)
+      void loadSavedContents()
     }
 
     const handleDataChange = (event: Event) => {
@@ -77,7 +73,6 @@ function ProfileSavedPage() {
 
     return () => {
       isMounted = false
-      window.clearTimeout(refreshTimer)
       window.removeEventListener(RODDY_DATA_CHANGE_EVENT, handleDataChange)
       window.removeEventListener('storage', refreshSavedContents)
     }

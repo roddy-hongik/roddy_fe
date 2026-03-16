@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PolarAngleAxis, PolarGrid, Radar, RadarChart, ResponsiveContainer, Tooltip } from 'recharts'
 import { getDashboardData } from '../../api/services/dashboardService'
+import { getCurrentAccountStorageId } from '../../auth/utils/accountStorage'
 import { AUTH_CHANGE_EVENT, emitAuthChange } from '../../auth/utils/authEvents'
 import NotificationsDropdown from '../../notifications/components/NotificationsDropdown'
 import { ROUTES, routePaths } from '../../routes/paths'
@@ -34,6 +35,7 @@ const getRadarLabel = (subject: string) => {
 function MainPage() {
   const navigate = useNavigate()
   const [isLoggedIn, setIsLoggedIn] = useState(Boolean(localStorage.getItem('accessToken')))
+  const [authAccountId, setAuthAccountId] = useState(() => getCurrentAccountStorageId())
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null)
   const [chartAnimationKey, setChartAnimationKey] = useState(0)
@@ -41,6 +43,7 @@ function MainPage() {
   useEffect(() => {
     const syncLoginStatus = () => {
       setIsLoggedIn(Boolean(localStorage.getItem('accessToken')))
+      setAuthAccountId(getCurrentAccountStorageId())
     }
 
     syncLoginStatus()
@@ -54,6 +57,8 @@ function MainPage() {
   }, [])
 
   useEffect(() => {
+    setDashboardData(null)
+
     if (!isLoggedIn) {
       return
     }
@@ -80,7 +85,7 @@ function MainPage() {
     return () => {
       isMounted = false
     }
-  }, [isLoggedIn])
+  }, [authAccountId, isLoggedIn])
 
   const resolvedDashboardData = isLoggedIn ? dashboardData : null
 
@@ -103,6 +108,8 @@ function MainPage() {
     localStorage.removeItem('userRole')
     emitAuthChange()
     setIsLoggedIn(false)
+    setAuthAccountId(getCurrentAccountStorageId())
+    setDashboardData(null)
     navigate(ROUTES.login, { replace: true })
   }
 

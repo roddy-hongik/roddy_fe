@@ -2,10 +2,11 @@ export const RODDY_DATA_CHANGE_EVENT = 'roddy:data-change'
 
 type RoddyDataChangeDetail = {
   key: string
+  senderId?: string
 }
 
-export function emitRoddyDataChange(key: string) {
-  window.dispatchEvent(new CustomEvent<RoddyDataChangeDetail>(RODDY_DATA_CHANGE_EVENT, { detail: { key } }))
+export function emitRoddyDataChange(key: string, senderId?: string) {
+  window.dispatchEvent(new CustomEvent<RoddyDataChangeDetail>(RODDY_DATA_CHANGE_EVENT, { detail: { key, senderId } }))
 }
 
 export function parseStoredJson<T>(rawValue: string | null, fallbackValue: T): T {

@@ -1,4 +1,5 @@
 import { jobPostings, type JobPosting } from '../data/jobPostings'
+import { getCurrentAccountStorageId } from '../../auth/utils/accountStorage'
 import { cloneValue, emitRoddyDataChange, parseStoredJson } from '../../shared/utils/localStorageSync'
 
 const JOB_SCRAP_STORAGE_KEY = 'roddy.jobs.scraps.v1'
@@ -23,6 +24,8 @@ const JOB_PRESENTATION_META: Record<string, { postedAt: string; matchingScore: n
   'jarbio-headhunter-consultant': { postedAt: '2026-03-04T08:45:00.000Z', matchingScore: 42 },
 }
 
+const getJobScrapStorageKey = () => `${JOB_SCRAP_STORAGE_KEY}:${getCurrentAccountStorageId()}`
+
 export interface JobPostingPreview extends JobPosting {
   postedAt: string
   matchingScore: number | null
@@ -35,7 +38,7 @@ const wait = (ms: number) =>
   })
 
 function readScrappedJobIds() {
-  const parsed = parseStoredJson<unknown>(localStorage.getItem(JOB_SCRAP_STORAGE_KEY), cloneValue(DEFAULT_SCRAPPED_JOB_IDS))
+  const parsed = parseStoredJson<unknown>(localStorage.getItem(getJobScrapStorageKey()), cloneValue(DEFAULT_SCRAPPED_JOB_IDS))
 
   if (!Array.isArray(parsed) || parsed.some((item) => typeof item !== 'string')) {
     return cloneValue(DEFAULT_SCRAPPED_JOB_IDS)
@@ -45,12 +48,12 @@ function readScrappedJobIds() {
 }
 
 function writeScrappedJobIds(jobIds: string[]) {
-  localStorage.setItem(JOB_SCRAP_STORAGE_KEY, JSON.stringify(jobIds))
+  localStorage.setItem(getJobScrapStorageKey(), JSON.stringify(jobIds))
   emitRoddyDataChange(JOB_SCRAP_STORAGE_KEY)
 }
 
 export function initializeJobScrapStorage() {
-  if (!localStorage.getItem(JOB_SCRAP_STORAGE_KEY)) {
+  if (!localStorage.getItem(getJobScrapStorageKey())) {
     writeScrappedJobIds(cloneValue(DEFAULT_SCRAPPED_JOB_IDS))
   }
 }
@@ -110,3 +113,5 @@ export async function toggleJobScrap(jobId: string, shouldScrap: boolean): Promi
 }
 
 initializeJobScrapStorage()
+
+export { JOB_SCRAP_STORAGE_KEY, getJobScrapStorageKey }
