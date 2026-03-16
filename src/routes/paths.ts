@@ -2,6 +2,7 @@ export const ROUTES = {
   home: '/',
   login: '/login',
   jobs: '/jobs',
+  notifications: '/notifications',
   mockInterview: '/mock-interview',
   roadmap: '/roadmap',
   admin: '/admin',
@@ -17,6 +18,7 @@ export const ROUTES = {
   onboardingGithub: '/onboarding/github',
   onboardingWaiting: '/onboarding/analysis-waiting',
   profile: '/profile',
+  profileSaved: '/profile/saved',
   profileEdit: '/profile/edit',
   profileReanalyze: '/profile/re-analyze',
 } as const

@@ -235,6 +235,13 @@
   cursor: pointer;
 }
 
+.headline-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .headline-card .company {
   margin: 0;
   color: #9db8ee;
@@ -269,9 +276,16 @@
   display: grid;
 }
 
+.jobs-row-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(138, 171, 245, 0.2);
+}
+
 .jobs-row {
   border: 0;
-  border-bottom: 1px solid rgba(138, 171, 245, 0.2);
   background: transparent;
   color: #dce8ff;
   padding: 14px 4px;
@@ -281,6 +295,10 @@
   gap: 10px;
   align-items: center;
   cursor: pointer;
+}
+
+.jobs-row-card:last-child {
+  border-bottom: 0;
 }
 
 .jobs-row strong {
@@ -295,6 +313,38 @@
 .jobs-row .row-match {
   color: #95beff;
   font-weight: 700;
+}
+
+.job-scrap-button {
+  min-width: 86px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid rgba(136, 177, 255, 0.28);
+  background: rgba(17, 29, 62, 0.62);
+  color: #d8e7ff;
+  padding: 0 12px;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.job-scrap-button:hover {
+  background: rgba(47, 76, 148, 0.72);
+}
+
+.job-scrap-button.is-active {
+  border-color: rgba(137, 191, 255, 0.6);
+  background: linear-gradient(90deg, rgba(57, 102, 223, 0.85), rgba(85, 149, 255, 0.8));
+  color: #fff;
+}
+
+.job-scrap-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.jobs-row-scrap-button {
+  min-width: 94px;
 }
 
 .detail-layout {
@@ -351,6 +401,12 @@
   gap: 16px;
 }
 
+.detail-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .hero-match {
   display: block;
   margin-top: 4px;
@@ -366,6 +422,11 @@
   color: #f0f6ff;
   font-weight: 700;
   cursor: pointer;
+}
+
+.detail-scrap-button,
+.detail-side-scrap-button {
+  min-width: 98px;
 }
 
 .detail-section {
@@ -524,6 +585,11 @@
     gap: 4px;
     padding: 12px 0;
   }
+
+  .jobs-row-card {
+    grid-template-columns: 1fr;
+    padding-bottom: 12px;
+  }
 }
 
 @media (max-width: 640px) {
@@ -554,6 +620,12 @@
   .hero-highlight {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .detail-hero-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .detail-main h1 {

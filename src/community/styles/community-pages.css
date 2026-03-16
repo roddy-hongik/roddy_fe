@@ -123,6 +123,11 @@
   background: linear-gradient(120deg, rgba(89, 139, 255, 0.38), rgba(72, 106, 223, 0.45));
 }
 
+.community-primary-btn.is-active {
+  background: linear-gradient(120deg, rgba(255, 127, 161, 0.42), rgba(209, 85, 129, 0.48));
+  border-color: rgba(255, 182, 204, 0.4);
+}
+
 .community-outline-btn {
   background: rgba(16, 29, 67, 0.6);
 }

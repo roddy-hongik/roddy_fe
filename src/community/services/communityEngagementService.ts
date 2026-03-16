@@ -2,7 +2,6 @@ import {
   addCommunityComment,
   deleteCommunityComment,
   getCommunityComments,
-  likeCommunityPost,
   reportCommunityComment,
   reportCommunityPost,
 } from '../../api/services/communityService'
@@ -15,8 +14,4 @@ export const removeComment = deleteCommunityComment
 
 export async function submitComment(postId: string, payload: CreateCommentPayload) {
   return addCommunityComment(postId, payload)
-}
-
-export async function submitPostLike(postId: string) {
-  return likeCommunityPost(postId)
 }

@@ -11,6 +11,7 @@ import {
   ProfileEditPage,
   ProfileLayout,
   ProfilePage,
+  ProfileSavedPage,
   ProfileReanalyzePage,
   TermsPage,
 } from './profile'
@@ -18,6 +19,7 @@ import { CommunityDetailPage, CommunityListPage, CommunityWritePage } from './co
 import { MockInterviewPage } from './mockInterview'
 import { RoadmapPage } from './roadmap'
 import { AdminCrawlingPage, AdminGraphPage, AdminLayout, AdminModerationPage } from './admin'
+import { NotificationsPage } from './notifications'
 import ProtectedRoute from './routes/ProtectedRoute'
 import AdminGuard from './routes/AdminGuard'
 import { ROUTES, routePatterns } from './routes/paths'
@@ -71,9 +73,18 @@ function App() {
           }
         >
           <Route index element={<ProfilePage />} />
+          <Route path="saved" element={<ProfileSavedPage />} />
           <Route path="edit" element={<ProfileEditPage />} />
           <Route path="re-analyze" element={<ProfileReanalyzePage />} />
         </Route>
+        <Route
+          path={ROUTES.notifications}
+          element={
+            <ProtectedRoute>
+              <NotificationsPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path={ROUTES.terms} element={<TermsPage />} />
         <Route
           path={ROUTES.onboarding}

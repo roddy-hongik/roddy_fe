@@ -14,8 +14,8 @@ import {
   reportComment,
   reportPost,
   submitComment,
-  submitPostLike,
 } from '../services/communityEngagementService'
+import { useCommunityPostLike } from '../hooks/useCommunityLikes'
 import type { CommunityComment, CommunityPostDetail } from '../types/community'
 import { formatCommunityCount, formatCommunityDateTime } from '../utils/communityFormat'
 import '../styles/community-pages.css'
@@ -33,6 +33,7 @@ function CommunityDetailPage() {
   const [replyInput, setReplyInput] = useState('')
   const [replyingToId, setReplyingToId] = useState<string | null>(null)
   const [isCommentSubmitting, setIsCommentSubmitting] = useState(false)
+  const { isLiked, isSubmitting: isLikeSubmitting, toggleLike } = useCommunityPostLike(id ?? '')
 
   useEffect(() => {
     const syncLoginStatus = () => {
@@ -111,13 +112,11 @@ function CommunityDetailPage() {
       return
     }
 
-    const previousLikes = post.likes
-    setPost({ ...post, likes: previousLikes + 1 })
-
     try {
-      await submitPostLike(post.id)
+      const response = await toggleLike()
+      setPost((current) => (current ? { ...current, likes: response.likes } : current))
     } catch {
-      setPost((current) => (current ? { ...current, likes: previousLikes } : current))
+      // Keep previous UI state when toggling like fails.
     }
   }
 
@@ -304,9 +303,9 @@ function CommunityDetailPage() {
         </section>
 
         <footer className="community-detail-actions">
-          <button type="button" className="community-primary-btn" onClick={handleLike}>
+          <button type="button" className={`community-primary-btn ${isLiked ? 'is-active' : ''}`.trim()} disabled={isLikeSubmitting} onClick={handleLike}>
             <HeartIcon className="community-icon" />
-            {isLoggedIn ? '좋아요' : '로그인 후 좋아요'}
+            {isLoggedIn ? (isLikeSubmitting ? '처리 중...' : isLiked ? '좋아요 취소' : '좋아요') : '로그인 후 좋아요'}
           </button>
           <strong>{formatCommunityCount(post.likes)}</strong>
         </footer>

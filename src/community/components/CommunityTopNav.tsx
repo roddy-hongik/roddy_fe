@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AUTH_CHANGE_EVENT, emitAuthChange } from '../../auth/utils/authEvents'
+import NotificationsDropdown from '../../notifications/components/NotificationsDropdown'
 import { ROUTES } from '../../routes/paths'
 
 function CommunityTopNav() {
@@ -82,6 +83,7 @@ function CommunityTopNav() {
       <div className="community-nav-right">
         {isLoggedIn ? (
           <>
+            <NotificationsDropdown />
             <button type="button" className="community-menu-link community-nav-page-btn" onClick={() => navigate(ROUTES.profile)}>
               마이페이지
             </button>

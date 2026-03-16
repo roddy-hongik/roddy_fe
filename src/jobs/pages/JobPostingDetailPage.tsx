@@ -3,8 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { getJobPostingMatch } from '../../api/services/jobService'
 import { ROUTES } from '../../routes/paths'
 import { AUTH_CHANGE_EVENT } from '../../auth/utils/authEvents'
+import JobScrapButton from '../components/JobScrapButton'
 import JobsTopNav from '../components/JobsTopNav'
 import { jobPostings } from '../data/jobPostings'
+import { toJobPostingPreview } from '../services/jobScrapService'
 import type { JobPostingMatch } from '../types/jobMatching'
 import '../styles/job-pages.css'
 
@@ -16,6 +18,7 @@ function JobPostingDetailPage() {
   const [isJobMatchLoading, setIsJobMatchLoading] = useState(false)
 
   const job = useMemo(() => jobPostings.find((item) => item.id === jobId) ?? jobPostings[0], [jobId])
+  const jobPreview = useMemo(() => toJobPostingPreview(job), [job])
 
   useEffect(() => {
     const syncLoginStatus = () => {
@@ -33,23 +36,25 @@ function JobPostingDetailPage() {
   }, [])
 
   const averageGap = useMemo(() => {
-    if (!jobMatch || jobMatch.matchingInsights.length === 0) {
+    if (!isLoggedIn || !jobMatch || jobMatch.matchingInsights.length === 0) {
       return null
     }
 
     const totalGap = jobMatch.matchingInsights.reduce((acc, item) => acc + (item.userScore - item.requiredScore), 0)
     return Math.round(totalGap / jobMatch.matchingInsights.length)
-  }, [jobMatch])
+  }, [isLoggedIn, jobMatch])
 
   useEffect(() => {
     if (!isLoggedIn) {
-      setJobMatch(null)
-      setIsJobMatchLoading(false)
       return
     }
 
     let isMounted = true
-    setIsJobMatchLoading(true)
+    const loadingTimer = window.setTimeout(() => {
+      if (isMounted) {
+        setIsJobMatchLoading(true)
+      }
+    }, 0)
 
     getJobPostingMatch(job.id)
       .then((response) => {
@@ -74,8 +79,12 @@ function JobPostingDetailPage() {
 
     return () => {
       isMounted = false
+      window.clearTimeout(loadingTimer)
     }
   }, [isLoggedIn, job.id])
+
+  const resolvedJobMatch = isLoggedIn ? jobMatch : null
+  const resolvedJobMatchLoading = isLoggedIn ? isJobMatchLoading : false
 
   return (
     <main className="jobs-page detail-page">
@@ -92,7 +101,8 @@ function JobPostingDetailPage() {
           <div className="detail-badge-row">
             <span>{job.workType}</span>
             <span>마감 {job.deadline}</span>
-            {isLoggedIn && jobMatch ? <span>매칭률 {jobMatch.matchRate}%</span> : null}
+            {jobPreview.matchingScore ? <span>추천 매칭률 {jobPreview.matchingScore}%</span> : null}
+            {isLoggedIn && resolvedJobMatch ? <span>매칭률 {resolvedJobMatch.matchRate}%</span> : null}
           </div>
 
           <h1>{job.title}</h1>
@@ -103,11 +113,11 @@ function JobPostingDetailPage() {
             <div>
               <p className="label">지금 공고와 사용자 스택 적합도</p>
               {isLoggedIn ? (
-                isJobMatchLoading ? (
+                resolvedJobMatchLoading ? (
                   <p className="detail-note">매칭 분석을 불러오는 중입니다.</p>
-                ) : jobMatch && averageGap !== null ? (
+                ) : resolvedJobMatch && averageGap !== null ? (
                   <>
-                    <strong className="hero-match">{jobMatch.matchRate}% Match</strong>
+                    <strong className="hero-match">{resolvedJobMatch.matchRate}% Match</strong>
                     <p className="detail-note">핵심 스택 평균 대비 {averageGap >= 0 ? `+${averageGap}` : averageGap}점</p>
                   </>
                 ) : (
@@ -117,19 +127,22 @@ function JobPostingDetailPage() {
                 <p className="detail-note">로그인 후 내 기술 스택과의 매칭률을 확인할 수 있습니다.</p>
               )}
             </div>
-            <button type="button" className="apply-btn-large">
-              지원하기
-            </button>
+            <div className="detail-hero-actions">
+              <JobScrapButton jobId={job.id} className="detail-scrap-button" />
+              <button type="button" className="apply-btn-large">
+                지원하기
+              </button>
+            </div>
           </section>
 
           {isLoggedIn ? (
             <section className="detail-section">
               <h2>기술 스택 매칭 분석</h2>
-              {isJobMatchLoading ? (
+              {resolvedJobMatchLoading ? (
                 <p className="detail-note">매칭 분석을 준비하고 있습니다.</p>
-              ) : jobMatch ? (
+              ) : resolvedJobMatch ? (
                 <div className="stack-fit-list">
-                  {jobMatch.matchingInsights.map((insight) => {
+                  {resolvedJobMatch.matchingInsights.map((insight) => {
                     const percentage = Math.max(insight.userScore, insight.requiredScore)
                     const scoreLine = Math.min(insight.userScore, 100)
                     return (
@@ -214,6 +227,7 @@ function JobPostingDetailPage() {
             ))}
           </div>
 
+          <JobScrapButton jobId={job.id} className="detail-side-scrap-button" />
           <button type="button" className="apply-btn-large full">
             즉시 지원
           </button>

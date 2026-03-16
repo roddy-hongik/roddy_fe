@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { AUTH_CHANGE_EVENT, emitAuthChange } from '../../auth/utils/authEvents'
+import NotificationsDropdown from '../../notifications/components/NotificationsDropdown'
 import { ROUTES } from '../../routes/paths'
 
 type JobsTopNavProps = {
@@ -85,6 +86,7 @@ function JobsTopNav({ rightSlot }: JobsTopNavProps) {
       </div>
 
       <div className="nav-right">
+        {isLoggedIn ? <NotificationsDropdown /> : null}
         {rightSlot ? (
           rightSlot
         ) : isLoggedIn ? (

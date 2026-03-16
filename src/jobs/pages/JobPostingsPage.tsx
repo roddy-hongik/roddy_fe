@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { formatDateLabel } from '../../shared/utils/dateFormat'
 import { routePaths } from '../../routes/paths'
+import JobScrapButton from '../components/JobScrapButton'
 import JobsTopNav from '../components/JobsTopNav'
 import { jobPostings } from '../data/jobPostings'
+import { toJobPostingPreview } from '../services/jobScrapService'
 import '../styles/job-pages.css'
 
 const HANGUL_BASE = 0xac00
@@ -67,6 +70,8 @@ function JobPostingsPage() {
   }, [companyQuery])
 
   const topPostings = useMemo(() => filteredJobs.slice(0, 6), [filteredJobs])
+  const topPostingPreviews = useMemo(() => topPostings.map(toJobPostingPreview), [topPostings])
+  const filteredJobPreviews = useMemo(() => filteredJobs.map(toJobPostingPreview), [filteredJobs])
 
   return (
     <main className="jobs-page">
@@ -93,15 +98,18 @@ function JobPostingsPage() {
 
             {filteredJobs.length > 0 ? (
               <div className="headline-grid">
-                {topPostings.map((job) => (
+                {topPostingPreviews.map((job) => (
                   <article key={job.id} className="headline-card" onClick={() => navigate(routePaths.jobDetail(job.id))}>
-                    <p className="company">{job.company}</p>
+                    <div className="headline-card-top">
+                      <p className="company">{job.company}</p>
+                      <JobScrapButton jobId={job.id} />
+                    </div>
                     <h2>{job.title}</h2>
                     <p className="meta">
                       {job.location} · {job.experience}
                     </p>
-                    <p className="match">{isLoggedIn ? '상세에서 매칭 분석 확인' : '로그인 후 매칭 분석 확인'}</p>
-                    <p className="deadline">마감 {job.deadline}</p>
+                    <p className="match">{isLoggedIn && job.matchingScore ? `매칭률 ${job.matchingScore}%` : isLoggedIn ? '상세에서 매칭 분석 확인' : '로그인 후 매칭 분석 확인'}</p>
+                    <p className="deadline">등록 {formatDateLabel(job.postedAt)} · 마감 {job.deadline}</p>
                   </article>
                 ))}
               </div>
@@ -113,14 +121,17 @@ function JobPostingsPage() {
           <section className="glass-panel jobs-table-panel">
             <h2>전체 공고</h2>
             <div className="jobs-table-list">
-              {filteredJobs.map((job) => (
-                <button key={job.id} type="button" className="jobs-row" onClick={() => navigate(routePaths.jobDetail(job.id))}>
-                  <span>{job.company}</span>
-                  <strong>{job.title}</strong>
-                  <span>{job.experience}</span>
-                  <span>{job.location}</span>
-                  <span className="row-match">{isLoggedIn ? '상세 보기' : '-'}</span>
-                </button>
+              {filteredJobPreviews.map((job) => (
+                <article key={job.id} className="jobs-row-card">
+                  <button type="button" className="jobs-row" onClick={() => navigate(routePaths.jobDetail(job.id))}>
+                    <span>{job.company}</span>
+                    <strong>{job.title}</strong>
+                    <span>{job.experience}</span>
+                    <span>{job.location}</span>
+                    <span className="row-match">{isLoggedIn && job.matchingScore ? `${job.matchingScore}%` : isLoggedIn ? '상세 보기' : '-'}</span>
+                  </button>
+                  <JobScrapButton jobId={job.id} className="jobs-row-scrap-button" />
+                </article>
               ))}
             </div>
           </section>

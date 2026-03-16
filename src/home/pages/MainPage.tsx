@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { PolarAngleAxis, PolarGrid, Radar, RadarChart, ResponsiveContainer, Tooltip } from 'recharts'
 import { getDashboardData } from '../../api/services/dashboardService'
 import { AUTH_CHANGE_EVENT, emitAuthChange } from '../../auth/utils/authEvents'
+import NotificationsDropdown from '../../notifications/components/NotificationsDropdown'
 import { ROUTES, routePaths } from '../../routes/paths'
 import type { DashboardData } from '../../api/types/dashboard'
 import '../styles/main-page.css'
@@ -54,8 +55,6 @@ function MainPage() {
 
   useEffect(() => {
     if (!isLoggedIn) {
-      setDashboardData(null)
-      setHoveredCategory(null)
       return
     }
 
@@ -113,7 +112,9 @@ function MainPage() {
     navigate(ROUTES.reportsDetailAnalysis)
   }
 
-  const radarMetrics = dashboardData?.radarMetrics ?? [
+  const resolvedDashboardData = isLoggedIn ? dashboardData : null
+
+  const radarMetrics = resolvedDashboardData?.radarMetrics ?? [
     { subject: 'Data Modeling', score: 0, fullMark: 100 },
     { subject: 'Architecture', score: 0, fullMark: 100 },
     { subject: 'Scalability', score: 0, fullMark: 100 },
@@ -122,7 +123,7 @@ function MainPage() {
     { subject: 'Monitoring', score: 0, fullMark: 100 },
   ]
 
-  const radarDetails = dashboardData?.radarDetails ?? []
+  const radarDetails = useMemo(() => resolvedDashboardData?.radarDetails ?? [], [resolvedDashboardData])
   const chartRadarMetrics = radarMetrics.map((metric) => ({
     ...metric,
     chartLabel: getRadarLabel(metric.subject),
@@ -135,9 +136,9 @@ function MainPage() {
     return radarDetails[0] ?? null
   }, [hoveredCategory, radarDetails])
 
-  const recommendedJobs = dashboardData?.recommendedJobs ?? []
-  const techKeywords = dashboardData?.techKeywords ?? []
-  const matchPercent = dashboardData?.matchRate.percent ?? 0
+  const recommendedJobs = resolvedDashboardData?.recommendedJobs ?? []
+  const techKeywords = resolvedDashboardData?.techKeywords ?? []
+  const matchPercent = resolvedDashboardData?.matchRate.percent ?? 0
   const bestMatchedJob = recommendedJobs[0] ?? null
 
   return (
@@ -184,6 +185,7 @@ function MainPage() {
         <div className="nav-right">
           {isLoggedIn ? (
             <>
+              <NotificationsDropdown />
               <button type="button" className="nav-link nav-page-btn" onClick={() => navigate(ROUTES.profile)}>
                 마이페이지
               </button>
