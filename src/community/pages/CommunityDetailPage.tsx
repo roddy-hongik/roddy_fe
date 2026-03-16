@@ -1,20 +1,23 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import {
-  addCommunityComment,
-  deleteCommunityComment,
-  getCommunityComments,
-  getCommunityPostDetail,
-  likeCommunityPost,
-  reportCommunityComment,
-  reportCommunityPost,
-} from '../../api/services/communityService'
+import { getCommunityPostDetail } from '../../api/services/communityService'
 import { TAG_LABEL_MAP } from '../constants/jobTrackTags'
-import { mockCommunityPostDetails } from '../data/mockCommunityData'
 import CommentItem from '../components/CommentItem'
 import CommunityTopNav from '../components/CommunityTopNav'
-import { AlertIcon, EyeIcon, HeartIcon } from '../components/icons'
+import InterviewDetailSection from '../components/InterviewDetailSection'
+import { AlertIcon, EyeIcon, HeartIcon, MessageIcon } from '../components/icons'
+import PostTypeBadge from '../components/PostTypeBadge'
+import RoadmapDetailSection from '../components/RoadmapDetailSection'
+import {
+  getPostComments,
+  removeComment,
+  reportComment,
+  reportPost,
+  submitComment,
+  submitPostLike,
+} from '../services/communityEngagementService'
 import type { CommunityComment, CommunityPostDetail } from '../types/community'
+import { formatCommunityCount, formatCommunityDateTime } from '../utils/communityFormat'
 import '../styles/community-pages.css'
 
 function CommunityDetailPage() {
@@ -23,6 +26,7 @@ function CommunityDetailPage() {
   const [post, setPost] = useState<CommunityPostDetail | null>(null)
   const [comments, setComments] = useState<CommunityComment[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isError, setIsError] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(Boolean(localStorage.getItem('accessToken')))
   const [currentUserName, setCurrentUserName] = useState(localStorage.getItem('userName')?.trim() ?? '')
   const [commentInput, setCommentInput] = useState('')
@@ -54,39 +58,30 @@ function CommunityDetailPage() {
 
     const loadDetail = async () => {
       setIsLoading(true)
-
-      const fallbackPost = mockCommunityPostDetails.find((item) => item.id === id) ?? null
-      let resolvedPost: CommunityPostDetail | null = null
+      setIsError(false)
 
       try {
-        resolvedPost = await getCommunityPostDetail(id)
+        const resolvedPost = await getCommunityPostDetail(id)
+        if (!isMounted) {
+          return
+        }
+
+        setPost(resolvedPost)
+
+        const resolvedComments = await getPostComments(id)
+        if (!isMounted) {
+          return
+        }
+
+        setComments(resolvedComments)
       } catch {
-        resolvedPost = fallbackPost
-      }
+        if (!isMounted) {
+          return
+        }
 
-      if (!isMounted) {
-        return
-      }
-
-      setPost(resolvedPost)
-
-      if (!resolvedPost) {
+        setPost(null)
         setComments([])
-        setIsLoading(false)
-        return
-      }
-
-      try {
-        const remoteComments = await getCommunityComments(id)
-        if (!isMounted) {
-          return
-        }
-        setComments(remoteComments)
-      } catch {
-        if (!isMounted) {
-          return
-        }
-        setComments(resolvedPost.comments ?? fallbackPost?.comments ?? [])
+        setIsError(true)
       } finally {
         if (isMounted) {
           setIsLoading(false)
@@ -101,13 +96,7 @@ function CommunityDetailPage() {
     }
   }, [id, navigate])
 
-  const createdDate = useMemo(() => {
-    if (!post) {
-      return ''
-    }
-    return new Date(post.createdAt).toLocaleDateString('ko-KR')
-  }, [post])
-
+  const createdDate = useMemo(() => (post ? formatCommunityDateTime(post.createdAt) : ''), [post])
   const rootComments = useMemo(() => comments.filter((comment) => comment.depth === 0), [comments])
   const canDeleteComment = (comment: CommunityComment) =>
     isLoggedIn && Boolean(currentUserName) && comment.author.trim() === currentUserName
@@ -126,7 +115,7 @@ function CommunityDetailPage() {
     setPost({ ...post, likes: previousLikes + 1 })
 
     try {
-      await likeCommunityPost(post.id)
+      await submitPostLike(post.id)
     } catch {
       setPost((current) => (current ? { ...current, likes: previousLikes } : current))
     }
@@ -141,7 +130,7 @@ function CommunityDetailPage() {
     }
 
     try {
-      await reportCommunityPost(post.id)
+      await reportPost(post.id)
     } finally {
       alert('게시글 신고가 접수되었습니다.')
     }
@@ -152,8 +141,9 @@ function CommunityDetailPage() {
       navigate('/login', { state: { from: { pathname: `/community/${id}` } } })
       return
     }
+
     try {
-      await reportCommunityComment(commentId)
+      await reportComment(commentId)
     } finally {
       alert('댓글 신고가 접수되었습니다.')
     }
@@ -164,9 +154,12 @@ function CommunityDetailPage() {
       navigate('/login', { state: { from: { pathname: `/community/${id}` } } })
       return
     }
-    const previousComments = comments
 
-    setComments((current) => current.filter((comment) => comment.id !== commentId && comment.parentId !== commentId))
+    const previousComments = comments
+    const nextComments = comments.filter((comment) => comment.id !== commentId && comment.parentId !== commentId)
+
+    setComments(nextComments)
+    setPost((current) => (current ? { ...current, commentCount: nextComments.length } : current))
 
     if (replyingToId === commentId) {
       setReplyingToId(null)
@@ -174,13 +167,14 @@ function CommunityDetailPage() {
     }
 
     try {
-      await deleteCommunityComment(commentId)
+      await removeComment(commentId)
     } catch {
       setComments(previousComments)
+      setPost((current) => (current ? { ...current, commentCount: previousComments.length } : current))
     }
   }
 
-  const createComment = async (parentId: string | null, content: string) => {
+  const createNextComment = async (parentId: string | null, content: string) => {
     if (!post || !content.trim()) {
       return false
     }
@@ -193,13 +187,11 @@ function CommunityDetailPage() {
     setIsCommentSubmitting(true)
 
     try {
-      const response = await addCommunityComment(post.id, { content: content.trim(), parentId })
+      const response = await submitComment(post.id, { content: content.trim(), parentId })
       setComments((current) => [...current, response])
+      setPost((current) => (current ? { ...current, commentCount: current.commentCount + 1 } : current))
       return true
     } catch {
-      if (localStorage.getItem('accessToken') === null) {
-        navigate('/login', { state: { from: { pathname: `/community/${id}` } } })
-      }
       return false
     } finally {
       setIsCommentSubmitting(false)
@@ -208,7 +200,7 @@ function CommunityDetailPage() {
 
   const handleCreateRootComment = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    const isCreated = await createComment(null, commentInput)
+    const isCreated = await createNextComment(null, commentInput)
     if (isCreated) {
       setCommentInput('')
     }
@@ -221,7 +213,7 @@ function CommunityDetailPage() {
       return
     }
 
-    const isCreated = await createComment(replyingToId, replyInput)
+    const isCreated = await createNextComment(replyingToId, replyInput)
     if (isCreated) {
       setReplyInput('')
       setReplyingToId(null)
@@ -244,7 +236,7 @@ function CommunityDetailPage() {
     )
   }
 
-  if (!post) {
+  if (!post || isError) {
     return (
       <main className="community-page">
         <CommunityTopNav />
@@ -262,14 +254,21 @@ function CommunityDetailPage() {
       <article className="community-container community-detail-panel">
         <header className="community-detail-header">
           <div className="community-detail-title-wrap">
-            <span className="community-post-tag">{TAG_LABEL_MAP[post.tag]}</span>
+            <div className="community-post-badges">
+              <span className="community-post-tag">{TAG_LABEL_MAP[post.tag]}</span>
+              <PostTypeBadge post={post} />
+            </div>
             <h1>{post.title}</h1>
             <div className="community-detail-meta">
               <span>{post.authorName}</span>
               <span>{createdDate}</span>
               <span className="community-inline-stat">
                 <EyeIcon className="community-icon" />
-                {post.views}
+                {formatCommunityCount(post.views)}
+              </span>
+              <span className="community-inline-stat">
+                <MessageIcon className="community-icon" />
+                {formatCommunityCount(post.commentCount)}
               </span>
             </div>
           </div>
@@ -287,26 +286,29 @@ function CommunityDetailPage() {
         </header>
 
         <section className="community-detail-body">
-          <p>{post.content}</p>
-          {post.imageUrls.length > 0 && (
-            <div className="community-image-grid">
-              {post.imageUrls.map((imageUrl) => (
-                <img key={imageUrl} src={imageUrl} alt="첨부 이미지" loading="lazy" />
-              ))}
-            </div>
-          )}
+          {post.type === 'general' ? (
+            <>
+              <p>{post.content}</p>
+              {post.imageUrls.length > 0 ? (
+                <div className="community-image-grid">
+                  {post.imageUrls.map((imageUrl) => (
+                    <img key={imageUrl} src={imageUrl} alt="첨부 이미지" loading="lazy" />
+                  ))}
+                </div>
+              ) : null}
+            </>
+          ) : null}
+
+          {post.type === 'roadmap' ? <RoadmapDetailSection post={post} /> : null}
+          {post.type === 'interview' ? <InterviewDetailSection post={post} /> : null}
         </section>
 
         <footer className="community-detail-actions">
-          <button
-            type="button"
-            className="community-primary-btn"
-            onClick={handleLike}
-          >
+          <button type="button" className="community-primary-btn" onClick={handleLike}>
             <HeartIcon className="community-icon" />
             {isLoggedIn ? '좋아요' : '로그인 후 좋아요'}
           </button>
-          <strong>{post.likes}</strong>
+          <strong>{formatCommunityCount(post.likes)}</strong>
         </footer>
 
         <section className="community-comments-section">
@@ -318,32 +320,15 @@ function CommunityDetailPage() {
                 const replies = getRepliesByParentId(comment.id)
 
                 return (
-                  <div key={comment.id} className="community-comment-thread">
+                  <section key={comment.id} className="community-comment-thread">
                     <CommentItem
                       comment={comment}
-                      canReply={isLoggedIn}
-                      canReport={isLoggedIn}
-                      canDelete={canDeleteComment(comment)}
                       isReplying={replyingToId === comment.id}
                       onReplyToggle={handleReplyToggle}
                       onReport={handleReportComment}
                       onDelete={handleDeleteComment}
+                      canDelete={canDeleteComment(comment)}
                     />
-
-                    {isLoggedIn && replyingToId === comment.id && (
-                      <form className="community-reply-form" onSubmit={handleCreateReply}>
-                        <span className="community-reply-prefix">└</span>
-                        <input
-                          type="text"
-                          value={replyInput}
-                          onChange={(event) => setReplyInput(event.target.value)}
-                          placeholder="답글을 입력해 주세요"
-                        />
-                        <button type="submit" className="community-primary-btn" disabled={isCommentSubmitting}>
-                          {isCommentSubmitting ? '등록 중...' : '답글 등록'}
-                        </button>
-                      </form>
-                    )}
 
                     {replies.map((reply) => (
                       <CommentItem
@@ -351,16 +336,32 @@ function CommunityDetailPage() {
                         comment={reply}
                         isReply
                         canReply={false}
-                        canReport={isLoggedIn}
-                        canDelete={canDeleteComment(reply)}
                         onReplyToggle={handleReplyToggle}
                         onReport={handleReportComment}
                         onDelete={handleDeleteComment}
+                        canDelete={canDeleteComment(reply)}
                       />
                     ))}
-                  </div>
+
+                    {replyingToId === comment.id ? (
+                      <form className="community-reply-form" onSubmit={handleCreateReply}>
+                        <span>답글</span>
+                        <input
+                          value={replyInput}
+                          onChange={(event) => setReplyInput(event.target.value)}
+                          placeholder="답글을 입력해 주세요"
+                          maxLength={400}
+                        />
+                        <button type="submit" className="community-primary-btn" disabled={isCommentSubmitting || !replyInput.trim()}>
+                          등록
+                        </button>
+                      </form>
+                    ) : null}
+                  </section>
                 )
               })}
+
+              {comments.length === 0 ? <p className="community-status-text">아직 댓글이 없습니다. 첫 댓글을 남겨보세요.</p> : null}
             </div>
           </div>
 
@@ -371,16 +372,17 @@ function CommunityDetailPage() {
                 value={commentInput}
                 onChange={(event) => setCommentInput(event.target.value)}
                 placeholder="댓글을 입력해 주세요"
+                maxLength={400}
               />
-              <button type="submit" className="community-primary-btn" disabled={isCommentSubmitting}>
-                {isCommentSubmitting ? '등록 중...' : '댓글 쓰기'}
+              <button type="submit" className="community-primary-btn" disabled={isCommentSubmitting || !commentInput.trim()}>
+                등록
               </button>
             </form>
           ) : (
             <div className="community-auth-notice">
-              <p>댓글 작성, 답글, 좋아요, 신고는 로그인 후 이용할 수 있습니다.</p>
+              <p>댓글 작성과 좋아요는 로그인 후 사용할 수 있습니다.</p>
               <button type="button" className="community-outline-btn" onClick={() => navigate('/login', { state: { from: { pathname: `/community/${id}` } } })}>
-                로그인 하러 가기
+                로그인
               </button>
             </div>
           )}
