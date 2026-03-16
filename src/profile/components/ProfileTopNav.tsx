@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { emitAuthChange } from '../../auth/utils/authEvents'
+import NotificationsDropdown from '../../notifications/components/NotificationsDropdown'
 import { ROUTES } from '../../routes/paths'
 
 function ProfileTopNav() {
@@ -56,8 +57,12 @@ function ProfileTopNav() {
       </div>
 
       <div className="profile-nav-right">
+        <NotificationsDropdown />
         <NavLink to={ROUTES.profile} end className={({ isActive }) => `profile-nav-link ${isActive ? 'active' : ''}`}>
           마이페이지
+        </NavLink>
+        <NavLink to={ROUTES.profileSaved} className={({ isActive }) => `profile-nav-link ${isActive ? 'active' : ''}`}>
+          저장 콘텐츠
         </NavLink>
         <span className="profile-nav-divider">|</span>
         <span className="profile-user-name">{userName}님</span>

@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PolarAngleAxis, PolarGrid, Radar, RadarChart, ResponsiveContainer, Tooltip } from 'recharts'
 import { getDashboardData } from '../../api/services/dashboardService'
+import { getCurrentAccountStorageId } from '../../auth/utils/accountStorage'
 import { AUTH_CHANGE_EVENT, emitAuthChange } from '../../auth/utils/authEvents'
+import NotificationsDropdown from '../../notifications/components/NotificationsDropdown'
 import { ROUTES, routePaths } from '../../routes/paths'
 import type { DashboardData } from '../../api/types/dashboard'
 import '../styles/main-page.css'
@@ -33,6 +35,7 @@ const getRadarLabel = (subject: string) => {
 function MainPage() {
   const navigate = useNavigate()
   const [isLoggedIn, setIsLoggedIn] = useState(Boolean(localStorage.getItem('accessToken')))
+  const [authAccountId, setAuthAccountId] = useState(() => getCurrentAccountStorageId())
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null)
   const [chartAnimationKey, setChartAnimationKey] = useState(0)
@@ -40,6 +43,7 @@ function MainPage() {
   useEffect(() => {
     const syncLoginStatus = () => {
       setIsLoggedIn(Boolean(localStorage.getItem('accessToken')))
+      setAuthAccountId(getCurrentAccountStorageId())
     }
 
     syncLoginStatus()
@@ -53,9 +57,9 @@ function MainPage() {
   }, [])
 
   useEffect(() => {
+    setDashboardData(null)
+
     if (!isLoggedIn) {
-      setDashboardData(null)
-      setHoveredCategory(null)
       return
     }
 
@@ -81,15 +85,17 @@ function MainPage() {
     return () => {
       isMounted = false
     }
-  }, [isLoggedIn])
+  }, [authAccountId, isLoggedIn])
+
+  const resolvedDashboardData = isLoggedIn ? dashboardData : null
 
   const userName = useMemo(() => {
-    if (dashboardData?.userName) {
-      return dashboardData.userName
+    if (resolvedDashboardData?.userName) {
+      return resolvedDashboardData.userName
     }
 
     return localStorage.getItem('userName') ?? '신애'
-  }, [dashboardData])
+  }, [resolvedDashboardData])
   const isAdmin = useMemo(() => localStorage.getItem('userRole') === 'admin' || userName === '신애', [userName])
 
   const handleLoginRedirect = () => {
@@ -102,6 +108,8 @@ function MainPage() {
     localStorage.removeItem('userRole')
     emitAuthChange()
     setIsLoggedIn(false)
+    setAuthAccountId(getCurrentAccountStorageId())
+    setDashboardData(null)
     navigate(ROUTES.login, { replace: true })
   }
 
@@ -113,7 +121,7 @@ function MainPage() {
     navigate(ROUTES.reportsDetailAnalysis)
   }
 
-  const radarMetrics = dashboardData?.radarMetrics ?? [
+  const radarMetrics = resolvedDashboardData?.radarMetrics ?? [
     { subject: 'Data Modeling', score: 0, fullMark: 100 },
     { subject: 'Architecture', score: 0, fullMark: 100 },
     { subject: 'Scalability', score: 0, fullMark: 100 },
@@ -122,7 +130,7 @@ function MainPage() {
     { subject: 'Monitoring', score: 0, fullMark: 100 },
   ]
 
-  const radarDetails = dashboardData?.radarDetails ?? []
+  const radarDetails = useMemo(() => resolvedDashboardData?.radarDetails ?? [], [resolvedDashboardData])
   const chartRadarMetrics = radarMetrics.map((metric) => ({
     ...metric,
     chartLabel: getRadarLabel(metric.subject),
@@ -135,9 +143,9 @@ function MainPage() {
     return radarDetails[0] ?? null
   }, [hoveredCategory, radarDetails])
 
-  const recommendedJobs = dashboardData?.recommendedJobs ?? []
-  const techKeywords = dashboardData?.techKeywords ?? []
-  const matchPercent = dashboardData?.matchRate.percent ?? 0
+  const recommendedJobs = resolvedDashboardData?.recommendedJobs ?? []
+  const techKeywords = resolvedDashboardData?.techKeywords ?? []
+  const matchPercent = resolvedDashboardData?.matchRate.percent ?? 0
   const bestMatchedJob = recommendedJobs[0] ?? null
 
   return (
@@ -184,6 +192,7 @@ function MainPage() {
         <div className="nav-right">
           {isLoggedIn ? (
             <>
+              <NotificationsDropdown />
               <button type="button" className="nav-link nav-page-btn" onClick={() => navigate(ROUTES.profile)}>
                 마이페이지
               </button>
@@ -284,7 +293,7 @@ function MainPage() {
               <h3>전체 매칭률</h3>
               <strong className="match-rate">{matchPercent}%</strong>
               <p className="match-desc">
-                {dashboardData?.matchRate.targetRole ?? '-'} · {dashboardData?.matchRate.targetCompany ?? '-'}
+                {resolvedDashboardData?.matchRate.targetRole ?? '-'} · {resolvedDashboardData?.matchRate.targetCompany ?? '-'}
               </p>
               <div className="progress-track" aria-hidden="true">
                 <span className="progress-value" style={{ width: `${matchPercent}%` }} />

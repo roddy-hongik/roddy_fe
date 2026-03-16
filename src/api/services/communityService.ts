@@ -1,89 +1,373 @@
-import { API_ENDPOINTS } from '../constants/endpoints'
-import { httpClient } from '../client/httpClient'
+import { TAG_LABEL_MAP } from '../../community/constants/jobTrackTags'
+import { mockCommunityPostDetails } from '../../community/data/mockCommunityData'
 import type {
+  CommunityComment,
   CommunityPostDetail,
+  CommunityPostFilters,
   CommunityPostSummary,
   CreateCommentPayload,
   CreateCommentResponse,
   CreateCommunityPostPayload,
   CreateCommunityPostResponse,
-  JobTrackTagKey,
 } from '../../community/types/community'
 
-interface CommunityPostsApiResponse {
-  posts?: CommunityPostSummary[]
-}
+const COMMUNITY_STORAGE_KEY = 'roddy.community.posts.v3'
 
-interface CommunityCommentsApiResponse {
-  comments?: CreateCommentResponse[]
-}
-
-export async function getCommunityPosts(tag?: JobTrackTagKey): Promise<CommunityPostSummary[]> {
-  const query = tag ? `?tag=${encodeURIComponent(tag)}` : ''
-  const response = await httpClient<CommunityPostsApiResponse | CommunityPostSummary[]>(`${API_ENDPOINTS.community.posts}${query}`, {
-    method: 'GET',
+const wait = (ms: number) =>
+  new Promise<void>((resolve) => {
+    window.setTimeout(resolve, ms)
   })
 
-  return Array.isArray(response) ? response : response.posts ?? []
+const cloneValue = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T
+
+const normalizeCommentCount = (comments?: CommunityComment[]) => comments?.length ?? 0
+
+const fileToDataUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result)
+        return
+      }
+
+      reject(new Error('Failed to convert file to data URL'))
+    }
+
+    reader.onerror = () => {
+      reject(reader.error ?? new Error('Failed to read file'))
+    }
+
+    reader.readAsDataURL(file)
+  })
+
+const toSummary = (post: CommunityPostDetail): CommunityPostSummary => {
+  if (post.type === 'general') {
+    return {
+      id: post.id,
+      type: 'general',
+      title: post.title,
+      authorName: post.authorName,
+      views: post.views,
+      likes: post.likes,
+      commentCount: normalizeCommentCount(post.comments),
+      tag: post.tag,
+      tags: post.tags,
+      createdAt: post.createdAt,
+      excerpt: post.excerpt,
+    }
+  }
+
+  const { comments, ...summary } = post
+  void comments
+
+  return {
+    ...summary,
+    commentCount: normalizeCommentCount(post.comments),
+  }
+}
+
+const readStoredPosts = (): CommunityPostDetail[] => {
+  const raw = localStorage.getItem(COMMUNITY_STORAGE_KEY)
+
+  if (!raw) {
+    return cloneValue(mockCommunityPostDetails)
+  }
+
+  try {
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) {
+      return cloneValue(mockCommunityPostDetails)
+    }
+
+    return parsed as CommunityPostDetail[]
+  } catch {
+    return cloneValue(mockCommunityPostDetails)
+  }
+}
+
+const writeStoredPosts = (posts: CommunityPostDetail[]) => {
+  localStorage.setItem(COMMUNITY_STORAGE_KEY, JSON.stringify(posts))
+}
+
+const ensureSeedData = () => {
+  if (!localStorage.getItem(COMMUNITY_STORAGE_KEY)) {
+    writeStoredPosts(cloneValue(mockCommunityPostDetails))
+  }
+}
+
+const sortPosts = (posts: CommunityPostDetail[]) => posts.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
+
+const matchesSearch = (post: CommunityPostSummary, keyword: string) => {
+  const normalizedKeyword = keyword.trim().toLowerCase()
+
+  if (!normalizedKeyword) {
+    return true
+  }
+
+  const searchable = [
+    post.title,
+    post.authorName,
+    ...post.tags,
+    post.type === 'general' ? post.excerpt : '',
+    post.type === 'roadmap' ? `${post.summary} ${post.targetJob} ${post.targetCompany ?? ''} ${post.recommendedSkills.join(' ')}` : '',
+    post.type === 'interview' ? `${post.company} ${post.jobRole} ${post.processSummary} ${post.techStacks.join(' ')}` : '',
+  ]
+    .join(' ')
+    .toLowerCase()
+
+  return searchable.includes(normalizedKeyword)
+}
+
+const matchesFilters = (post: CommunityPostSummary, filters: CommunityPostFilters) => {
+  if (filters.type && filters.type !== 'all' && post.type !== filters.type) {
+    return false
+  }
+
+  if (filters.trackTag && filters.trackTag !== 'all' && post.tag !== filters.trackTag) {
+    return false
+  }
+
+  if (filters.company) {
+    if (post.type === 'interview' && post.company !== filters.company) {
+      return false
+    }
+
+    if (post.type === 'roadmap' && post.targetCompany !== filters.company) {
+      return false
+    }
+
+    if (post.type !== 'interview' && post.type !== 'roadmap') {
+      return false
+    }
+  }
+
+  if (filters.jobRole) {
+    if (post.type === 'interview' && post.jobRole !== filters.jobRole) {
+      return false
+    }
+
+    if (post.type === 'roadmap' && post.targetJob !== filters.jobRole) {
+      return false
+    }
+
+    if (post.type === 'general') {
+      return false
+    }
+  }
+
+  if (filters.techStack) {
+    if (post.type === 'interview' && !post.techStacks.includes(filters.techStack)) {
+      return false
+    }
+
+    if (post.type === 'roadmap' && !post.recommendedSkills.includes(filters.techStack)) {
+      return false
+    }
+
+    if (post.type === 'general') {
+      return false
+    }
+  }
+
+  return matchesSearch(post, filters.search ?? '')
+}
+
+export async function getCommunityPosts(filters: CommunityPostFilters = {}): Promise<CommunityPostSummary[]> {
+  ensureSeedData()
+  await wait(180)
+
+  const storedPosts = sortPosts(readStoredPosts())
+  return storedPosts.map(toSummary).filter((post) => matchesFilters(post, filters))
 }
 
 export async function getCommunityPostDetail(postId: string): Promise<CommunityPostDetail> {
-  return httpClient<CommunityPostDetail>(`${API_ENDPOINTS.community.posts}/${postId}`, {
-    method: 'GET',
-  })
+  ensureSeedData()
+  await wait(140)
+
+  const storedPosts = readStoredPosts()
+  const postIndex = storedPosts.findIndex((item) => item.id === postId)
+
+  if (postIndex < 0) {
+    throw new Error('Post not found')
+  }
+
+  storedPosts[postIndex] = {
+    ...storedPosts[postIndex],
+    views: storedPosts[postIndex].views + 1,
+    commentCount: normalizeCommentCount(storedPosts[postIndex].comments),
+  }
+
+  writeStoredPosts(storedPosts)
+
+  return cloneValue(storedPosts[postIndex])
 }
 
 export async function createCommunityPost(payload: CreateCommunityPostPayload): Promise<CreateCommunityPostResponse> {
-  const formData = new FormData()
-  formData.append('title', payload.title)
-  formData.append('content', payload.content)
-  formData.append('tag', payload.tag)
+  ensureSeedData()
+  await wait(220)
 
-  if (payload.image) {
-    formData.append('image', payload.image)
+  const authorName = payload.authorName?.trim() || localStorage.getItem('userName')?.trim() || 'Roddy 사용자'
+  const createdAt = new Date().toISOString()
+  const newPostId = `community-${Date.now()}`
+  const storedPosts = readStoredPosts()
+  const generalImageUrls =
+    payload.type === 'general' && payload.image ? [await fileToDataUrl(payload.image)] : []
+
+  const basePost = {
+    id: newPostId,
+    title: payload.title.trim(),
+    authorName,
+    views: 0,
+    likes: 0,
+    commentCount: 0,
+    tag: payload.tag,
+    createdAt,
   }
 
-  return httpClient<CreateCommunityPostResponse>(API_ENDPOINTS.community.posts, {
-    method: 'POST',
-    body: formData,
-  })
+  const nextPost: CommunityPostDetail =
+    payload.type === 'general'
+      ? {
+          ...basePost,
+          type: 'general',
+          tags: [TAG_LABEL_MAP[payload.tag], '자유글'],
+          excerpt: payload.content.trim().slice(0, 100),
+          content: payload.content.trim(),
+          imageUrls: generalImageUrls,
+          comments: [],
+        }
+      : payload.type === 'roadmap'
+        ? {
+            ...basePost,
+            type: 'roadmap',
+            tags: Array.from(new Set(['로드맵 공유', payload.targetJob, payload.targetCompany ?? '', ...payload.recommendedSkills, ...(payload.tags ?? [])].filter(Boolean))),
+            roadmapId: payload.roadmapId,
+            roadmapTitle: payload.roadmapTitle,
+            summary: payload.summary.trim(),
+            targetJob: payload.targetJob,
+            targetCompany: payload.targetCompany?.trim(),
+            recommendedSkills: payload.recommendedSkills,
+            roadmapSteps: payload.roadmapSteps,
+            description: payload.description.trim(),
+            comments: [],
+          }
+        : {
+            ...basePost,
+            type: 'interview',
+            tags: Array.from(
+              new Set([payload.company, payload.jobRole, ...payload.techStacks, ...(payload.tags ?? []), payload.subtype === 'accepted' ? '취업후기' : '현직자 인터뷰']),
+            ),
+            subtype: payload.subtype,
+            company: payload.company.trim(),
+            jobRole: payload.jobRole.trim(),
+            preparationPeriod: payload.preparationPeriod.trim(),
+            techStacks: payload.techStacks,
+            processSummary: payload.processSummary.trim(),
+            background: payload.background.trim(),
+            preparationProcess: payload.preparationProcess.trim(),
+            experienceDetail: payload.experienceDetail.trim(),
+            advice: payload.advice.trim(),
+            comments: [],
+          }
+
+  writeStoredPosts([nextPost, ...storedPosts])
+
+  return { id: newPostId }
 }
 
 export async function likeCommunityPost(postId: string): Promise<{ likes: number }> {
-  return httpClient<{ likes: number }>(`${API_ENDPOINTS.community.posts}/${postId}/like`, {
-    method: 'POST',
-  })
+  ensureSeedData()
+  await wait(100)
+
+  const storedPosts = readStoredPosts()
+  const postIndex = storedPosts.findIndex((item) => item.id === postId)
+
+  if (postIndex < 0) {
+    throw new Error('Post not found')
+  }
+
+  storedPosts[postIndex] = {
+    ...storedPosts[postIndex],
+    likes: storedPosts[postIndex].likes + 1,
+  }
+
+  writeStoredPosts(storedPosts)
+
+  return { likes: storedPosts[postIndex].likes }
 }
 
 export async function reportCommunityPost(postId: string): Promise<{ success: boolean }> {
-  return httpClient<{ success: boolean }>(`${API_ENDPOINTS.community.posts}/${postId}/report`, {
-    method: 'POST',
-  })
+  void postId
+  await wait(120)
+  return { success: true }
 }
 
 export async function addCommunityComment(postId: string, payload: CreateCommentPayload): Promise<CreateCommentResponse> {
-  return httpClient<CreateCommentResponse>(`${API_ENDPOINTS.community.posts}/${postId}/comments`, {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  })
+  ensureSeedData()
+  await wait(160)
+
+  const storedPosts = readStoredPosts()
+  const postIndex = storedPosts.findIndex((item) => item.id === postId)
+
+  if (postIndex < 0) {
+    throw new Error('Post not found')
+  }
+
+  const nextComment: CommunityComment = {
+    id: `comment-${Date.now()}`,
+    author: payload.authorName?.trim() || localStorage.getItem('userName')?.trim() || 'Roddy 사용자',
+    content: payload.content.trim(),
+    depth: payload.parentId ? 1 : 0,
+    parentId: payload.parentId,
+    createdAt: new Date().toISOString(),
+  }
+
+  storedPosts[postIndex] = {
+    ...storedPosts[postIndex],
+    comments: [...(storedPosts[postIndex].comments ?? []), nextComment],
+    commentCount: normalizeCommentCount([...(storedPosts[postIndex].comments ?? []), nextComment]),
+  }
+
+  writeStoredPosts(storedPosts)
+
+  return nextComment
 }
 
 export async function getCommunityComments(postId: string): Promise<CreateCommentResponse[]> {
-  const response = await httpClient<CommunityCommentsApiResponse | CreateCommentResponse[]>(`${API_ENDPOINTS.community.posts}/${postId}/comments`, {
-    method: 'GET',
-  })
+  ensureSeedData()
+  await wait(120)
 
-  return Array.isArray(response) ? response : response.comments ?? []
+  const storedPosts = readStoredPosts()
+  const post = storedPosts.find((item) => item.id === postId)
+
+  if (!post) {
+    throw new Error('Post not found')
+  }
+
+  return cloneValue(post.comments ?? [])
 }
 
 export async function reportCommunityComment(commentId: string): Promise<{ success: boolean }> {
-  return httpClient<{ success: boolean }>(`${API_ENDPOINTS.community.comments}/${commentId}/report`, {
-    method: 'POST',
-  })
+  void commentId
+  await wait(120)
+  return { success: true }
 }
 
 export async function deleteCommunityComment(commentId: string): Promise<{ success: boolean }> {
-  return httpClient<{ success: boolean }>(`${API_ENDPOINTS.community.comments}/${commentId}`, {
-    method: 'DELETE',
+  ensureSeedData()
+  await wait(120)
+
+  const storedPosts = readStoredPosts()
+  const nextPosts = storedPosts.map((post) => {
+    const nextComments = (post.comments ?? []).filter((comment) => comment.id !== commentId && comment.parentId !== commentId)
+    return {
+      ...post,
+      comments: nextComments,
+      commentCount: normalizeCommentCount(nextComments),
+    }
   })
+
+  writeStoredPosts(nextPosts)
+  return { success: true }
 }

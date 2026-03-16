@@ -79,9 +79,15 @@ function OnboardingPage() {
     const nextSelectedCompanies = selectedCompanies.filter((company) => availableCompanies.includes(company))
 
     if (nextSelectedCompanies.length !== selectedCompanies.length) {
-      setSelectedCompanies(nextSelectedCompanies)
-      if (nextSelectedCompanies.length === 0) {
-        setCompanyQuery('')
+      const timeoutId = window.setTimeout(() => {
+        setSelectedCompanies(nextSelectedCompanies)
+        if (nextSelectedCompanies.length === 0) {
+          setCompanyQuery('')
+        }
+      }, 0)
+
+      return () => {
+        window.clearTimeout(timeoutId)
       }
     }
   }, [availableCompanies, selectedCompanies])
