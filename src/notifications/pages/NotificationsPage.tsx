@@ -57,12 +57,13 @@ function NotificationsPage() {
               </div>
             </header>
 
-            <div className="notification-filter-row" role="tablist" aria-label="알림 필터">
+            <div className="notification-filter-row" role="group" aria-label="알림 필터">
               {FILTER_OPTIONS.map((option) => (
                 <button
                   key={option.value}
                   type="button"
                   className={`notification-filter-button ${selectedFilter === option.value ? 'is-active' : ''}`.trim()}
+                  aria-pressed={selectedFilter === option.value}
                   onClick={() => setSelectedFilter(option.value)}
                 >
                   {option.label}

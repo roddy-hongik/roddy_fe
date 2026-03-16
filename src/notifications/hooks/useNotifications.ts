@@ -40,11 +40,19 @@ export function useNotifications() {
       }
     }
 
-    window.addEventListener('storage', syncState)
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key !== null && event.key !== NOTIFICATIONS_STORAGE_KEY) {
+        return
+      }
+
+      syncState()
+    }
+
+    window.addEventListener('storage', handleStorage)
     window.addEventListener(RODDY_DATA_CHANGE_EVENT, handleDataChange)
 
     return () => {
-      window.removeEventListener('storage', syncState)
+      window.removeEventListener('storage', handleStorage)
       window.removeEventListener(RODDY_DATA_CHANGE_EVENT, handleDataChange)
     }
   }, [])
@@ -57,6 +65,10 @@ export function useNotifications() {
     try {
       const response = await markNotificationAsRead(notificationId)
       setNotifications(response)
+      setIsError(false)
+    } catch (error) {
+      console.error('Failed to mark notification as read', error)
+      setIsError(true)
     } finally {
       setIsUpdating(false)
     }
@@ -68,6 +80,10 @@ export function useNotifications() {
     try {
       const response = await markAllNotificationsAsRead()
       setNotifications(response)
+      setIsError(false)
+    } catch (error) {
+      console.error('Failed to mark all notifications as read', error)
+      setIsError(true)
     } finally {
       setIsUpdating(false)
     }

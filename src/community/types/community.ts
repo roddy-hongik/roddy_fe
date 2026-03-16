@@ -110,6 +110,7 @@ export interface CreateGeneralPostPayload extends CreatePostPayloadBase {
 export interface CreateRoadmapSharePayload extends CreatePostPayloadBase {
   type: 'roadmap'
   summary: string
+  description: string
   roadmapId: string
   roadmapTitle: string
   targetJob: string

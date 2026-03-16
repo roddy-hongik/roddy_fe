@@ -16,6 +16,10 @@ function ProfileSavedPage() {
   const [scrappedJobs, setScrappedJobs] = useState<JobPostingPreview[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isError, setIsError] = useState(false)
+  const communityTabId = 'saved-community-tab'
+  const jobsTabId = 'saved-jobs-tab'
+  const communityPanelId = 'saved-community-panel'
+  const jobsPanelId = 'saved-jobs-panel'
 
   useEffect(() => {
     let isMounted = true
@@ -26,22 +30,25 @@ function ProfileSavedPage() {
       setIsError(false)
 
       try {
-        const [likedResponse, scrappedResponse] = await Promise.all([getLikedCommunityPosts(), getScrappedJobs()])
+        const [likedResult, scrappedResult] = await Promise.allSettled([getLikedCommunityPosts(), getScrappedJobs()])
 
         if (!isMounted) {
           return
         }
 
-        setLikedPosts(likedResponse)
-        setScrappedJobs(scrappedResponse)
-      } catch {
-        if (!isMounted) {
-          return
+        if (likedResult.status === 'fulfilled') {
+          setLikedPosts(likedResult.value)
+        } else {
+          setLikedPosts([])
         }
 
-        setLikedPosts([])
-        setScrappedJobs([])
-        setIsError(true)
+        if (scrappedResult.status === 'fulfilled') {
+          setScrappedJobs(scrappedResult.value)
+        } else {
+          setScrappedJobs([])
+        }
+
+        setIsError(likedResult.status === 'rejected' && scrappedResult.status === 'rejected')
       } finally {
         if (isMounted) {
           setIsLoading(false)
@@ -97,10 +104,26 @@ function ProfileSavedPage() {
             <p>좋아요한 커뮤니티 글과 스크랩한 채용공고를 한 번에 관리하세요.</p>
           </div>
           <div className="saved-tab-row" role="tablist" aria-label="저장 콘텐츠 탭">
-            <button type="button" className={`saved-tab-button ${selectedTab === 'community' ? 'is-active' : ''}`.trim()} onClick={() => setSelectedTab('community')}>
+            <button
+              id={communityTabId}
+              type="button"
+              role="tab"
+              aria-selected={selectedTab === 'community'}
+              aria-controls={communityPanelId}
+              className={`saved-tab-button ${selectedTab === 'community' ? 'is-active' : ''}`.trim()}
+              onClick={() => setSelectedTab('community')}
+            >
               좋아요한 커뮤니티
             </button>
-            <button type="button" className={`saved-tab-button ${selectedTab === 'jobs' ? 'is-active' : ''}`.trim()} onClick={() => setSelectedTab('jobs')}>
+            <button
+              id={jobsTabId}
+              type="button"
+              role="tab"
+              aria-selected={selectedTab === 'jobs'}
+              aria-controls={jobsPanelId}
+              className={`saved-tab-button ${selectedTab === 'jobs' ? 'is-active' : ''}`.trim()}
+              onClick={() => setSelectedTab('jobs')}
+            >
               스크랩한 채용공고
             </button>
           </div>
@@ -111,7 +134,7 @@ function ProfileSavedPage() {
 
         {!isLoading && !isError && selectedTab === 'community' ? (
           likedPosts.length > 0 ? (
-            <section className="saved-card-list">
+            <section id={communityPanelId} role="tabpanel" aria-labelledby={communityTabId} className="saved-card-list">
               {likedPosts.map((post) => (
                 <button key={post.id} type="button" className="saved-content-card" onClick={() => navigate(`/community/${post.id}`)}>
                   <div className="saved-content-top">
@@ -129,13 +152,15 @@ function ProfileSavedPage() {
               ))}
             </section>
           ) : (
-            <p className="saved-status">좋아요한 커뮤니티 글이 없습니다.</p>
+            <p id={communityPanelId} role="tabpanel" aria-labelledby={communityTabId} className="saved-status">
+              좋아요한 커뮤니티 글이 없습니다.
+            </p>
           )
         ) : null}
 
         {!isLoading && !isError && selectedTab === 'jobs' ? (
           scrappedJobs.length > 0 ? (
-            <section className="saved-card-list">
+            <section id={jobsPanelId} role="tabpanel" aria-labelledby={jobsTabId} className="saved-card-list">
               {scrappedJobs.map((job) => (
                 <article key={job.id} className="saved-content-card saved-job-card">
                   <button type="button" className="saved-content-click" onClick={() => navigate(routePaths.jobDetail(job.id))}>
@@ -146,7 +171,7 @@ function ProfileSavedPage() {
                     <strong>{job.title}</strong>
                     <p>{job.company}</p>
                     <div className="saved-meta-row">
-                      <span>매칭률 {job.matchingScore ?? '-'}%</span>
+                      <span>매칭률 {job.matchingScore == null ? '-' : `${job.matchingScore}%`}</span>
                       <span>마감 {job.deadline}</span>
                     </div>
                     <div className="saved-chip-row">
@@ -160,7 +185,9 @@ function ProfileSavedPage() {
               ))}
             </section>
           ) : (
-            <p className="saved-status">스크랩한 채용공고가 없습니다.</p>
+            <p id={jobsPanelId} role="tabpanel" aria-labelledby={jobsTabId} className="saved-status">
+              스크랩한 채용공고가 없습니다.
+            </p>
           )
         ) : null}
       </section>

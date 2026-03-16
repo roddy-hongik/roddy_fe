@@ -265,5 +265,7 @@ export const mockCommunityPosts: CommunityPostSummary[] = mockCommunityPostDetai
     }
   }
 
-  return { ...post, comments: undefined }
+  const { comments, ...summary } = post
+  void comments
+  return summary as CommunityPostSummary
 })

@@ -82,13 +82,15 @@ function MainPage() {
     }
   }, [isLoggedIn])
 
+  const resolvedDashboardData = isLoggedIn ? dashboardData : null
+
   const userName = useMemo(() => {
-    if (dashboardData?.userName) {
-      return dashboardData.userName
+    if (resolvedDashboardData?.userName) {
+      return resolvedDashboardData.userName
     }
 
     return localStorage.getItem('userName') ?? '신애'
-  }, [dashboardData])
+  }, [resolvedDashboardData])
   const isAdmin = useMemo(() => localStorage.getItem('userRole') === 'admin' || userName === '신애', [userName])
 
   const handleLoginRedirect = () => {
@@ -111,8 +113,6 @@ function MainPage() {
   const handleOpenDetailedReport = () => {
     navigate(ROUTES.reportsDetailAnalysis)
   }
-
-  const resolvedDashboardData = isLoggedIn ? dashboardData : null
 
   const radarMetrics = resolvedDashboardData?.radarMetrics ?? [
     { subject: 'Data Modeling', score: 0, fullMark: 100 },
@@ -286,7 +286,7 @@ function MainPage() {
               <h3>전체 매칭률</h3>
               <strong className="match-rate">{matchPercent}%</strong>
               <p className="match-desc">
-                {dashboardData?.matchRate.targetRole ?? '-'} · {dashboardData?.matchRate.targetCompany ?? '-'}
+                {resolvedDashboardData?.matchRate.targetRole ?? '-'} · {resolvedDashboardData?.matchRate.targetCompany ?? '-'}
               </p>
               <div className="progress-track" aria-hidden="true">
                 <span className="progress-value" style={{ width: `${matchPercent}%` }} />

@@ -22,6 +22,26 @@ const cloneValue = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T
 
 const normalizeCommentCount = (comments?: CommunityComment[]) => comments?.length ?? 0
 
+const fileToDataUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result)
+        return
+      }
+
+      reject(new Error('Failed to convert file to data URL'))
+    }
+
+    reader.onerror = () => {
+      reject(reader.error ?? new Error('Failed to read file'))
+    }
+
+    reader.readAsDataURL(file)
+  })
+
 const toSummary = (post: CommunityPostDetail): CommunityPostSummary => {
   if (post.type === 'general') {
     return {
@@ -39,10 +59,12 @@ const toSummary = (post: CommunityPostDetail): CommunityPostSummary => {
     }
   }
 
+  const { comments, ...summary } = post
+  void comments
+
   return {
-    ...post,
+    ...summary,
     commentCount: normalizeCommentCount(post.comments),
-    comments: undefined,
   }
 }
 
@@ -184,6 +206,8 @@ export async function createCommunityPost(payload: CreateCommunityPostPayload): 
   const createdAt = new Date().toISOString()
   const newPostId = `community-${Date.now()}`
   const storedPosts = readStoredPosts()
+  const generalImageUrls =
+    payload.type === 'general' && payload.image ? [await fileToDataUrl(payload.image)] : []
 
   const basePost = {
     id: newPostId,
@@ -204,7 +228,7 @@ export async function createCommunityPost(payload: CreateCommunityPostPayload): 
           tags: [TAG_LABEL_MAP[payload.tag], '자유글'],
           excerpt: payload.content.trim().slice(0, 100),
           content: payload.content.trim(),
-          imageUrls: [],
+          imageUrls: generalImageUrls,
           comments: [],
         }
       : payload.type === 'roadmap'
@@ -219,7 +243,7 @@ export async function createCommunityPost(payload: CreateCommunityPostPayload): 
             targetCompany: payload.targetCompany?.trim(),
             recommendedSkills: payload.recommendedSkills,
             roadmapSteps: payload.roadmapSteps,
-            description: payload.summary.trim(),
+            description: payload.description.trim(),
             comments: [],
           }
         : {

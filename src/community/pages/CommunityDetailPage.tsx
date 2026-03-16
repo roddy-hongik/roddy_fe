@@ -68,7 +68,18 @@ function CommunityDetailPage() {
         }
 
         setPost(resolvedPost)
+      } catch {
+        if (!isMounted) {
+          return
+        }
 
+        setPost(null)
+        setComments([])
+        setIsError(true)
+        return
+      }
+
+      try {
         const resolvedComments = await getPostComments(id)
         if (!isMounted) {
           return
@@ -80,7 +91,6 @@ function CommunityDetailPage() {
           return
         }
 
-        setPost(null)
         setComments([])
         setIsError(true)
       } finally {
@@ -235,7 +245,7 @@ function CommunityDetailPage() {
     )
   }
 
-  if (!post || isError) {
+  if (!post) {
     return (
       <main className="community-page">
         <CommunityTopNav />
@@ -312,6 +322,7 @@ function CommunityDetailPage() {
 
         <section className="community-comments-section">
           <h2>댓글 {comments.length}</h2>
+          {isError ? <p className="community-status-text">댓글을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p> : null}
 
           <div className="community-comment-shell">
             <div className="community-comment-list">

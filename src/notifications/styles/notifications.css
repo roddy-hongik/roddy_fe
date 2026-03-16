@@ -285,9 +285,13 @@
 }
 
 @media (max-width: 860px) {
-  .notification-panel,
   .notification-page-header {
     width: 100%;
+  }
+
+  .notification-panel {
+    width: auto;
+    max-width: calc(100vw - 32px);
   }
 
   .notification-page-header {

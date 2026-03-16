@@ -187,7 +187,7 @@ function CommunityListPage() {
   const handleTabChange = (tab: CommunityPostListTab) => {
     setSelectedTab(tab)
 
-    if (tab === 'general') {
+    if (tab !== 'interview') {
       setSelectedCompany('')
       setSelectedJob('')
       setSelectedTech('')

@@ -35,7 +35,13 @@ const wait = (ms: number) =>
   })
 
 function readScrappedJobIds() {
-  return parseStoredJson<string[]>(localStorage.getItem(JOB_SCRAP_STORAGE_KEY), cloneValue(DEFAULT_SCRAPPED_JOB_IDS))
+  const parsed = parseStoredJson<unknown>(localStorage.getItem(JOB_SCRAP_STORAGE_KEY), cloneValue(DEFAULT_SCRAPPED_JOB_IDS))
+
+  if (!Array.isArray(parsed) || parsed.some((item) => typeof item !== 'string')) {
+    return cloneValue(DEFAULT_SCRAPPED_JOB_IDS)
+  }
+
+  return parsed
 }
 
 function writeScrappedJobIds(jobIds: string[]) {
@@ -43,7 +49,7 @@ function writeScrappedJobIds(jobIds: string[]) {
   emitRoddyDataChange(JOB_SCRAP_STORAGE_KEY)
 }
 
-function ensureSeedData() {
+export function initializeJobScrapStorage() {
   if (!localStorage.getItem(JOB_SCRAP_STORAGE_KEY)) {
     writeScrappedJobIds(cloneValue(DEFAULT_SCRAPPED_JOB_IDS))
   }
@@ -55,7 +61,6 @@ function getJobPresentationMeta(job: JobPosting, index: number) {
 }
 
 export function isJobScrapped(jobId: string) {
-  ensureSeedData()
   return readScrappedJobIds().includes(jobId)
 }
 
@@ -77,7 +82,6 @@ export function getJobPostingPreviewById(jobId: string) {
 }
 
 export async function getScrappedJobs(): Promise<JobPostingPreview[]> {
-  ensureSeedData()
   await wait(140)
 
   const scrappedIds = new Set(readScrappedJobIds())
@@ -88,14 +92,21 @@ export async function getScrappedJobs(): Promise<JobPostingPreview[]> {
     .sort((a, b) => +new Date(b.postedAt) - +new Date(a.postedAt))
 }
 
-export async function toggleJobScrap(jobId: string): Promise<{ isScrapped: boolean }> {
-  ensureSeedData()
+export async function toggleJobScrap(jobId: string, shouldScrap: boolean): Promise<{ isScrapped: boolean }> {
   await wait(80)
 
   const currentIds = readScrappedJobIds()
-  const nextIds = currentIds.includes(jobId) ? currentIds.filter((id) => id !== jobId) : [...currentIds, jobId]
+  const isCurrentlyScrapped = currentIds.includes(jobId)
+
+  if (isCurrentlyScrapped === shouldScrap) {
+    return { isScrapped: isCurrentlyScrapped }
+  }
+
+  const nextIds = shouldScrap ? [...currentIds, jobId] : currentIds.filter((id) => id !== jobId)
 
   writeScrappedJobIds(nextIds)
 
   return { isScrapped: nextIds.includes(jobId) }
 }
+
+initializeJobScrapStorage()

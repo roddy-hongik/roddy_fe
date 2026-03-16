@@ -11,10 +11,32 @@ const dateTimeFormatter = new Intl.DateTimeFormat('ko-KR', {
   minute: '2-digit',
 })
 
+const toValidDate = (value: string) => {
+  if (!value.trim()) {
+    return null
+  }
+
+  const date = new Date(value)
+
+  return Number.isFinite(date.getTime()) ? date : null
+}
+
 export function formatDateLabel(value: string) {
-  return dateFormatter.format(new Date(value))
+  const date = toValidDate(value)
+
+  if (!date) {
+    return ''
+  }
+
+  return dateFormatter.format(date)
 }
 
 export function formatDateTimeLabel(value: string) {
-  return dateTimeFormatter.format(new Date(value))
+  const date = toValidDate(value)
+
+  if (!date) {
+    return ''
+  }
+
+  return dateTimeFormatter.format(date)
 }

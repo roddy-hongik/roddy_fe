@@ -22,7 +22,13 @@ const wait = (ms: number) =>
   })
 
 function readStoredPosts(): CommunityPostDetail[] {
-  return parseStoredJson<CommunityPostDetail[]>(localStorage.getItem(COMMUNITY_STORAGE_KEY), cloneValue(mockCommunityPostDetails))
+  const parsed = parseStoredJson<unknown>(localStorage.getItem(COMMUNITY_STORAGE_KEY), cloneValue(mockCommunityPostDetails))
+
+  if (!Array.isArray(parsed)) {
+    return cloneValue(mockCommunityPostDetails)
+  }
+
+  return parsed as CommunityPostDetail[]
 }
 
 function writeStoredPosts(posts: CommunityPostDetail[]) {
@@ -31,7 +37,14 @@ function writeStoredPosts(posts: CommunityPostDetail[]) {
 }
 
 function readLikedPostIds() {
-  return parseStoredJson<string[]>(localStorage.getItem(COMMUNITY_LIKE_STORAGE_KEY), ['rp1', 'ip1'])
+  const fallbackIds = ['rp1', 'ip1']
+  const parsed = parseStoredJson<unknown>(localStorage.getItem(COMMUNITY_LIKE_STORAGE_KEY), fallbackIds)
+
+  if (!Array.isArray(parsed) || parsed.some((item) => typeof item !== 'string')) {
+    return [...fallbackIds]
+  }
+
+  return parsed
 }
 
 function writeLikedPostIds(postIds: string[]) {

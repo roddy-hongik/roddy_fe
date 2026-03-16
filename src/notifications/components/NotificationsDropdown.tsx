@@ -60,7 +60,7 @@ function NotificationsDropdown() {
       <button
         type="button"
         className={`notification-bell-button ${isOpen ? 'is-open' : ''}`.trim()}
-        aria-label="알림 열기"
+        aria-label={isOpen ? '알림 닫기' : '알림 열기'}
         aria-expanded={isOpen}
         onClick={() => setIsOpen((current) => !current)}
       >

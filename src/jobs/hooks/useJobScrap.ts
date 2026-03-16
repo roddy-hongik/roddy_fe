@@ -35,7 +35,7 @@ export function useJobScrap(jobId: string) {
     setIsToggling(true)
 
     try {
-      const response = await toggleJobScrap(jobId)
+      const response = await toggleJobScrap(jobId, !isScrapped)
       setIsScrapped(response.isScrapped)
       return response
     } finally {

@@ -187,6 +187,12 @@
   color: #d8e6ff;
   border-radius: 999px;
   padding: 8px 14px;
+}
+
+.community-type-tab,
+.community-tag-chip,
+button.community-meta-chip,
+a.community-meta-chip {
   cursor: pointer;
 }
 

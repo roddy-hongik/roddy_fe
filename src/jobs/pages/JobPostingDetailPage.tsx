@@ -46,10 +46,13 @@ function JobPostingDetailPage() {
 
   useEffect(() => {
     if (!isLoggedIn) {
+      setJobMatch(null)
+      setIsJobMatchLoading(false)
       return
     }
 
     let isMounted = true
+    setJobMatch(null)
     const loadingTimer = window.setTimeout(() => {
       if (isMounted) {
         setIsJobMatchLoading(true)
