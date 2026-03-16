@@ -6,10 +6,12 @@ function ProfileTopNav() {
   const navigate = useNavigate()
 
   const userName = localStorage.getItem('userName') ?? '사용자'
+  const isAdmin = localStorage.getItem('userRole') === 'admin' || userName === '신애'
 
   const handleLogout = () => {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('userName')
+    localStorage.removeItem('userRole')
     emitAuthChange()
     navigate(ROUTES.login, { replace: true })
   }
@@ -33,12 +35,23 @@ function ProfileTopNav() {
           <NavLink to={ROUTES.jobs} className={({ isActive }) => `profile-nav-link ${isActive ? 'active' : ''}`}>
             채용공고
           </NavLink>
+          <NavLink to={ROUTES.mockInterview} className={({ isActive }) => `profile-nav-link ${isActive ? 'active' : ''}`}>
+            모의면접
+          </NavLink>
+          <NavLink to={ROUTES.roadmap} className={({ isActive }) => `profile-nav-link ${isActive ? 'active' : ''}`}>
+            로드맵
+          </NavLink>
           <NavLink to={ROUTES.community} className={({ isActive }) => `profile-nav-link ${isActive ? 'active' : ''}`}>
             커뮤니티
           </NavLink>
           <NavLink to={ROUTES.reports} className={({ isActive }) => `profile-nav-link ${isActive ? 'active' : ''}`}>
             내 리포트
           </NavLink>
+          {isAdmin ? (
+            <NavLink to={ROUTES.adminCrawling} className={({ isActive }) => `profile-nav-link ${isActive ? 'active' : ''}`}>
+              관리자
+            </NavLink>
+          ) : null}
         </nav>
       </div>
 

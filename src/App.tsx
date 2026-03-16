@@ -15,7 +15,11 @@ import {
   TermsPage,
 } from './profile'
 import { CommunityDetailPage, CommunityListPage, CommunityWritePage } from './community'
+import { MockInterviewPage } from './mockInterview'
+import { RoadmapPage } from './roadmap'
+import { AdminCrawlingPage, AdminGraphPage, AdminLayout, AdminModerationPage } from './admin'
 import ProtectedRoute from './routes/ProtectedRoute'
+import AdminGuard from './routes/AdminGuard'
 import { ROUTES, routePatterns } from './routes/paths'
 
 function App() {
@@ -95,6 +99,35 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path={ROUTES.mockInterview}
+          element={
+            <ProtectedRoute>
+              <MockInterviewPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.roadmap}
+          element={
+            <ProtectedRoute>
+              <RoadmapPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.admin}
+          element={
+            <AdminGuard>
+              <AdminLayout />
+            </AdminGuard>
+          }
+        >
+          <Route index element={<Navigate to={ROUTES.adminCrawling} replace />} />
+          <Route path="crawling" element={<AdminCrawlingPage />} />
+          <Route path="moderation" element={<AdminModerationPage />} />
+          <Route path="graph-db" element={<AdminGraphPage />} />
+        </Route>
         <Route
           path={ROUTES.community}
           element={<CommunityListPage />}

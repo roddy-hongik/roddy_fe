@@ -90,6 +90,7 @@ function MainPage() {
 
     return localStorage.getItem('userName') ?? '신애'
   }, [dashboardData])
+  const isAdmin = useMemo(() => localStorage.getItem('userRole') === 'admin' || userName === '신애', [userName])
 
   const handleLoginRedirect = () => {
     navigate(ROUTES.login, { state: { from: { pathname: ROUTES.home } } })
@@ -98,6 +99,7 @@ function MainPage() {
   const handleLogout = () => {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('userName')
+    localStorage.removeItem('userRole')
     emitAuthChange()
     setIsLoggedIn(false)
     navigate(ROUTES.login, { replace: true })
@@ -157,12 +159,23 @@ function MainPage() {
             <button type="button" className="nav-link" onClick={() => navigate(ROUTES.jobs)}>
               채용공고
             </button>
+            <button type="button" className="nav-link" onClick={() => navigate(ROUTES.mockInterview)}>
+              모의면접
+            </button>
+            <button type="button" className="nav-link" onClick={() => navigate(ROUTES.roadmap)}>
+              로드맵
+            </button>
             <button type="button" className="nav-link" onClick={() => navigate(ROUTES.community)}>
               커뮤니티
             </button>
             {isLoggedIn ? (
               <button type="button" className="nav-link" onClick={() => navigate(ROUTES.reports)}>
                 내 리포트
+              </button>
+            ) : null}
+            {isLoggedIn && isAdmin ? (
+              <button type="button" className="nav-link" onClick={() => navigate(ROUTES.adminCrawling)}>
+                관리자
               </button>
             ) : null}
           </nav>
