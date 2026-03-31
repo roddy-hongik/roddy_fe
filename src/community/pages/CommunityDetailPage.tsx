@@ -1,9 +1,9 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getCommunityPostDetail } from '../../api/services/communityService'
+import AppTopNav from '../../shared/components/AppTopNav'
 import { TAG_LABEL_MAP } from '../constants/jobTrackTags'
 import CommentItem from '../components/CommentItem'
-import CommunityTopNav from '../components/CommunityTopNav'
 import InterviewDetailSection from '../components/InterviewDetailSection'
 import { AlertIcon, EyeIcon, HeartIcon, MessageIcon } from '../components/icons'
 import PostTypeBadge from '../components/PostTypeBadge'
@@ -237,7 +237,7 @@ function CommunityDetailPage() {
   if (isLoading) {
     return (
       <main className="community-page">
-        <CommunityTopNav />
+        <AppTopNav loginRedirectPath="/community" />
         <section className="community-container community-detail-panel">
           <p className="community-status-text">게시글을 불러오는 중입니다...</p>
         </section>
@@ -248,7 +248,7 @@ function CommunityDetailPage() {
   if (!post) {
     return (
       <main className="community-page">
-        <CommunityTopNav />
+        <AppTopNav loginRedirectPath="/community" />
         <section className="community-container community-detail-panel">
           <p className="community-status-text">게시글을 찾을 수 없습니다.</p>
         </section>
@@ -258,7 +258,7 @@ function CommunityDetailPage() {
 
   return (
     <main className="community-page">
-      <CommunityTopNav />
+      <AppTopNav loginRedirectPath="/community" />
 
       <article className="community-container community-detail-panel">
         <header className="community-detail-header">

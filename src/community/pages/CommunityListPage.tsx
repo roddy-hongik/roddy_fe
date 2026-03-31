@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getCommunityPosts } from '../../api/services/communityService'
+import AppTopNav from '../../shared/components/AppTopNav'
 import CommunityFilterBar from '../components/CommunityFilterBar'
-import CommunityTopNav from '../components/CommunityTopNav'
 import PostListItem from '../components/PostListItem'
 import PostTypeTabs from '../components/PostTypeTabs'
 import TagSelector from '../components/TagSelector'
@@ -221,7 +221,7 @@ function CommunityListPage() {
 
   return (
     <main className="community-page">
-      <CommunityTopNav />
+      <AppTopNav loginRedirectPath="/community" />
 
       <section className="community-container community-list-panel">
         <div className="community-header-block">

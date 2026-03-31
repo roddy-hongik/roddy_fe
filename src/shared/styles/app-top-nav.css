@@ -1,0 +1,157 @@
+.app-top-nav {
+  position: sticky;
+  top: 12px;
+  z-index: 20;
+  width: min(1240px, 100%);
+  margin: 0 auto;
+  padding: 14px 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(124, 163, 255, 0.25);
+  background: rgba(8, 16, 34, 0.58);
+  backdrop-filter: blur(16px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.app-top-nav__left,
+.app-top-nav__right,
+.app-top-nav__menu {
+  display: flex;
+  align-items: center;
+}
+
+.app-top-nav__left {
+  gap: 26px;
+}
+
+.app-top-nav__right {
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.app-top-nav__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+}
+
+.app-top-nav__brand strong {
+  font-size: 1.6rem;
+  letter-spacing: -0.02em;
+}
+
+.app-top-nav__logo {
+  position: relative;
+  width: 38px;
+  height: 30px;
+}
+
+.app-top-nav__logo-ear {
+  position: absolute;
+  top: 0;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #7db0ff;
+}
+
+.app-top-nav__logo-ear.left {
+  left: 0;
+}
+
+.app-top-nav__logo-ear.right {
+  right: 0;
+}
+
+.app-top-nav__logo-face {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 26px;
+  height: 18px;
+  border-radius: 11px;
+  background: #cde0ff;
+}
+
+.app-top-nav__menu {
+  gap: 8px;
+}
+
+.app-top-nav__link,
+.app-top-nav__action-button {
+  border: 0;
+  background: transparent;
+  color: #dae6ff;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.app-top-nav__link {
+  padding: 6px 10px;
+  border-radius: 999px;
+  text-decoration: none;
+}
+
+.app-top-nav__link:hover {
+  background: rgba(104, 145, 234, 0.16);
+}
+
+.app-top-nav__link.is-active,
+.app-top-nav__link--action {
+  border: 1px solid rgba(136, 177, 255, 0.28);
+}
+
+.app-top-nav__link.is-active {
+  background: rgba(104, 145, 234, 0.2);
+}
+
+.app-top-nav__divider,
+.app-top-nav__user-name {
+  color: #b8c8ec;
+  font-size: 0.92rem;
+}
+
+.app-top-nav__action-button {
+  border: 1px solid rgba(140, 177, 255, 0.45);
+  border-radius: 999px;
+  padding: 6px 14px;
+  background: rgba(101, 144, 255, 0.2);
+  color: #f2f7ff;
+  font-size: 0.88rem;
+}
+
+@media (max-width: 1120px) {
+  .app-top-nav {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .app-top-nav__left,
+  .app-top-nav__right {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 720px) {
+  .app-top-nav {
+    padding: 14px 16px;
+  }
+
+  .app-top-nav__left {
+    gap: 14px;
+  }
+
+  .app-top-nav__menu,
+  .app-top-nav__right {
+    white-space: normal;
+  }
+}

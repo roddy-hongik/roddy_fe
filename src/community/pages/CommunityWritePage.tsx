@@ -1,8 +1,8 @@
 import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createCommunityPost } from '../../api/services/communityService'
+import AppTopNav from '../../shared/components/AppTopNav'
 import CommunityPostTypeSelector from '../components/CommunityPostTypeSelector'
-import CommunityTopNav from '../components/CommunityTopNav'
 import TagSelector from '../components/TagSelector'
 import { getRoadmapShareCandidates } from '../services/roadmapShareService'
 import type { CommunityPostType, InterviewSubtype, JobTrackTagKey, RoadmapShareCandidate } from '../types/community'
@@ -213,7 +213,7 @@ function CommunityWritePage() {
 
   return (
     <main className="community-page">
-      <CommunityTopNav />
+      <AppTopNav loginRedirectPath="/community/write" />
 
       <section className="community-container community-write-panel">
         <h1>게시글 작성</h1>

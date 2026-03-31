@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AUTH_CHANGE_EVENT } from '../../auth/utils/authEvents'
+import AppTopNav from '../../shared/components/AppTopNav'
 import { formatDateLabel } from '../../shared/utils/dateFormat'
 import { routePaths } from '../../routes/paths'
 import JobScrapButton from '../components/JobScrapButton'
-import JobsTopNav from '../components/JobsTopNav'
 import { jobPostings } from '../data/jobPostings'
 import { toJobPostingPreview } from '../services/jobScrapService'
 import '../styles/job-pages.css'
@@ -78,7 +78,7 @@ function JobPostingsPage() {
 
   return (
     <main className="jobs-page">
-      <JobsTopNav />
+      <AppTopNav loginRedirectPath="/jobs" />
 
       <section className="jobs-content">
         <div className="jobs-main-panel">
