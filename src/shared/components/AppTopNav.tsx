@@ -46,7 +46,7 @@ function AppTopNav({ loginRedirectPath = ROUTES.home, onLogout, rightSlot, showS
   }, [])
 
   const userName = userNameOverride ?? authSnapshot.storedUserName
-  const isAdmin = authSnapshot.userRole === 'admin' || userName === '신애'
+  const isAdmin = authSnapshot.userRole === 'admin'
 
   const handleLoginRedirect = () => {
     navigate(ROUTES.login, { state: { from: { pathname: loginRedirectPath } } })
