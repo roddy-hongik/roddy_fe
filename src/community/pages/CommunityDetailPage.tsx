@@ -1,9 +1,9 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { getCommunityPostDetail } from '../../api/services/communityService'
+import AppTopNav from '../../shared/components/AppTopNav'
 import { TAG_LABEL_MAP } from '../constants/jobTrackTags'
 import CommentItem from '../components/CommentItem'
-import CommunityTopNav from '../components/CommunityTopNav'
 import InterviewDetailSection from '../components/InterviewDetailSection'
 import { AlertIcon, EyeIcon, HeartIcon, MessageIcon } from '../components/icons'
 import PostTypeBadge from '../components/PostTypeBadge'
@@ -21,6 +21,7 @@ import { formatCommunityCount, formatCommunityDateTime } from '../utils/communit
 import '../styles/community-pages.css'
 
 function CommunityDetailPage() {
+  const location = useLocation()
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
   const [post, setPost] = useState<CommunityPostDetail | null>(null)
@@ -234,10 +235,12 @@ function CommunityDetailPage() {
     setReplyingToId((current) => (current === commentId ? null : commentId))
   }
 
+  const currentLocationPath = `${location.pathname}${location.search}`
+
   if (isLoading) {
     return (
       <main className="community-page">
-        <CommunityTopNav />
+        <AppTopNav loginRedirectPath={currentLocationPath} />
         <section className="community-container community-detail-panel">
           <p className="community-status-text">게시글을 불러오는 중입니다...</p>
         </section>
@@ -248,7 +251,7 @@ function CommunityDetailPage() {
   if (!post) {
     return (
       <main className="community-page">
-        <CommunityTopNav />
+        <AppTopNav loginRedirectPath={currentLocationPath} />
         <section className="community-container community-detail-panel">
           <p className="community-status-text">게시글을 찾을 수 없습니다.</p>
         </section>
@@ -258,7 +261,7 @@ function CommunityDetailPage() {
 
   return (
     <main className="community-page">
-      <CommunityTopNav />
+      <AppTopNav loginRedirectPath={currentLocationPath} />
 
       <article className="community-container community-detail-panel">
         <header className="community-detail-header">

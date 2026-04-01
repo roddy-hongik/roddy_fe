@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import ProfileTopNav from '../../profile/components/ProfileTopNav'
+import AppTopNav from '../../shared/components/AppTopNav'
 import { mockInterviewSummary } from '../data/mockInterviewData'
 import { generateMockInterviewQuestions } from '../services/mockInterviewService'
 import type { InterviewQuestion } from '../types/mockInterview'
@@ -72,7 +72,7 @@ function MockInterviewPage() {
 
   return (
     <main className="profile-layout-shell">
-      <ProfileTopNav />
+      <AppTopNav showSavedLink />
       <section className="profile-layout-content profile-page profile-fade-in">
         <section className="profile-card mock-interview-card">
           <header className="profile-card-header">

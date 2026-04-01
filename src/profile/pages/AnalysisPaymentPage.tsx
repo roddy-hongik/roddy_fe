@@ -1,13 +1,13 @@
 import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '../../routes/paths'
-import ProfileTopNav from '../components/ProfileTopNav'
+import AppTopNav from '../../shared/components/AppTopNav'
 
 function AnalysisPaymentPage() {
   const navigate = useNavigate()
 
   return (
     <main className="profile-layout-shell">
-      <ProfileTopNav />
+      <AppTopNav showSavedLink />
       <section className="profile-layout-content profile-page profile-fade-in">
         <section className="profile-card">
           <header className="profile-card-header">

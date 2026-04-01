@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getDetailedReport, getLatestDetailedReport } from '../../api/services/reportService'
 import { ROUTES } from '../../routes/paths'
+import AppTopNav from '../../shared/components/AppTopNav'
 import CategoryScoreCard from '../components/CategoryScoreCard'
-import ProfileTopNav from '../components/ProfileTopNav'
 import ReportSummaryCard from '../components/ReportSummaryCard'
 import TechStackSection from '../components/TechStackSection'
 import type { DetailedReport } from '../types/report'
@@ -55,7 +55,7 @@ function DetailedAnalysisReportPage() {
   if (isError || !report) {
     return (
       <main className="profile-layout-shell">
-        <ProfileTopNav />
+        <AppTopNav showSavedLink />
         <section className="profile-layout-content profile-page profile-fade-in">
           <section className="profile-card">
             <header className="profile-card-header">
@@ -83,7 +83,7 @@ function DetailedAnalysisReportPage() {
 
   return (
     <main className="profile-layout-shell">
-      <ProfileTopNav />
+      <AppTopNav showSavedLink />
       <section className="profile-layout-content profile-page profile-fade-in">
         <section className="profile-card">
           <header className="profile-card-header">

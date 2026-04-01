@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { PolarAngleAxis, PolarGrid, Radar, RadarChart, ResponsiveContainer, Tooltip } from 'recharts'
 import { getDashboardData } from '../../api/services/dashboardService'
 import { getCurrentAccountStorageId } from '../../auth/utils/accountStorage'
-import { AUTH_CHANGE_EVENT, emitAuthChange } from '../../auth/utils/authEvents'
-import NotificationsDropdown from '../../notifications/components/NotificationsDropdown'
+import { AUTH_CHANGE_EVENT } from '../../auth/utils/authEvents'
 import { ROUTES, routePaths } from '../../routes/paths'
+import AppTopNav from '../../shared/components/AppTopNav'
 import type { DashboardData } from '../../api/types/dashboard'
 import '../styles/main-page.css'
 
@@ -96,21 +96,15 @@ function MainPage() {
 
     return localStorage.getItem('userName') ?? '신애'
   }, [resolvedDashboardData])
-  const isAdmin = useMemo(() => localStorage.getItem('userRole') === 'admin' || userName === '신애', [userName])
-
-  const handleLoginRedirect = () => {
-    navigate(ROUTES.login, { state: { from: { pathname: ROUTES.home } } })
-  }
 
   const handleLogout = () => {
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('userName')
-    localStorage.removeItem('userRole')
-    emitAuthChange()
     setIsLoggedIn(false)
     setAuthAccountId(getCurrentAccountStorageId())
     setDashboardData(null)
-    navigate(ROUTES.login, { replace: true })
+  }
+
+  const handleLoginRedirect = () => {
+    navigate(ROUTES.login, { state: { from: { pathname: ROUTES.home } } })
   }
 
   const handleOpenJobPosting = (jobId: string) => {
@@ -150,66 +144,7 @@ function MainPage() {
 
   return (
     <main className="main-page">
-      <header className="main-nav">
-        <div className="nav-left">
-          <button type="button" className="brand-anchor" aria-label="Roddy 메인으로 이동" onClick={() => navigate(ROUTES.home)}>
-            <div className="roddy-logo">
-              <span className="logo-ear left" />
-              <span className="logo-ear right" />
-              <span className="logo-face" />
-            </div>
-            <strong>Roddy</strong>
-          </button>
-          <nav className="main-menu" aria-label="main menu">
-            <button type="button" className="nav-link nav-link-active" onClick={() => navigate(ROUTES.home)}>
-              홈
-            </button>
-            <button type="button" className="nav-link" onClick={() => navigate(ROUTES.jobs)}>
-              채용공고
-            </button>
-            <button type="button" className="nav-link" onClick={() => navigate(ROUTES.mockInterview)}>
-              모의면접
-            </button>
-            <button type="button" className="nav-link" onClick={() => navigate(ROUTES.roadmap)}>
-              로드맵
-            </button>
-            <button type="button" className="nav-link" onClick={() => navigate(ROUTES.community)}>
-              커뮤니티
-            </button>
-            {isLoggedIn ? (
-              <button type="button" className="nav-link" onClick={() => navigate(ROUTES.reports)}>
-                내 리포트
-              </button>
-            ) : null}
-            {isLoggedIn && isAdmin ? (
-              <button type="button" className="nav-link" onClick={() => navigate(ROUTES.adminCrawling)}>
-                관리자
-              </button>
-            ) : null}
-          </nav>
-        </div>
-
-        <div className="nav-right">
-          {isLoggedIn ? (
-            <>
-              <NotificationsDropdown />
-              <button type="button" className="nav-link nav-page-btn" onClick={() => navigate(ROUTES.profile)}>
-                마이페이지
-              </button>
-              <span className="nav-divider">|</span>
-              <span className="user-name">{userName}님</span>
-              <span className="nav-divider">|</span>
-              <button type="button" className="logout-btn" onClick={handleLogout}>
-                로그아웃
-              </button>
-            </>
-          ) : (
-            <button type="button" className="logout-btn" onClick={handleLoginRedirect}>
-              로그인
-            </button>
-          )}
-        </div>
-      </header>
+      <AppTopNav loginRedirectPath={ROUTES.home} onLogout={handleLogout} userNameOverride={userName} />
 
       <section className="hero">
         <div className={`hero-content ${isLoggedIn ? '' : 'is-blurred'}`}>

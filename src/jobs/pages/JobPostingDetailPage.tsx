@@ -3,8 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { getJobPostingMatch } from '../../api/services/jobService'
 import { ROUTES } from '../../routes/paths'
 import { AUTH_CHANGE_EVENT } from '../../auth/utils/authEvents'
+import AppTopNav from '../../shared/components/AppTopNav'
 import JobScrapButton from '../components/JobScrapButton'
-import JobsTopNav from '../components/JobsTopNav'
 import { jobPostings } from '../data/jobPostings'
 import { toJobPostingPreview } from '../services/jobScrapService'
 import type { JobPostingMatch } from '../types/jobMatching'
@@ -86,9 +86,10 @@ function JobPostingDetailPage() {
 
   return (
     <main className="jobs-page detail-page">
-      <JobsTopNav
+      <AppTopNav
+        loginRedirectPath={ROUTES.jobs}
         rightSlot={
-          <button type="button" className="logout-btn" onClick={() => navigate(ROUTES.jobs)}>
+          <button type="button" className="app-top-nav__action-button" onClick={() => navigate(ROUTES.jobs)}>
             목록으로
           </button>
         }
