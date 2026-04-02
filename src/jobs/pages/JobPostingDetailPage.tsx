@@ -15,7 +15,7 @@ function JobPostingDetailPage() {
   const { jobId } = useParams()
   const [isLoggedIn, setIsLoggedIn] = useState(Boolean(localStorage.getItem('accessToken')))
   const [jobMatch, setJobMatch] = useState<JobPostingMatch | null>(null)
-  const [isJobMatchLoading, setIsJobMatchLoading] = useState(false)
+  const [loadedJobId, setLoadedJobId] = useState<string | null>(null)
 
   const job = useMemo(() => jobPostings.find((item) => item.id === jobId) ?? jobPostings[0], [jobId])
   const jobPreview = useMemo(() => toJobPostingPreview(job), [job])
@@ -46,14 +46,11 @@ function JobPostingDetailPage() {
 
   useEffect(() => {
     if (!isLoggedIn) {
-      setJobMatch(null)
-      setIsJobMatchLoading(false)
       return
     }
 
     let isMounted = true
-    setJobMatch(null)
-    setIsJobMatchLoading(true)
+    const requestedJobId = job.id
 
     getJobPostingMatch(job.id)
       .then((response) => {
@@ -62,6 +59,7 @@ function JobPostingDetailPage() {
         }
 
         setJobMatch(response)
+        setLoadedJobId(requestedJobId)
       })
       .catch(() => {
         if (!isMounted) {
@@ -69,11 +67,7 @@ function JobPostingDetailPage() {
         }
 
         setJobMatch(null)
-      })
-      .finally(() => {
-        if (isMounted) {
-          setIsJobMatchLoading(false)
-        }
+        setLoadedJobId(requestedJobId)
       })
 
     return () => {
@@ -81,8 +75,8 @@ function JobPostingDetailPage() {
     }
   }, [isLoggedIn, job.id])
 
-  const resolvedJobMatch = isLoggedIn ? jobMatch : null
-  const resolvedJobMatchLoading = isLoggedIn ? isJobMatchLoading : false
+  const resolvedJobMatch = isLoggedIn && loadedJobId === job.id ? jobMatch : null
+  const resolvedJobMatchLoading = isLoggedIn && loadedJobId !== job.id
 
   return (
     <main className="jobs-page detail-page">

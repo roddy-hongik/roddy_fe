@@ -33,12 +33,12 @@ function NotificationsPage() {
   }
 
   return (
-    <main className="profile-layout-shell">
+    <main className="profile-layout-shell notifications-page-shell">
       <AppTopNav showSavedLink />
 
-      <section className="profile-layout-content">
-        <div className="profile-page profile-fade-in">
-          <section className="profile-card">
+      <section className="profile-layout-content notifications-page-content">
+        <div className="profile-page profile-fade-in notifications-page-wrap">
+          <section className="profile-card notifications-page-card">
             <header className="notification-page-header">
               <div>
                 <h1>전체 알림</h1>

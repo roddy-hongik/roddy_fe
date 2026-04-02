@@ -37,6 +37,7 @@ function MainPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(Boolean(localStorage.getItem('accessToken')))
   const [authAccountId, setAuthAccountId] = useState(() => getCurrentAccountStorageId())
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
+  const [loadedDashboardAccountId, setLoadedDashboardAccountId] = useState<string | null>(null)
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null)
   const [chartAnimationKey, setChartAnimationKey] = useState(0)
 
@@ -57,13 +58,12 @@ function MainPage() {
   }, [])
 
   useEffect(() => {
-    setDashboardData(null)
-
     if (!isLoggedIn) {
       return
     }
 
     let isMounted = true
+    const requestedAccountId = authAccountId
 
     getDashboardData()
       .then((data) => {
@@ -72,6 +72,7 @@ function MainPage() {
         }
 
         setDashboardData(data)
+        setLoadedDashboardAccountId(requestedAccountId)
         setChartAnimationKey((prev) => prev + 1)
       })
       .catch(() => {
@@ -80,6 +81,7 @@ function MainPage() {
         }
 
         setDashboardData(null)
+        setLoadedDashboardAccountId(requestedAccountId)
       })
 
     return () => {
@@ -87,7 +89,7 @@ function MainPage() {
     }
   }, [authAccountId, isLoggedIn])
 
-  const resolvedDashboardData = isLoggedIn ? dashboardData : null
+  const resolvedDashboardData = isLoggedIn && loadedDashboardAccountId === authAccountId ? dashboardData : null
 
   const userName = useMemo(() => {
     if (resolvedDashboardData?.userName) {
@@ -101,6 +103,7 @@ function MainPage() {
     setIsLoggedIn(false)
     setAuthAccountId(getCurrentAccountStorageId())
     setDashboardData(null)
+    setLoadedDashboardAccountId(null)
   }
 
   const handleLoginRedirect = () => {
