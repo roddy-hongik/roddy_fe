@@ -1,6 +1,7 @@
 import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { createCommunityPost } from '../../api/services/communityService'
+import { ROUTES } from '../../routes/paths'
 import AppTopNav from '../../shared/components/AppTopNav'
 import CommunityPostTypeSelector from '../components/CommunityPostTypeSelector'
 import TagSelector from '../components/TagSelector'
@@ -10,16 +11,25 @@ import { normalizeTagInput } from '../utils/communityFormat'
 import '../styles/community-pages.css'
 import type { CreateCommunityPostPayload } from '../types/community'
 
+type CommunityWriteLocationState = {
+  initialPostType?: CommunityPostType
+  initialRoadmapId?: string
+  initialTitle?: string
+  initialRoadmapSummary?: string
+}
+
 function CommunityWritePage() {
+  const location = useLocation()
   const navigate = useNavigate()
+  const locationState = (location.state as CommunityWriteLocationState | null) ?? null
   const [selectedTag, setSelectedTag] = useState<JobTrackTagKey>('b2c')
-  const [postType, setPostType] = useState<CommunityPostType>('general')
-  const [title, setTitle] = useState('')
+  const [postType, setPostType] = useState<CommunityPostType>(locationState?.initialPostType ?? 'general')
+  const [title, setTitle] = useState(locationState?.initialTitle ?? '')
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [content, setContent] = useState('')
   const [roadmaps, setRoadmaps] = useState<RoadmapShareCandidate[]>([])
-  const [selectedRoadmapId, setSelectedRoadmapId] = useState('')
-  const [roadmapSummary, setRoadmapSummary] = useState('')
+  const [selectedRoadmapId, setSelectedRoadmapId] = useState(locationState?.initialRoadmapId ?? '')
+  const [roadmapSummary, setRoadmapSummary] = useState(locationState?.initialRoadmapSummary ?? '')
   const [roadmapTagInput, setRoadmapTagInput] = useState('')
   const [interviewSubtype, setInterviewSubtype] = useState<InterviewSubtype>('accepted')
   const [company, setCompany] = useState('')
@@ -49,7 +59,13 @@ function CommunityWritePage() {
         }
 
         setRoadmaps(data)
-        setSelectedRoadmapId(data[0]?.id ?? '')
+        setSelectedRoadmapId((prev) => {
+          if (prev && data.some((roadmap) => roadmap.id === prev)) {
+            return prev
+          }
+
+          return data[0]?.id ?? ''
+        })
       })
       .catch(() => {
         if (!isMounted) {
@@ -213,7 +229,7 @@ function CommunityWritePage() {
 
   return (
     <main className="community-page">
-      <AppTopNav loginRedirectPath="/community/write" />
+      <AppTopNav loginRedirectPath={ROUTES.communityWrite} />
 
       <section className="community-container community-write-panel">
         <h1>게시글 작성</h1>

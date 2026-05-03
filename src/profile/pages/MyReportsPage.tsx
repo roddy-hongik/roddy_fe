@@ -6,6 +6,7 @@ import AppTopNav from '../../shared/components/AppTopNav'
 import ReportNav from '../components/ReportNav'
 import ReportSummaryCard from '../components/ReportSummaryCard'
 import type { DetailedReport } from '../types/report'
+import '../styles/profile-pages.css'
 
 function MyReportsPage() {
   const navigate = useNavigate()

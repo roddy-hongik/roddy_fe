@@ -437,16 +437,14 @@ a.community-meta-chip {
   border: 1px solid rgba(123, 163, 255, 0.24);
   border-radius: 18px;
   background: rgba(12, 22, 49, 0.74);
-  padding: 16px;
+  padding: 20px;
   display: grid;
-  gap: 12px;
+  gap: 18px;
 }
 
 .community-preview-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
+  display: grid;
+  gap: 14px;
 }
 
 .community-preview-header strong {
@@ -454,11 +452,17 @@ a.community-meta-chip {
 }
 
 .community-preview-header span {
+  justify-self: start;
   border-radius: 999px;
   border: 1px solid rgba(123, 163, 255, 0.24);
   background: rgba(18, 32, 73, 0.76);
   padding: 6px 10px;
   font-size: 0.84rem;
+}
+
+.community-preview-card .community-chip-row {
+  margin-top: 8px;
+  gap: 12px;
 }
 
 .community-submit-btn {

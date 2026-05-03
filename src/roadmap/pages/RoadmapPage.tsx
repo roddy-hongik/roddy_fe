@@ -5,6 +5,7 @@ import AppTopNav from '../../shared/components/AppTopNav'
 import RoadmapResultCard from '../components/RoadmapResultCard'
 import RoadmapSummaryCard from '../components/RoadmapSummaryCard'
 import SavedRoadmapsExplorer from '../components/SavedRoadmapsExplorer'
+import '../../profile/styles/profile-pages.css'
 import '../styles/roadmap-page.css'
 
 function RoadmapPage() {

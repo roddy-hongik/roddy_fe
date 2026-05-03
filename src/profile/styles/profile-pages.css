@@ -157,12 +157,13 @@
 
 .profile-card-header h1 {
   margin: 0;
+  color: #f3f7ff;
   font-size: clamp(1.5rem, 3vw, 2rem);
 }
 
 .profile-card-header p {
   margin: 10px 0 0;
-  color: #b7c6eb;
+  color: #edf3ff;
 }
 
 .profile-grid {
@@ -435,7 +436,7 @@
 
 .profile-meta-text {
   margin: 4px 0 0;
-  color: #b7c6eb;
+  color: #edf3ff;
   font-size: 0.92rem;
   line-height: 1.5;
 }
@@ -444,32 +445,42 @@
 .profile-ghost-btn,
 .profile-danger-btn {
   margin-top: 14px;
-  min-height: 42px;
-  border-radius: 10px;
-  border: 0;
-  padding: 0 14px;
-  color: #eef3ff;
+  min-height: 46px;
+  border-radius: 999px;
+  border: 1px solid rgba(140, 177, 255, 0.34);
+  padding: 0 18px;
+  color: #f8fbff;
   cursor: pointer;
   font-weight: 600;
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, border-color 180ms ease;
 }
 
 .profile-action-btn {
-  background: linear-gradient(90deg, #2a57d8 0%, #4f79ef 100%);
+  background: linear-gradient(135deg, rgba(66, 108, 224, 0.92) 0%, rgba(95, 136, 245, 0.96) 100%);
+  box-shadow: 0 14px 30px rgba(35, 80, 194, 0.28);
 }
 
 .profile-action-btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .profile-ghost-btn {
-  background: rgba(45, 69, 129, 0.55);
-  border: 1px solid rgba(131, 168, 255, 0.26);
+  background: rgba(33, 52, 103, 0.62);
+  border: 1px solid rgba(140, 177, 255, 0.34);
 }
 
 .profile-danger-btn {
   background: rgba(165, 41, 59, 0.25);
   border: 1px solid rgba(236, 110, 132, 0.45);
+}
+
+.profile-action-btn:hover:not(:disabled),
+.profile-ghost-btn:hover:not(:disabled),
+.profile-danger-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(177, 206, 255, 0.66);
 }
 
 .profile-info-links {
@@ -875,6 +886,7 @@
 
 .report-list-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
 }
 
 .report-detail-grid {
@@ -901,6 +913,8 @@
 }
 
 .report-list-button {
+  display: block;
+  height: 100%;
   padding: 0;
   background: transparent;
   border: 0;
@@ -917,6 +931,11 @@
   border-radius: 18px;
   padding: 20px;
   color: #edf3ff;
+  font-family: inherit;
+}
+
+.report-summary-card {
+  height: 100%;
 }
 
 .report-summary-head,
@@ -957,7 +976,7 @@
 .report-category-card p,
 .report-overview-copy {
   line-height: 1.6;
-  color: #c8d7f5;
+  color: #edf3ff;
 }
 
 .report-date,
@@ -1026,11 +1045,11 @@
 
 .report-category-card p {
   margin: 12px 0 0;
-  color: #c8d7f5;
+  color: #edf3ff;
 }
 
 .report-interpretation {
-  color: #8fb2ff;
+  color: #edf3ff;
 }
 
 .report-score-orb {

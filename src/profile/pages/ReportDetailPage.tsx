@@ -7,6 +7,7 @@ import ReportNav from '../components/ReportNav'
 import ReportSummaryCard from '../components/ReportSummaryCard'
 import TechStackSection from '../components/TechStackSection'
 import type { DetailedReport } from '../types/report'
+import '../styles/profile-pages.css'
 
 function ReportDetailPage() {
   const navigate = useNavigate()

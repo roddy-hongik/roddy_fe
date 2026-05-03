@@ -7,6 +7,7 @@ import CategoryScoreCard from '../components/CategoryScoreCard'
 import ReportSummaryCard from '../components/ReportSummaryCard'
 import TechStackSection from '../components/TechStackSection'
 import type { DetailedReport } from '../types/report'
+import '../styles/profile-pages.css'
 
 const normalizeStackKey = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '')
 
