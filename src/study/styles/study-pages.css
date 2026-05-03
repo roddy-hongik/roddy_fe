@@ -202,7 +202,9 @@
 }
 
 .study-detail-description {
-  margin-top: 18px;
+  margin-top: 0;
+  padding-top: 32px;
+  line-height: 1.9;
 }
 
 .study-empty-state {
