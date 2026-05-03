@@ -7,6 +7,9 @@ import { ROUTES, routePatterns } from '@/routes/paths'
 const MainPage = lazy(() => import('@/home/pages/MainPage'))
 const JobPostingsPage = lazy(() => import('@/jobs/pages/JobPostingsPage'))
 const JobPostingDetailPage = lazy(() => import('@/jobs/pages/JobPostingDetailPage'))
+const StudyListPage = lazy(() => import('@/study/pages/StudyListPage'))
+const StudyWritePage = lazy(() => import('@/study/pages/StudyWritePage'))
+const StudyDetailPage = lazy(() => import('@/study/pages/StudyDetailPage'))
 const LoginPage = lazy(() => import('@/login/pages/LoginPage'))
 const OnboardingPage = lazy(() => import('@/onboarding/pages/OnboardingPage'))
 const GithubConnectPage = lazy(() => import('@/onboarding/pages/GithubConnectPage'))
@@ -47,6 +50,16 @@ export function AppRouter() {
           <Route path={ROUTES.home} element={<MainPage />} />
           <Route path={ROUTES.jobs} element={<JobPostingsPage />} />
           <Route path={routePatterns.jobDetail} element={<JobPostingDetailPage />} />
+          <Route path={ROUTES.study} element={<StudyListPage />} />
+          <Route
+            path={ROUTES.studyWrite}
+            element={
+              <ProtectedRoute>
+                <StudyWritePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path={routePatterns.studyDetail} element={<StudyDetailPage />} />
           <Route path={ROUTES.login} element={<LoginPage />} />
           <Route
             path={ROUTES.reports}
