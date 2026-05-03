@@ -306,13 +306,13 @@ a.community-meta-chip {
   margin: 0;
   color: #b7caef;
   font-size: 0.92rem;
-  line-height: 1.6;
+  line-height: 1.8;
 }
 
 .community-inline-info {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 14px;
 }
 
 .community-post-tag,
@@ -444,24 +444,28 @@ a.community-meta-chip {
 
 .community-preview-header {
   display: grid;
-  gap: 14px;
+  gap: 18px;
 }
 
 .community-preview-header strong {
   font-size: 1rem;
 }
 
-.community-preview-header span {
-  justify-self: start;
-  border-radius: 999px;
-  border: 1px solid rgba(123, 163, 255, 0.24);
-  background: rgba(18, 32, 73, 0.76);
-  padding: 6px 10px;
-  font-size: 0.84rem;
+.community-preview-header .community-structured-copy h2,
+.community-preview-header .community-structured-copy strong {
+  display: block;
+  margin: 6px 0 8px;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+  color: #edf4ff;
+}
+
+.community-preview-meta-grid {
+  grid-template-columns: 1fr;
 }
 
 .community-preview-card .community-chip-row {
-  margin-top: 8px;
+  margin-top: 18px;
   gap: 12px;
 }
 
@@ -513,7 +517,7 @@ a.community-meta-chip {
 .community-structured-description {
   margin: 0;
   color: #e7f0ff;
-  line-height: 1.72;
+  line-height: 1.92;
 }
 
 .community-image-grid {
@@ -540,9 +544,9 @@ a.community-meta-chip {
 }
 
 .community-structured-hero {
-  padding: 18px;
+  padding: 20px;
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr);
+  grid-template-columns: 1fr;
   gap: 18px;
 }
 
@@ -554,29 +558,40 @@ a.community-meta-chip {
 }
 
 .community-structured-copy h2 {
-  margin: 6px 0 8px;
+  margin: 8px 0 14px;
+  line-height: 1.25;
 }
 
 .community-meta-grid {
   margin: 0;
   display: grid;
-  gap: 12px;
+  gap: 10px;
+}
+
+.community-roadmap-meta-grid {
+  grid-template-columns: 1fr;
 }
 
 .community-meta-grid div {
   border-radius: 14px;
   background: rgba(14, 26, 60, 0.66);
-  padding: 12px 14px;
+  padding: 12px 16px;
 }
 
 .community-meta-grid dt {
   color: #9dbaf0;
   font-size: 0.82rem;
+  line-height: 1.6;
 }
 
 .community-meta-grid dd {
   margin: 8px 0 0;
   color: #edf4ff;
+  line-height: 1.6;
+}
+
+.community-roadmap-section .community-tag-stack {
+  margin-top: 18px;
 }
 
 .community-content-sections,
@@ -588,12 +603,13 @@ a.community-meta-chip {
 
 .community-content-card,
 .community-roadmap-step-card {
-  padding: 18px;
+  padding: 20px;
 }
 
 .community-content-card h3,
 .community-roadmap-step-card h3 {
-  margin: 0 0 10px;
+  margin: 0 0 12px;
+  line-height: 1.45;
 }
 
 .community-roadmap-step-list {
@@ -606,8 +622,8 @@ a.community-meta-chip {
 
 .community-roadmap-step-top {
   display: grid;
-  gap: 8px;
-  margin-bottom: 14px;
+  gap: 10px;
+  margin-bottom: 16px;
 }
 
 .community-roadmap-stage {
@@ -623,15 +639,16 @@ a.community-meta-chip {
 .community-roadmap-step-body section,
 .community-content-card {
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 
 .community-roadmap-step-body ul {
   margin: 0;
-  padding-left: 18px;
+  padding-left: 20px;
   color: #c7dafb;
   display: grid;
-  gap: 6px;
+  gap: 9px;
+  line-height: 1.8;
 }
 
 .community-detail-actions {
@@ -718,6 +735,7 @@ a.community-meta-chip {
 .community-comment-item p {
   margin: 8px 0 0;
   color: #d8e7ff;
+  line-height: 1.8;
 }
 
 .community-comment-actions {

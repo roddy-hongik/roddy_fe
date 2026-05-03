@@ -299,13 +299,29 @@ function CommunityWritePage() {
               {selectedRoadmap ? (
                 <section className="community-preview-card">
                   <div className="community-preview-header">
-                    <div>
+                    <div className="community-structured-copy">
+                      <p className="community-structured-label">로드맵 요약</p>
                       <strong>{selectedRoadmap.roadmapTitle}</strong>
-                      <p>
-                        {selectedRoadmap.targetJob} · {selectedRoadmap.targetCompany || '목표 기업 없음'}
-                      </p>
+                      <p>{`${selectedRoadmap.targetJob} 준비 과정에서 정리한 학습 로드맵입니다.`}</p>
                     </div>
-                    <span>{selectedRoadmap.roadmapSteps.length}단계</span>
+                    <dl className="community-meta-grid community-preview-meta-grid">
+                      <div>
+                        <dt>목표 직무</dt>
+                        <dd>{selectedRoadmap.targetJob}</dd>
+                      </div>
+                      <div>
+                        <dt>목표 기업</dt>
+                        <dd>{selectedRoadmap.targetCompany || '-'}</dd>
+                      </div>
+                      <div>
+                        <dt>추천 기술 스택</dt>
+                        <dd>{selectedRoadmap.recommendedSkills.join(', ')}</dd>
+                      </div>
+                      <div>
+                        <dt>단계 수</dt>
+                        <dd>{selectedRoadmap.roadmapSteps.length}단계</dd>
+                      </div>
+                    </dl>
                   </div>
                   <div className="community-chip-row">
                     {selectedRoadmap.recommendedSkills.map((skill) => (
