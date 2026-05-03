@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom'
 import { deleteAccount, getProfileSummary } from '../../api/services/profileService'
 import { emitAuthChange } from '../../auth/utils/authEvents'
 import { ROUTES } from '../../routes/paths'
-import SavedRoadmapsSection from '../components/SavedRoadmapsSection'
 import type { ProfileSummary } from '../types/profile'
 
 const FALLBACK_PROFILE: ProfileSummary = {
@@ -139,8 +138,6 @@ function ProfilePage() {
               </Link>
             </div>
           </article>
-
-          <SavedRoadmapsSection />
         </div>
       </section>
 

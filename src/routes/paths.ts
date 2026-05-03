@@ -10,6 +10,7 @@ export const ROUTES = {
   adminModeration: '/admin/moderation',
   adminGraph: '/admin/graph-db',
   community: '/community',
+  communityWrite: '/community/write',
   reports: '/reports',
   reportsDetailAnalysis: '/reports/detail-analysis',
   reportsPayment: '/reports/payment',

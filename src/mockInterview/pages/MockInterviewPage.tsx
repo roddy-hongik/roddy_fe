@@ -7,6 +7,7 @@ import type { InterviewQuestion } from '../types/mockInterview'
 import { ROUTES } from '../../routes/paths'
 import InterviewQuestionPanel from '../components/InterviewQuestionPanel'
 import SkillSummaryCard from '../components/SkillSummaryCard'
+import '../../profile/styles/profile-pages.css'
 import '../styles/mock-interview-page.css'
 
 function MockInterviewPage() {
@@ -96,7 +97,7 @@ function MockInterviewPage() {
               onRegenerate={handleGenerateQuestions}
               onEndInterview={handleEndInterview}
             />
-            <section className="mock-panel glass-style">
+            <section className="mock-panel mock-roadmap-panel glass-style">
               <h2>학습 로드맵 안내</h2>
               <p className="profile-meta-text">면접 연습 후 학습 로드맵 생성/저장/비교는 로드맵 메뉴에서 확인할 수 있습니다.</p>
               <button type="button" className="profile-action-btn mock-roadmap-link-btn" onClick={() => navigate(ROUTES.roadmap)}>

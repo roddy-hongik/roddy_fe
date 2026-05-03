@@ -31,7 +31,7 @@ function InterviewQuestionPanel({
 }: InterviewQuestionPanelProps) {
   if (!hasGap) {
     return (
-      <section className="mock-panel glass-style" aria-live="polite">
+      <section className="mock-panel mock-question-panel glass-style" aria-live="polite">
         <h2>AI 기반 예상 면접 질문</h2>
         <p className="profile-meta-text">Gap 데이터가 아직 없습니다. 기술 스택 분석을 먼저 진행해 주세요.</p>
       </section>
@@ -39,7 +39,7 @@ function InterviewQuestionPanel({
   }
 
   return (
-    <section className="mock-panel glass-style" aria-live="polite">
+    <section className="mock-panel mock-question-panel glass-style" aria-live="polite">
       <h2>AI 기반 예상 면접 질문</h2>
       <p className="mock-ai-guide">{aiGuideText}</p>
 

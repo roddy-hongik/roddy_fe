@@ -157,7 +157,7 @@ export function AppRouter() {
           </Route>
           <Route path={ROUTES.community} element={<CommunityListPage />} />
           <Route
-            path={`${ROUTES.community}/write`}
+            path={ROUTES.communityWrite}
             element={
               <ProtectedRoute>
                 <CommunityWritePage />

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { getSavedRoadmaps } from '../../api/services/roadmapService'
 import type { SavedRoadmap } from '../../api/types/roadmap'
+import { ROUTES } from '../../routes/paths'
 import { formatRoadmapDate, formatRoadmapDateTime } from '../utils/roadmapFormat'
 import '../styles/roadmap-page.css'
 
@@ -26,6 +28,7 @@ function SavedRoadmapsExplorer({
   refreshKey = 0,
   containerClassName = '',
 }: SavedRoadmapsExplorerProps) {
+  const navigate = useNavigate()
   const [roadmaps, setRoadmaps] = useState<SavedRoadmap[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isError, setIsError] = useState(false)
@@ -79,6 +82,17 @@ function SavedRoadmapsExplorer({
   )
 
   const compareCount = Number(Boolean(compareSelection.leftId)) + Number(Boolean(compareSelection.rightId))
+
+  const handleShareRoadmap = (roadmap: SavedRoadmap) => {
+    navigate(ROUTES.communityWrite, {
+      state: {
+        initialPostType: 'roadmap',
+        initialRoadmapId: roadmap.id,
+        initialTitle: `${roadmap.targetJob} 로드맵을 공유합니다`,
+        initialRoadmapSummary: `${roadmap.targetJob} 준비 과정에서 정리한 학습 로드맵입니다.`,
+      },
+    })
+  }
 
   const handleToggleCompare = (roadmapId: string) => {
     setCompareSelection((prev) => {
@@ -146,16 +160,21 @@ function SavedRoadmapsExplorer({
                       {formatRoadmapDate(roadmap.createdAt)} · {roadmap.targetJob} · {roadmap.targetCompany}
                     </p>
                   </div>
-                  <label className="roadmap-compare-check" onClick={(event) => event.stopPropagation()}>
-                    <input
-                      type="checkbox"
-                      checked={isChecked}
-                      disabled={disabled}
-                      onChange={() => handleToggleCompare(roadmap.id)}
-                      aria-label={`${roadmap.roadmapTitle} 비교 대상 선택`}
-                    />
-                    비교
-                  </label>
+                  <div className="roadmap-list-actions" onClick={(event) => event.stopPropagation()}>
+                    <button type="button" className="profile-ghost-btn roadmap-inline-share-btn" onClick={() => handleShareRoadmap(roadmap)}>
+                      공유하기
+                    </button>
+                    <label className="roadmap-compare-check">
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        disabled={disabled}
+                        onChange={() => handleToggleCompare(roadmap.id)}
+                        aria-label={`${roadmap.roadmapTitle} 비교 대상 선택`}
+                      />
+                      비교
+                    </label>
+                  </div>
                 </button>
               )
             })}
@@ -163,7 +182,12 @@ function SavedRoadmapsExplorer({
 
           {selectedRoadmap ? (
             <section className="roadmap-detail-panel">
-              <h3>{selectedRoadmap.roadmapTitle}</h3>
+              <div className="roadmap-detail-head">
+                <h3>{selectedRoadmap.roadmapTitle}</h3>
+                <button type="button" className="profile-ghost-btn roadmap-inline-share-btn" onClick={() => handleShareRoadmap(selectedRoadmap)}>
+                  공유하기
+                </button>
+              </div>
               <p className="roadmap-list-meta">
                 생성일: {formatRoadmapDateTime(selectedRoadmap.createdAt)} · 목표 직무: {selectedRoadmap.targetJob} · 목표 기업: {selectedRoadmap.targetCompany}
               </p>

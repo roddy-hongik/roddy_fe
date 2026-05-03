@@ -1,6 +1,7 @@
 import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { createCommunityPost } from '../../api/services/communityService'
+import { ROUTES } from '../../routes/paths'
 import AppTopNav from '../../shared/components/AppTopNav'
 import CommunityPostTypeSelector from '../components/CommunityPostTypeSelector'
 import TagSelector from '../components/TagSelector'
@@ -10,16 +11,25 @@ import { normalizeTagInput } from '../utils/communityFormat'
 import '../styles/community-pages.css'
 import type { CreateCommunityPostPayload } from '../types/community'
 
+type CommunityWriteLocationState = {
+  initialPostType?: CommunityPostType
+  initialRoadmapId?: string
+  initialTitle?: string
+  initialRoadmapSummary?: string
+}
+
 function CommunityWritePage() {
+  const location = useLocation()
   const navigate = useNavigate()
+  const locationState = (location.state as CommunityWriteLocationState | null) ?? null
   const [selectedTag, setSelectedTag] = useState<JobTrackTagKey>('b2c')
-  const [postType, setPostType] = useState<CommunityPostType>('general')
-  const [title, setTitle] = useState('')
+  const [postType, setPostType] = useState<CommunityPostType>(locationState?.initialPostType ?? 'general')
+  const [title, setTitle] = useState(locationState?.initialTitle ?? '')
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [content, setContent] = useState('')
   const [roadmaps, setRoadmaps] = useState<RoadmapShareCandidate[]>([])
-  const [selectedRoadmapId, setSelectedRoadmapId] = useState('')
-  const [roadmapSummary, setRoadmapSummary] = useState('')
+  const [selectedRoadmapId, setSelectedRoadmapId] = useState(locationState?.initialRoadmapId ?? '')
+  const [roadmapSummary, setRoadmapSummary] = useState(locationState?.initialRoadmapSummary ?? '')
   const [roadmapTagInput, setRoadmapTagInput] = useState('')
   const [interviewSubtype, setInterviewSubtype] = useState<InterviewSubtype>('accepted')
   const [company, setCompany] = useState('')
@@ -49,7 +59,13 @@ function CommunityWritePage() {
         }
 
         setRoadmaps(data)
-        setSelectedRoadmapId(data[0]?.id ?? '')
+        setSelectedRoadmapId((prev) => {
+          if (prev && data.some((roadmap) => roadmap.id === prev)) {
+            return prev
+          }
+
+          return data[0]?.id ?? ''
+        })
       })
       .catch(() => {
         if (!isMounted) {
@@ -213,7 +229,7 @@ function CommunityWritePage() {
 
   return (
     <main className="community-page">
-      <AppTopNav loginRedirectPath="/community/write" />
+      <AppTopNav loginRedirectPath={ROUTES.communityWrite} />
 
       <section className="community-container community-write-panel">
         <h1>게시글 작성</h1>
@@ -283,13 +299,29 @@ function CommunityWritePage() {
               {selectedRoadmap ? (
                 <section className="community-preview-card">
                   <div className="community-preview-header">
-                    <div>
+                    <div className="community-structured-copy">
+                      <p className="community-structured-label">로드맵 요약</p>
                       <strong>{selectedRoadmap.roadmapTitle}</strong>
-                      <p>
-                        {selectedRoadmap.targetJob} · {selectedRoadmap.targetCompany || '목표 기업 없음'}
-                      </p>
+                      <p>{`${selectedRoadmap.targetJob} 준비 과정에서 정리한 학습 로드맵입니다.`}</p>
                     </div>
-                    <span>{selectedRoadmap.roadmapSteps.length}단계</span>
+                    <dl className="community-meta-grid community-preview-meta-grid">
+                      <div>
+                        <dt>목표 직무</dt>
+                        <dd>{selectedRoadmap.targetJob}</dd>
+                      </div>
+                      <div>
+                        <dt>목표 기업</dt>
+                        <dd>{selectedRoadmap.targetCompany || '-'}</dd>
+                      </div>
+                      <div>
+                        <dt>추천 기술 스택</dt>
+                        <dd>{selectedRoadmap.recommendedSkills.join(', ')}</dd>
+                      </div>
+                      <div>
+                        <dt>단계 수</dt>
+                        <dd>{selectedRoadmap.roadmapSteps.length}단계</dd>
+                      </div>
+                    </dl>
                   </div>
                   <div className="community-chip-row">
                     {selectedRoadmap.recommendedSkills.map((skill) => (

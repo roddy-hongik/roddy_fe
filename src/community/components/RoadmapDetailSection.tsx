@@ -13,7 +13,7 @@ function RoadmapDetailSection({ post }: RoadmapDetailSectionProps) {
           <h2>{post.targetJob}</h2>
           <p>{post.summary}</p>
         </div>
-        <dl className="community-meta-grid">
+        <dl className="community-meta-grid community-roadmap-meta-grid">
           <div>
             <dt>목표 직무</dt>
             <dd>{post.targetJob}</dd>
