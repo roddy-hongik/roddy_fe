@@ -95,6 +95,9 @@ function AppTopNav({ loginRedirectPath = ROUTES.home, onLogout, rightSlot, showS
               내 리포트
             </NavLink>
           ) : null}
+          <NavLink to={ROUTES.study} className={({ isActive }) => `app-top-nav__link ${isActive ? 'is-active' : ''}`.trim()}>
+            스터디
+          </NavLink>
           {authSnapshot.isLoggedIn && isAdmin ? (
             <NavLink to={ROUTES.adminCrawling} className={({ isActive }) => `app-top-nav__link ${isActive ? 'is-active' : ''}`.trim()}>
               관리자

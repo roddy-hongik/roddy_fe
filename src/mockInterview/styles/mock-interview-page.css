@@ -70,6 +70,10 @@
   min-height: 100%;
 }
 
+.mock-question-panel {
+  grid-column: 1 / -1;
+}
+
 .mock-question-list {
   margin-top: 14px;
   display: grid;
@@ -78,7 +82,7 @@
 }
 
 .mock-question-item {
-  width: min(100%, 880px);
+  width: 100%;
   border: 1px solid rgba(124, 163, 255, 0.22);
   border-radius: 12px;
   background: rgba(9, 18, 43, 0.66);
@@ -125,14 +129,14 @@
 }
 
 .mock-answer-field span {
-  width: min(100%, 740px);
+  width: 100%;
   font-size: 0.85rem;
   color: #dbe7ff;
   text-align: left;
 }
 
 .mock-answer-field textarea {
-  width: min(100%, 740px);
+  width: 100%;
   min-height: 180px;
   border-radius: 10px;
   border: 1px solid rgba(114, 142, 224, 0.35);
