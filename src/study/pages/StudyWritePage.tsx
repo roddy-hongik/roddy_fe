@@ -113,7 +113,13 @@ function StudyWritePage() {
 
                 <div className="study-field-block">
                   <label htmlFor="study-time">시간</label>
-                  <input id="study-time" type="datetime-local" value={scheduledAt} onChange={(event) => setScheduledAt(event.target.value)} />
+                  <input
+                    id="study-time"
+                    type="text"
+                    value={scheduledAt}
+                    onChange={(event) => setScheduledAt(event.target.value)}
+                    placeholder="예: 매주 수요일 오후 7시 30분 / 2026-05-10 19:30"
+                  />
                 </div>
 
                 <div className="study-field-block">

@@ -377,6 +377,33 @@
   flex-shrink: 0;
 }
 
+.saved-job-scrap-button.job-scrap-button {
+  min-width: 96px;
+  min-height: 40px;
+  border-radius: 999px;
+  border: 1px solid rgba(136, 177, 255, 0.28);
+  background: rgba(17, 29, 62, 0.62);
+  color: #d8e7ff;
+  padding: 0 14px;
+  transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.saved-job-scrap-button.job-scrap-button:hover {
+  background: rgba(47, 76, 148, 0.72);
+}
+
+.saved-job-scrap-button.job-scrap-button.is-active {
+  border-color: rgba(137, 191, 255, 0.6);
+  background: linear-gradient(90deg, rgba(57, 102, 223, 0.85), rgba(85, 149, 255, 0.8));
+  color: #fff;
+}
+
+.saved-job-scrap-button.job-scrap-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .saved-status {
   margin-top: 18px;
   border-radius: 16px;

@@ -214,7 +214,7 @@ function StudyDetailPage() {
                 <div className="study-detail-meta-card">
                   <strong>모집 현황</strong>
                   <p>
-                    모집 인원 {study.capacity}명 / 현재 모집 {acceptedCount}명
+                    현재 모집 {acceptedCount}명 / 모집 인원 {study.capacity}명
                   </p>
                 </div>
               </div>
