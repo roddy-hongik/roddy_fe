@@ -1,7 +1,6 @@
 import { type FormEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES, routePaths } from '../../routes/paths'
-import AppTopNav from '../../shared/components/AppTopNav'
 import '../../profile/styles/profile-pages.css'
 import { createStudy } from '../services/studyService'
 import '../styles/study-pages.css'
@@ -64,7 +63,6 @@ function StudyWritePage() {
 
   return (
     <main className="profile-layout-shell">
-      <AppTopNav loginRedirectPath={ROUTES.studyWrite} />
       <section className="profile-layout-content study-page">
         <section className="profile-card study-page-card">
           <h1>스터디 모집 글 작성</h1>

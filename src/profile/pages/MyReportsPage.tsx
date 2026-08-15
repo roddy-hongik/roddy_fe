@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getMyReports } from '../../api/services/reportService'
 import { ROUTES, routePaths } from '../../routes/paths'
-import AppTopNav from '../../shared/components/AppTopNav'
 import ReportNav from '../components/ReportNav'
 import ReportSummaryCard from '../components/ReportSummaryCard'
 import type { DetailedReport } from '../types/report'
@@ -43,7 +42,6 @@ function MyReportsPage() {
 
   return (
     <main className="profile-layout-shell">
-      <AppTopNav showSavedLink />
       <section className="profile-layout-content profile-page profile-fade-in">
         <section className="profile-card">
           <header className="profile-card-header">

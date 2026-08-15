@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getDetailedReport } from '../../api/services/reportService'
+import NotificationsDropdown from '../../notifications/components/NotificationsDropdown'
 import { ROUTES, routePaths } from '../../routes/paths'
 import AppTopNav from '../../shared/components/AppTopNav'
 import ReportNav from '../components/ReportNav'
@@ -51,7 +52,7 @@ function ReportDetailPage() {
   if (isError || !report) {
     return (
       <main className="profile-layout-shell">
-        <AppTopNav showSavedLink />
+        <AppTopNav showSavedLink notificationSlot={<NotificationsDropdown />} />
         <section className="profile-layout-content profile-page profile-fade-in">
           <section className="profile-card">
             <header className="profile-card-header">
@@ -70,7 +71,7 @@ function ReportDetailPage() {
 
   return (
     <main className="profile-layout-shell">
-      <AppTopNav showSavedLink />
+      <AppTopNav showSavedLink notificationSlot={<NotificationsDropdown />} />
       <section className="profile-layout-content profile-page profile-fade-in">
         <section className="profile-card">
           <header className="profile-card-header">

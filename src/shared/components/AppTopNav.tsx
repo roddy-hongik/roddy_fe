@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { AUTH_CHANGE_EVENT, emitAuthChange } from '../../auth/utils/authEvents'
-import NotificationsDropdown from '../../notifications/components/NotificationsDropdown'
 import { ROUTES } from '../../routes/paths'
 import '../styles/app-top-nav.css'
 
@@ -12,6 +11,7 @@ type AppTopNavProps = {
   rightSlot?: ReactNode
   showSavedLink?: boolean
   userNameOverride?: string
+  notificationSlot?: ReactNode
 }
 
 type AuthSnapshot = {
@@ -26,9 +26,11 @@ const readAuthSnapshot = (): AuthSnapshot => ({
   userRole: localStorage.getItem('userRole') ?? '',
 })
 
-function AppTopNav({ loginRedirectPath = ROUTES.home, onLogout, rightSlot, showSavedLink = false, userNameOverride }: AppTopNavProps) {
+function AppTopNav({ loginRedirectPath, onLogout, rightSlot, showSavedLink = false, userNameOverride, notificationSlot }: AppTopNavProps) {
+  const location = useLocation()
   const navigate = useNavigate()
   const [authSnapshot, setAuthSnapshot] = useState<AuthSnapshot>(() => readAuthSnapshot())
+  const resolvedLoginRedirectPath = loginRedirectPath ?? `${location.pathname}${location.search}`
 
   useEffect(() => {
     const syncAuthSnapshot = () => {
@@ -49,7 +51,7 @@ function AppTopNav({ loginRedirectPath = ROUTES.home, onLogout, rightSlot, showS
   const isAdmin = authSnapshot.userRole === 'admin'
 
   const handleLoginRedirect = () => {
-    navigate(ROUTES.login, { state: { from: { pathname: loginRedirectPath } } })
+    navigate(ROUTES.login, { state: { from: { pathname: resolvedLoginRedirectPath } } })
   }
 
   const handleLogout = () => {
@@ -111,7 +113,7 @@ function AppTopNav({ loginRedirectPath = ROUTES.home, onLogout, rightSlot, showS
           rightSlot
         ) : authSnapshot.isLoggedIn ? (
           <>
-            <NotificationsDropdown />
+            {notificationSlot}
             <NavLink
               to={ROUTES.profile}
               end
