@@ -1,0 +1,250 @@
+.study-page {
+  animation: profile-page-enter 320ms ease-out;
+}
+
+.study-page-card {
+  padding: clamp(20px, 3vw, 30px);
+}
+
+.study-header-block {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.study-header-block p {
+  margin: 8px 0 0;
+  color: #edf3ff;
+}
+
+.study-list-grid {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.study-card {
+  width: 100%;
+  border: 1px solid rgba(123, 163, 255, 0.24);
+  border-radius: 18px;
+  background: rgba(11, 21, 49, 0.72);
+  color: #edf3ff;
+  padding: 20px;
+  display: grid;
+  gap: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.study-card-head,
+.study-detail-head,
+.study-manage-head,
+.study-application-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.study-card h2,
+.study-detail-head h1,
+.study-detail-section h2,
+.study-manage-card h2 {
+  margin: 0;
+  color: #f3f7ff;
+}
+
+.study-card p,
+.study-detail-summary p,
+.study-detail-section p,
+.study-application-card p,
+.study-empty-state p {
+  margin: 0;
+  color: #edf3ff;
+  line-height: 1.8;
+}
+
+.study-badge-row,
+.study-meta-row,
+.study-detail-meta,
+.study-manage-status-row,
+.study-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.study-mode-badge,
+.study-status-badge,
+.study-meta-pill {
+  border-radius: 999px;
+  border: 1px solid rgba(135, 171, 255, 0.3);
+  background: rgba(13, 25, 58, 0.74);
+  color: #dbe6ff;
+  padding: 8px 12px;
+}
+
+.study-status-badge.is-completed {
+  border-color: rgba(255, 196, 125, 0.35);
+  background: rgba(84, 54, 18, 0.48);
+  color: #ffe7bf;
+}
+
+.study-mode-badge.is-online {
+  border-color: rgba(113, 212, 255, 0.3);
+  background: rgba(16, 55, 77, 0.56);
+  color: #d6f5ff;
+}
+
+.study-write-form {
+  margin-top: 22px;
+  display: grid;
+  gap: 18px;
+}
+
+.study-field-block {
+  display: grid;
+  gap: 8px;
+}
+
+.study-field-block label,
+.study-mode-select-label {
+  color: #dbe8ff;
+  font-weight: 600;
+}
+
+.study-field-block input,
+.study-field-block textarea,
+.study-field-block select {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(124, 165, 255, 0.3);
+  background: rgba(13, 24, 52, 0.66);
+  color: #edf4ff;
+  padding: 12px 14px;
+}
+
+.study-field-block textarea {
+  resize: vertical;
+  min-height: 180px;
+}
+
+.study-mode-select {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.study-mode-option {
+  min-height: 44px;
+  min-width: 120px;
+  border-radius: 999px;
+  border: 1px solid rgba(136, 177, 255, 0.34);
+  background: rgba(16, 29, 67, 0.6);
+  color: #edf4ff;
+  cursor: pointer;
+}
+
+.study-mode-option.is-active {
+  background: linear-gradient(120deg, rgba(89, 139, 255, 0.38), rgba(72, 106, 223, 0.45));
+}
+
+.study-field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.study-detail-layout {
+  margin-top: 22px;
+  display: grid;
+  gap: 16px;
+}
+
+.study-detail-summary,
+.study-detail-section,
+.study-manage-card,
+.study-empty-state,
+.study-application-card {
+  border-radius: 18px;
+  padding: 20px;
+  color: #edf3ff;
+}
+
+.study-detail-summary,
+.study-detail-section,
+.study-manage-card,
+.study-application-card {
+  border: 1px solid rgba(123, 163, 255, 0.24);
+  background: rgba(11, 21, 49, 0.72);
+}
+
+.study-detail-grid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.study-detail-meta-card {
+  border-radius: 14px;
+  background: rgba(14, 26, 60, 0.66);
+  padding: 16px 18px;
+}
+
+.study-detail-meta-card strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #9dbaf0;
+  font-size: 0.88rem;
+}
+
+.study-detail-description {
+  margin-top: 0;
+  padding-top: 32px;
+  line-height: 1.9;
+}
+
+.study-empty-state {
+  margin-top: 24px;
+  border: 1px dashed rgba(123, 163, 255, 0.3);
+  background: rgba(10, 19, 44, 0.6);
+}
+
+.study-applications {
+  margin-top: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.study-application-status {
+  color: #dbe8ff;
+  font-size: 0.9rem;
+}
+
+.study-application-status.is-accepted {
+  color: #b4f0cb;
+}
+
+.study-application-status.is-rejected {
+  color: #ffc6d1;
+}
+
+@media (max-width: 960px) {
+  .study-list-grid,
+  .study-field-grid,
+  .study-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .study-header-block,
+  .study-card-head,
+  .study-detail-head,
+  .study-manage-head,
+  .study-application-card-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

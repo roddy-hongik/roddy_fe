@@ -1,0 +1,271 @@
+import type { CommunityPostDetail, CommunityPostSummary } from '../types/community'
+
+export const mockCommunityPostDetails: CommunityPostDetail[] = [
+  {
+    id: 'post-general-1',
+    type: 'general',
+    title: 'B2C 서비스에서 지표 설계할 때 가장 먼저 보는 건 무엇인가요?',
+    authorName: '하준',
+    views: 312,
+    likes: 41,
+    commentCount: 2,
+    tag: 'b2c',
+    tags: ['B2C', '리텐션', '데이터 분석'],
+    createdAt: '2026-03-06T09:12:00.000Z',
+    excerpt: '리텐션과 전환 퍼널을 함께 보고 있는데, 실무에서 가장 먼저 챙기는 핵심 지표 조합이 궁금합니다.',
+    content:
+      '현재 일간 활성 사용자 중심으로 보다가 리텐션과 전환 퍼널을 함께 묶어서 보고 있습니다. B2C에서 실무적으로 우선순위 두는 지표 조합이 궁금합니다.',
+    imageUrls: ['https://images.unsplash.com/photo-1551281044-8b2ce0f6f5d2?auto=format&fit=crop&w=1200&q=80'],
+    comments: [
+      {
+        id: 'c-1',
+        author: '지민',
+        content: '초기에는 리텐션 코호트와 핵심 행동 이벤트를 같이 보시면 방향 잡기 좋습니다.',
+        depth: 0,
+        parentId: null,
+        createdAt: '2026-03-06T10:08:00.000Z',
+      },
+      {
+        id: 'c-2',
+        author: '윤호',
+        content: '리텐션 기준을 잡은 뒤 전환 퍼널에서 단계별 이탈 사유 로그를 먼저 심어두는 걸 추천합니다.',
+        depth: 1,
+        parentId: 'c-1',
+        createdAt: '2026-03-06T10:31:00.000Z',
+      },
+    ],
+  },
+  {
+    id: 'post-general-2',
+    type: 'general',
+    title: '핀테크 백엔드 장애 대응 런북 공유 부탁드립니다',
+    authorName: '민서',
+    views: 198,
+    likes: 27,
+    commentCount: 0,
+    tag: 'fintech',
+    tags: ['핀테크', '장애 대응', '백엔드'],
+    createdAt: '2026-03-05T14:05:00.000Z',
+    excerpt: '결제 승인 지연 이슈가 재발해서, 알림 체계와 롤백 기준을 팀에서 어떻게 정의하는지 듣고 싶습니다.',
+    content:
+      '결제 승인 지연 이슈가 재발하고 있어요. 알림 체계와 롤백 기준을 팀에서 어떻게 정의하고 있는지 사례를 듣고 싶습니다.',
+    imageUrls: [],
+    comments: [],
+  },
+  {
+    id: 'rp1',
+    type: 'roadmap',
+    title: '금융권 백엔드 취업 준비 로드맵 공유합니다',
+    authorName: 'backend_rookie',
+    views: 128,
+    likes: 12,
+    commentCount: 4,
+    tag: 'fintech',
+    tags: ['로드맵 공유', '금융권 백엔드', '토스', 'QueryDSL', 'Redis', 'JPA', '성능 최적화'],
+    createdAt: '2026-03-16T10:00:00.000Z',
+    roadmapId: 'roadmap-shared-1',
+    roadmapTitle: '금융권 백엔드 개발자를 위한 QueryDSL 중심 성장 로드맵',
+    summary: 'QueryDSL, Redis, 대용량 트래픽 처리 위주로 학습한 로드맵입니다.',
+    targetJob: '금융권 백엔드 개발자',
+    targetCompany: '토스',
+    recommendedSkills: ['QueryDSL', 'Redis', 'JPA', '성능 최적화'],
+    description:
+      '면접에서 실제 프로젝트 선택 이유와 데이터 조회 최적화를 자주 물어봐서, 실무형 조회 성능 개선 경험을 만들 수 있도록 로드맵을 구성했습니다.',
+    roadmapSteps: [
+      {
+        stage: '기초',
+        goal: 'QueryDSL 기본기 익히기',
+        topics: ['QClass', 'BooleanExpression', '기본 조회'],
+        outputs: ['조건 검색 API'],
+      },
+      {
+        stage: '심화',
+        goal: '복잡한 조회와 성능 최적화',
+        topics: ['복잡한 조인', '페이징 최적화', 'N+1 문제'],
+        outputs: ['조회 성능 개선 문서'],
+      },
+      {
+        stage: '실전 프로젝트',
+        goal: '실무형 프로젝트 적용',
+        topics: ['금융 상품 검색 API', '대용량 조회'],
+        outputs: ['포트폴리오 프로젝트'],
+      },
+    ],
+    comments: [
+      {
+        id: 'c-roadmap-1',
+        author: '도윤',
+        content: '심화 단계에서 페이징 최적화까지 묶은 구성이 좋네요. 포트폴리오에 바로 연결하기 좋아 보입니다.',
+        depth: 0,
+        parentId: null,
+        createdAt: '2026-03-16T11:05:00.000Z',
+      },
+      {
+        id: 'c-roadmap-2',
+        author: 'backend_rookie',
+        content: '실제 면접 질문을 기준으로 다시 정리한 로드맵이라 도움 되셨으면 좋겠습니다.',
+        depth: 1,
+        parentId: 'c-roadmap-1',
+        createdAt: '2026-03-16T11:22:00.000Z',
+      },
+      {
+        id: 'c-roadmap-3',
+        author: '혜원',
+        content: '추천 결과물을 더 자세히 보고 싶은데 상세 예시도 추가해 주실 수 있나요?',
+        depth: 0,
+        parentId: null,
+        createdAt: '2026-03-16T12:14:00.000Z',
+      },
+      {
+        id: 'c-roadmap-4',
+        author: 'backend_rookie',
+        content: '다음 버전에는 단계별 실습 저장소 예시도 같이 적어둘게요.',
+        depth: 1,
+        parentId: 'c-roadmap-3',
+        createdAt: '2026-03-16T12:31:00.000Z',
+      },
+    ],
+  },
+  {
+    id: 'ip1',
+    type: 'interview',
+    subtype: 'accepted',
+    title: '카카오 백엔드 개발자 합격 후기',
+    authorName: 'dev_jane',
+    views: 312,
+    likes: 24,
+    commentCount: 7,
+    tag: 'b2c',
+    tags: ['카카오', '백엔드', 'Spring Boot', 'Java', '취업후기'],
+    createdAt: '2026-03-15T18:00:00.000Z',
+    company: '카카오',
+    jobRole: '백엔드 개발자',
+    preparationPeriod: '6개월',
+    techStacks: ['Java', 'Spring Boot', 'MySQL', 'Redis'],
+    processSummary: 'CS, 프로젝트 경험, QueryDSL, DB 설계 중심으로 준비했습니다.',
+    background:
+      'SI 경력 1년 이후 서비스형 회사로 이직을 준비했습니다. 구현 경험은 있었지만 왜 그렇게 설계했는지 설명하는 부분이 약해서 전체 준비 방향을 다시 잡았습니다.',
+    preparationProcess:
+      '평일에는 CS와 SQL, 주말에는 프로젝트 회고 문서를 정리했습니다. 프로젝트별 기술 선택 이유를 문서화하고 예상 질문을 따로 정리한 것이 효과적이었습니다.',
+    experienceDetail:
+      '과제와 면접 모두 프로젝트 회고와 기술 선택 이유를 깊게 정리한 것이 큰 도움이 됐습니다. 특히 Redis 적용 이유와 장애 대응 관점을 설명한 부분에 좋은 반응을 받았습니다.',
+    advice:
+      '기술 스택을 넓히기보다 핵심 프로젝트 1~2개를 깊게 파고, 선택 이유와 트레이드오프를 설명할 수 있게 준비하는 편이 좋았습니다.',
+    comments: [
+      {
+        id: 'c-interview-1',
+        author: '서현',
+        content: '프로젝트 회고 문서를 어떤 구조로 작성하셨는지 궁금합니다.',
+        depth: 0,
+        parentId: null,
+        createdAt: '2026-03-15T18:50:00.000Z',
+      },
+      {
+        id: 'c-interview-2',
+        author: 'dev_jane',
+        content: '문제 상황, 대안 비교, 최종 선택, 결과 지표 순으로 정리했습니다.',
+        depth: 1,
+        parentId: 'c-interview-1',
+        createdAt: '2026-03-15T19:08:00.000Z',
+      },
+      {
+        id: 'c-interview-3',
+        author: '정우',
+        content: '면접에서 CS 비중은 어느 정도였나요?',
+        depth: 0,
+        parentId: null,
+        createdAt: '2026-03-15T19:28:00.000Z',
+      },
+      {
+        id: 'c-interview-4',
+        author: 'dev_jane',
+        content: '기초는 기본이고, 프로젝트 설명과 연결해서 답변하는 형태가 많았습니다.',
+        depth: 1,
+        parentId: 'c-interview-3',
+        createdAt: '2026-03-15T19:41:00.000Z',
+      },
+      {
+        id: 'c-interview-5',
+        author: '유나',
+        content: '준비 기간 6개월이면 로드맵도 꽤 빡빡했을 것 같아요.',
+        depth: 0,
+        parentId: null,
+        createdAt: '2026-03-15T20:10:00.000Z',
+      },
+      {
+        id: 'c-interview-6',
+        author: '민혁',
+        content: '정리 감사합니다. 포트폴리오 문서 구성에 많이 참고될 것 같아요.',
+        depth: 0,
+        parentId: null,
+        createdAt: '2026-03-15T20:27:00.000Z',
+      },
+      {
+        id: 'c-interview-7',
+        author: '나연',
+        content: '회사별로 중요하게 본 포인트가 다르다면 어떤 차이가 있었는지도 궁금합니다.',
+        depth: 0,
+        parentId: null,
+        createdAt: '2026-03-15T21:04:00.000Z',
+      },
+    ],
+  },
+  {
+    id: 'ip2',
+    type: 'interview',
+    subtype: 'incumbent',
+    title: '네이버 현직자 인터뷰: 백엔드 포지션에서 실제로 보는 역량',
+    authorName: 'server_lead',
+    views: 204,
+    likes: 18,
+    commentCount: 1,
+    tag: 'b2b',
+    tags: ['네이버', '현직자 인터뷰', '백엔드', '대용량 처리', 'Java'],
+    createdAt: '2026-03-14T11:30:00.000Z',
+    company: '네이버',
+    jobRole: '백엔드 플랫폼 엔지니어',
+    preparationPeriod: '현업 3년차 기준 회고',
+    techStacks: ['Java', 'Kotlin', 'Spring Boot', 'Kafka'],
+    processSummary: '서비스 운영 관점, 장애 대응 경험, 데이터 구조 설계 역량을 중심으로 봅니다.',
+    background:
+      '현직자 입장에서 신입/주니어 백엔드 지원자를 볼 때 어떤 부분에서 차이가 나는지 공유하고 싶어 인터뷰 형식으로 정리했습니다.',
+    preparationProcess:
+      '지원자 입장이라면 운영 경험을 직접 만들기 어려우므로, 프로젝트에서 트래픽·장애·모니터링 시나리오를 설계해 보고 문서화하는 것이 중요합니다.',
+    experienceDetail:
+      '실제로 면접에서는 문제를 어떻게 나눠서 보고, 장애를 어떤 기준으로 완화했는지, 데이터 모델을 왜 그렇게 두었는지를 구체적으로 확인합니다.',
+    advice:
+      '기술 키워드만 나열하기보다 트레이드오프를 설명할 수 있는 경험 단위를 만드는 것이 중요합니다.',
+    comments: [
+      {
+        id: 'c-incumbent-1',
+        author: '준호',
+        content: '운영 경험을 프로젝트에서 어떻게 보여줄지 방향을 잡는 데 도움이 됐습니다.',
+        depth: 0,
+        parentId: null,
+        createdAt: '2026-03-14T13:04:00.000Z',
+      },
+    ],
+  },
+]
+
+export const mockCommunityPosts: CommunityPostSummary[] = mockCommunityPostDetails.map((post) => {
+  if (post.type === 'general') {
+    return {
+      id: post.id,
+      type: 'general',
+      title: post.title,
+      authorName: post.authorName,
+      views: post.views,
+      likes: post.likes,
+      commentCount: post.commentCount,
+      tag: post.tag,
+      tags: post.tags,
+      createdAt: post.createdAt,
+      excerpt: post.excerpt,
+    }
+  }
+
+  const { comments, ...summary } = post
+  void comments
+  return summary as CommunityPostSummary
+})
