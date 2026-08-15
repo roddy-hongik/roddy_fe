@@ -1,17 +1,23 @@
-import { httpClient } from '../client/httpClient'
-import { API_ENDPOINTS } from '../constants/endpoints'
-import type { SocialLoginResponse } from '../types/auth'
+import type { LoginResponse, SocialProvider } from '../types/auth'
 
-export async function loginWithKakao(token: string): Promise<SocialLoginResponse> {
-  return httpClient<SocialLoginResponse>(API_ENDPOINTS.auth.kakaoLogin, {
-    method: 'POST',
-    body: JSON.stringify({ accessToken: token }),
-  })
+const getMockLoginResponse = (provider: SocialProvider): LoginResponse => {
+  const isOnboard = localStorage.getItem('isOnboard') === 'true'
+  const githubConnected = localStorage.getItem('githubConnected') === 'true'
+
+  return {
+    accessToken: `mock-${provider}-access-token`,
+    refreshToken: `mock-${provider}-refresh-token`,
+    isOnboard,
+    githubConnected,
+  }
 }
 
-export async function loginWithGoogle(token: string): Promise<SocialLoginResponse> {
-  return httpClient<SocialLoginResponse>(API_ENDPOINTS.auth.googleLogin, {
-    method: 'POST',
-    body: JSON.stringify({ accessToken: token }),
-  })
+export async function loginWithKakao(token: string): Promise<LoginResponse> {
+  void token
+  return Promise.resolve(getMockLoginResponse('kakao'))
+}
+
+export async function loginWithGoogle(token: string): Promise<LoginResponse> {
+  void token
+  return Promise.resolve(getMockLoginResponse('google'))
 }

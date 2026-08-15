@@ -5,14 +5,9 @@ export interface SocialLoginRequest {
   accessToken: string
 }
 
-export interface AuthUser {
-  id: string
-  email: string
-  nickname: string
-}
-
-export interface SocialLoginResponse {
+export interface LoginResponse {
   accessToken: string
   refreshToken: string
-  user: AuthUser
+  isOnboard: boolean
+  githubConnected: boolean
 }
