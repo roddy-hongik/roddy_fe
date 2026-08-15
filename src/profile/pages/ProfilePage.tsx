@@ -2,15 +2,20 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { deleteAccount, getProfileSummary } from '../../api/services/profileService'
 import { emitAuthChange } from '../../auth/utils/authEvents'
+import { clearAuthSession } from '../../auth/utils/authStorage'
 import { ROUTES } from '../../routes/paths'
 import type { ProfileSummary } from '../types/profile'
 
 const FALLBACK_PROFILE: ProfileSummary = {
   name: localStorage.getItem('userName') ?? '사용자',
   age: Number(localStorage.getItem('userAge') ?? 0),
-  imageUrl: localStorage.getItem('userImageUrl'),
-  targetRole: localStorage.getItem('userTargetRole') ?? '',
-  targetIndustry: localStorage.getItem('userTargetIndustry') ?? '',
+  profileImageUrl: localStorage.getItem('userImageUrl'),
+  desiredJob: localStorage.getItem('userDesiredJob') ?? '',
+  desiredCompany: localStorage.getItem('userPreferredCompanies') ?? '',
+  experienceYears: localStorage.getItem('userExperienceYears') ?? '',
+  portfolioFileName: localStorage.getItem('userPortfolioFileName') ?? '',
+  portfolioUrl: localStorage.getItem('userPortfolioUrl'),
+  githubConnected: localStorage.getItem('githubConnected') === 'true',
 }
 
 function ProfilePage() {
@@ -32,11 +37,14 @@ function ProfilePage() {
         setProfile(data)
         localStorage.setItem('userName', data.name)
         localStorage.setItem('userAge', String(data.age))
-        if (data.imageUrl) {
-          localStorage.setItem('userImageUrl', data.imageUrl)
+        if (data.profileImageUrl) {
+          localStorage.setItem('userImageUrl', data.profileImageUrl)
         }
-        localStorage.setItem('userTargetRole', data.targetRole ?? '')
-        localStorage.setItem('userTargetIndustry', data.targetIndustry ?? '')
+        localStorage.setItem('userDesiredJob', data.desiredJob)
+        localStorage.setItem('userPreferredCompanies', data.desiredCompany)
+        localStorage.setItem('userExperienceYears', data.experienceYears)
+        localStorage.setItem('userPortfolioFileName', data.portfolioFileName)
+        localStorage.setItem('userPortfolioUrl', data.portfolioUrl ?? '')
       })
       .catch(() => {
         if (!isMounted) {
@@ -64,13 +72,14 @@ function ProfilePage() {
     } catch {
       // Delete API failure should not block local logout flow.
     } finally {
-      localStorage.removeItem('accessToken')
-      localStorage.removeItem('userName')
-      localStorage.removeItem('userRole')
+      clearAuthSession()
       localStorage.removeItem('userAge')
       localStorage.removeItem('userImageUrl')
-      localStorage.removeItem('userTargetRole')
-      localStorage.removeItem('userTargetIndustry')
+      localStorage.removeItem('userDesiredJob')
+      localStorage.removeItem('userPreferredCompanies')
+      localStorage.removeItem('userExperienceYears')
+      localStorage.removeItem('userPortfolioFileName')
+      localStorage.removeItem('userPortfolioUrl')
       emitAuthChange()
       navigate(ROUTES.login, { replace: true })
     }
@@ -90,8 +99,8 @@ function ProfilePage() {
           ) : (
             <div className="profile-hero-content">
               <div className="profile-hero-avatar-wrap">
-                {profile.imageUrl ? (
-                  <img className="profile-avatar profile-avatar-large" src={profile.imageUrl} alt="프로필 이미지" />
+                {profile.profileImageUrl ? (
+                  <img className="profile-avatar profile-avatar-large" src={profile.profileImageUrl} alt="프로필 이미지" />
                 ) : (
                   <div className="profile-avatar profile-avatar-fallback profile-avatar-large" aria-hidden="true">
                     {profileInitial}
@@ -110,11 +119,19 @@ function ProfilePage() {
                 </div>
                 <div className="profile-info-row">
                   <span>희망 직무</span>
-                  <strong>{profile.targetRole || '-'}</strong>
+                  <strong>{profile.desiredJob || '-'}</strong>
                 </div>
                 <div className="profile-info-row">
                   <span>희망 기업</span>
-                  <strong>{preferredCompanies}</strong>
+                  <strong>{profile.desiredCompany || preferredCompanies}</strong>
+                </div>
+                <div className="profile-info-row">
+                  <span>경력</span>
+                  <strong>{profile.experienceYears || '-'}</strong>
+                </div>
+                <div className="profile-info-row">
+                  <span>GitHub 연동</span>
+                  <strong>{profile.githubConnected ? '연동됨' : '미연동'}</strong>
                 </div>
               </div>
             </div>
@@ -129,6 +146,7 @@ function ProfilePage() {
         <div className="profile-secondary-grid">
           <article className="profile-section glass-style profile-account-card">
             <h2>계정 및 정보</h2>
+            <p className="profile-meta-text">포트폴리오 파일: {profile.portfolioFileName || '-'}</p>
             <div className="profile-info-links">
               <button type="button" className="profile-danger-btn" onClick={() => setIsDeleteModalOpen(true)}>
                 회원 탈퇴
