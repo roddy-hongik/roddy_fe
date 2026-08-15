@@ -46,14 +46,14 @@ function StudyWritePage() {
     try {
       const response = await createStudy({
         title,
-        description,
+        content: description,
         mode,
         location,
-        scheduledAt,
+        scheduledAt: new Date(scheduledAt).toISOString(),
         capacity: numericCapacity,
       })
 
-      navigate(routePaths.studyDetail(response.id))
+      navigate(routePaths.studyDetail(String(response.id)))
     } catch {
       alert('스터디 모집 글 작성에 실패했습니다.')
     } finally {
@@ -87,10 +87,10 @@ function StudyWritePage() {
             <div className="study-field-block">
               <span className="study-mode-select-label">스터디 진행 방식</span>
               <div className="study-mode-select">
-                <button type="button" className={`study-mode-option ${mode === 'offline' ? 'is-active' : ''}`} onClick={() => setMode('offline')}>
+                <button type="button" className={`study-mode-option ${mode === 'OFFLINE' ? 'is-active' : ''}`} onClick={() => setMode('OFFLINE')}>
                   대면
                 </button>
-                <button type="button" className={`study-mode-option ${mode === 'online' ? 'is-active' : ''}`} onClick={() => setMode('online')}>
+                <button type="button" className={`study-mode-option ${mode === 'ONLINE' ? 'is-active' : ''}`} onClick={() => setMode('ONLINE')}>
                   비대면
                 </button>
               </div>
@@ -99,25 +99,19 @@ function StudyWritePage() {
             {mode ? (
               <div className="study-field-grid">
                 <div className="study-field-block">
-                  <label htmlFor="study-location">{mode === 'offline' ? '장소' : '진행 링크/플랫폼'}</label>
+                  <label htmlFor="study-location">{mode === 'OFFLINE' ? '장소' : '진행 링크/플랫폼'}</label>
                   <input
                     id="study-location"
                     type="text"
                     value={location}
                     onChange={(event) => setLocation(event.target.value)}
-                    placeholder={mode === 'offline' ? '예: 강남역 스터디룸' : '예: Discord / Google Meet'}
+                    placeholder={mode === 'OFFLINE' ? '예: 강남역 스터디룸' : '예: Discord / Google Meet'}
                   />
                 </div>
 
                 <div className="study-field-block">
                   <label htmlFor="study-time">시간</label>
-                  <input
-                    id="study-time"
-                    type="text"
-                    value={scheduledAt}
-                    onChange={(event) => setScheduledAt(event.target.value)}
-                    placeholder="예: 매주 수요일 오후 7시 30분 / 2026-05-10 19:30"
-                  />
+                  <input id="study-time" type="datetime-local" value={scheduledAt} onChange={(event) => setScheduledAt(event.target.value)} />
                 </div>
 
                 <div className="study-field-block">
