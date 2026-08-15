@@ -1,49 +1,52 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { completeOnboarding } from '../../api/services/onboardingService'
+import type { DesiredJob } from '../../api/types/onboarding'
+import { emitAuthChange } from '../../auth/utils/authEvents'
+import { markOnboardingCompleted } from '../../auth/utils/authStorage'
 import JobCategorySelector from '../components/JobCategorySelector'
 import type { JobCategory } from '../components/JobCategorySelector'
 import '../styles/onboarding-page.css'
 
 const jobCategories: JobCategory[] = [
   {
-    id: 'b2c',
-    label: 'B2C',
-    description: '네이버, 카카오, 배달의민족 같은 대규모 사용자 서비스 플랫폼을 지향하는 유형입니다.',
+    id: 'BACKEND',
+    label: '백엔드',
+    description: '서버, API, 데이터 처리, 분산 시스템 중심의 역할을 목표로 합니다.',
   },
   {
-    id: 'fintech',
-    label: '금융 및 핀테크',
-    description: '토스, 카카오뱅크, 은행권처럼 안정성과 데이터 정확성을 중심으로 제품을 만드는 유형입니다.',
+    id: 'FRONTEND',
+    label: '프론트엔드',
+    description: '웹 UI, 사용자 경험, 상태 관리와 인터랙션 구현에 집중하는 역할입니다.',
   },
   {
-    id: 'b2b',
-    label: 'B2B',
-    description: '엔터프라이즈·SaaS·협업 도구 등 기업 고객의 생산성을 높이는 솔루션을 만드는 유형입니다.',
+    id: 'FULLSTACK',
+    label: '풀스택',
+    description: '프론트와 백엔드를 모두 다루며 제품 전반을 빠르게 구현하는 역할입니다.',
   },
   {
-    id: 'infra',
-    label: 'Infra/DevOps',
-    description: '인프라 자동화, 플랫폼 엔지니어링, 서버 운영과 개발 생산성 개선에 집중하는 유형입니다.',
+    id: 'DATA_ENGINEER',
+    label: '데이터 엔지니어',
+    description: '데이터 파이프라인, ETL, 분석 기반 시스템 구축을 목표로 합니다.',
   },
   {
-    id: 'generalist',
-    label: 'Generalist',
-    description: '초기 스타트업에서 빠른 실행과 비즈니스 검증을 우선하며 넓은 역할을 담당하는 유형입니다.',
+    id: 'DEVOPS',
+    label: 'DevOps',
+    description: '배포 자동화, 클라우드 인프라, 운영 효율화에 집중하는 역할입니다.',
   },
 ]
 
 const companiesByCategory: Record<string, string[]> = {
-  b2c: ['네이버', '카카오', '배달의민족', '당근', '쿠팡'],
-  fintech: ['토스', '카카오뱅크', '신한은행', '국민은행', '하나은행'],
-  b2b: ['채널톡', '토스페이먼츠', '센드버드', '리멤버앤컴퍼니', '스윗'],
-  infra: ['네이버클라우드', '카카오엔터프라이즈', 'AWS 코리아', 'NHN Cloud', '메가존클라우드'],
-  generalist: ['마켓컬리', '직방', '오늘의집', '강남언니', '리디'],
+  BACKEND: ['네이버', '카카오', '쿠팡', '당근', '우아한형제들'],
+  FRONTEND: ['토스', '라인', '오늘의집', '직방', '리디'],
+  FULLSTACK: ['마켓컬리', '강남언니', '스윗', '채널톡', '리멤버앤컴퍼니'],
+  DATA_ENGINEER: ['카카오뱅크', '토스페이먼츠', '네이버클라우드', 'NHN Cloud', '메가존클라우드'],
+  DEVOPS: ['AWS 코리아', '카카오엔터프라이즈', '네이버클라우드', 'NHN Cloud', '메가존클라우드'],
 }
 
 function OnboardingPage() {
   const navigate = useNavigate()
-  const [reportTitle, setReportTitle] = useState(localStorage.getItem('pendingReportTitle') ?? '')
   const [name, setName] = useState('')
   const [age, setAge] = useState('')
   const [careerType, setCareerType] = useState<'none' | 'years'>('none')
@@ -55,6 +58,8 @@ function OnboardingPage() {
   const [portfolioError, setPortfolioError] = useState('')
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [categoryError, setCategoryError] = useState('')
+  const [submitError, setSubmitError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const availableCompanies = useMemo(() => {
     const merged = selectedCategories.flatMap((categoryId) => companiesByCategory[categoryId] ?? [])
@@ -114,13 +119,15 @@ function OnboardingPage() {
     setPortfolioError('')
   }
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setCategoryError('')
     setCompanyError('')
+    setPortfolioError('')
+    setSubmitError('')
 
-    if (selectedCategories.length === 0) {
-      setCategoryError('희망 직군 카테고리는 필수 입력입니다.')
+    if (selectedCategories.length !== 1) {
+      setCategoryError('희망 직무는 1개를 선택해 주세요.')
       return
     }
 
@@ -133,9 +140,34 @@ function OnboardingPage() {
       return
     }
 
-    localStorage.setItem('pendingReportTitle', reportTitle.trim())
-    localStorage.setItem('userPreferredCompanies', selectedCompanies.join(', '))
-    navigate('/onboarding/github')
+    if (!portfolioFile) {
+      setPortfolioError('포트폴리오 PDF는 필수입니다.')
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const response = await completeOnboarding({
+        name: name.trim(),
+        age: Number(age),
+        experienceYears: careerType === 'years' ? Number(careerYears) : 0,
+        desiredJob: selectedCategories[0] as DesiredJob,
+        desiredCompany: selectedCompanies.join(', '),
+        portfolioFile,
+      })
+
+      localStorage.setItem('userName', response.name)
+      localStorage.setItem('userPreferredCompanies', response.desiredCompany)
+      localStorage.setItem('userAge', String(response.age))
+      markOnboardingCompleted()
+      emitAuthChange()
+      navigate('/onboarding/github')
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : '온보딩 저장에 실패했습니다.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleToggleCategory = (categoryId: string) => {
@@ -145,9 +177,9 @@ function OnboardingPage() {
         return current.filter((id) => id !== categoryId)
       }
 
-      if (current.length >= 2) {
-        setCategoryError('희망 직군 카테고리는 최대 2개까지 선택할 수 있습니다.')
-        return current
+      if (current.length >= 1) {
+        setCategoryError('희망 직무는 1개만 선택할 수 있습니다.')
+        return [categoryId]
       }
 
       setCategoryError('')
@@ -182,18 +214,6 @@ function OnboardingPage() {
         </header>
 
         <form className="onboarding-form" onSubmit={handleSubmit}>
-          <label className="field-group full-width">
-            <span className="field-label">리포트 제목</span>
-            <input
-              type="text"
-              value={reportTitle}
-              onChange={(event) => setReportTitle(event.target.value)}
-              placeholder="예: 2026 상반기 백엔드 분석 리포트"
-              required
-            />
-            <span className="field-meta">분석 결과 리포트에 표시될 제목입니다.</span>
-          </label>
-
           <label className="field-group">
             <span className="field-label">이름</span>
             <input type="text" value={name} onChange={(event) => setName(event.target.value)} placeholder="이름을 입력해 주세요" required />
@@ -263,7 +283,7 @@ function OnboardingPage() {
               selectedCategories={selectedCategories}
               onToggleCategory={handleToggleCategory}
             />
-            <span className="field-meta">최대 2개까지 선택 가능</span>
+            <span className="field-meta">백엔드 스펙에 맞춰 1개 직무를 선택합니다.</span>
             {categoryError && <span className="field-error">{categoryError}</span>}
           </fieldset>
 
@@ -325,8 +345,10 @@ function OnboardingPage() {
             {portfolioError && <span className="field-error">{portfolioError}</span>}
           </label>
 
-          <button type="submit" className="start-button">
-            다음으로
+          {submitError && <p className="field-error">{submitError}</p>}
+
+          <button type="submit" className="start-button" disabled={isSubmitting}>
+            {isSubmitting ? '저장 중...' : '다음으로'}
           </button>
         </form>
       </section>
