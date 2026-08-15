@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ROUTES } from '../../routes/paths'
-import AppTopNav from '../../shared/components/AppTopNav'
 import '../../profile/styles/profile-pages.css'
 import { applyToStudy, getStudyDetail, updateStudyApplicationStatus, updateStudyStatus } from '../services/studyService'
 import '../styles/study-pages.css'
@@ -143,7 +142,6 @@ function StudyDetailPage() {
   if (isLoading) {
     return (
       <main className="profile-layout-shell">
-        <AppTopNav loginRedirectPath={ROUTES.study} />
         <section className="profile-layout-content study-page">
           <section className="profile-card study-page-card">
             <p className="profile-meta-text">스터디 정보를 불러오는 중입니다...</p>
@@ -156,7 +154,6 @@ function StudyDetailPage() {
   if (isError || !study) {
     return (
       <main className="profile-layout-shell">
-        <AppTopNav loginRedirectPath={ROUTES.study} />
         <section className="profile-layout-content study-page">
           <section className="profile-card study-page-card">
             <p className="profile-error-text">스터디 정보를 불러오지 못했습니다.</p>
@@ -170,7 +167,6 @@ function StudyDetailPage() {
 
   return (
     <main className="profile-layout-shell">
-      <AppTopNav loginRedirectPath={`${ROUTES.study}/${study.id}`} />
       <section className="profile-layout-content study-page">
         <section className="profile-card study-page-card">
           <div className="study-detail-head">

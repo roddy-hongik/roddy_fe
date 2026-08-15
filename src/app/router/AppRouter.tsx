@@ -15,6 +15,7 @@ const OnboardingPage = lazy(() => import('@/onboarding/pages/OnboardingPage'))
 const GithubConnectPage = lazy(() => import('@/onboarding/pages/GithubConnectPage'))
 const AnalysisWaitingPage = lazy(() => import('@/onboarding/pages/AnalysisWaitingPage'))
 const ProfileLayout = lazy(() => import('@/profile/components/ProfileLayout'))
+const DefaultLayout = lazy(() => import('@/shared/layouts/DefaultLayout'))
 const ProfilePage = lazy(() => import('@/profile/pages/ProfilePage'))
 const ProfileSavedPage = lazy(() => import('@/profile/pages/ProfileSavedPage'))
 const ProfileEditPage = lazy(() => import('@/profile/pages/ProfileEditPage'))
@@ -48,73 +49,32 @@ export function AppRouter() {
       <div className="app-shell">
         <Routes>
           <Route path={ROUTES.home} element={<MainPage />} />
-          <Route path={ROUTES.jobs} element={<JobPostingsPage />} />
-          <Route path={routePatterns.jobDetail} element={<JobPostingDetailPage />} />
-          <Route path={ROUTES.study} element={<StudyListPage />} />
-          <Route
-            path={ROUTES.studyWrite}
-            element={
-              <ProtectedRoute>
-                <StudyWritePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route path={routePatterns.studyDetail} element={<StudyDetailPage />} />
           <Route path={ROUTES.login} element={<LoginPage />} />
-          <Route
-            path={ROUTES.reports}
-            element={
-              <ProtectedRoute>
-                <MyReportsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path={routePatterns.reportDetailAnalysis}
-            element={
-              <ProtectedRoute>
-                <DetailedAnalysisReportPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path={ROUTES.reportsDetailAnalysis}
-            element={
-              <ProtectedRoute>
-                <DetailedAnalysisReportPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path={ROUTES.reportsPayment}
-            element={
-              <ProtectedRoute>
-                <AnalysisPaymentPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path={ROUTES.profile}
-            element={
-              <ProtectedRoute>
-                <ProfileLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<ProfilePage />} />
-            <Route path="saved" element={<ProfileSavedPage />} />
-            <Route path="edit" element={<ProfileEditPage />} />
-            <Route path="re-analyze" element={<ProfileReanalyzePage />} />
-          </Route>
-          <Route
-            path={ROUTES.notifications}
-            element={
-              <ProtectedRoute>
-                <NotificationsPage />
-              </ProtectedRoute>
-            }
-          />
           <Route path={ROUTES.terms} element={<TermsPage />} />
+          <Route element={<DefaultLayout />}>
+            <Route path={ROUTES.jobs} element={<JobPostingsPage />} />
+            <Route path={ROUTES.study} element={<StudyListPage />} />
+            <Route path={routePatterns.studyDetail} element={<StudyDetailPage />} />
+            <Route
+              path={ROUTES.studyWrite}
+              element={
+                <ProtectedRoute>
+                  <StudyWritePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path={ROUTES.community} element={<CommunityListPage />} />
+            <Route path={`${ROUTES.community}/:id`} element={<CommunityDetailPage />} />
+            <Route
+              path={ROUTES.communityWrite}
+              element={
+                <ProtectedRoute>
+                  <CommunityWritePage />
+                </ProtectedRoute>
+              }
+            />
+          </Route>
+          <Route path={routePatterns.jobDetail} element={<JobPostingDetailPage />} />
           <Route
             path={ROUTES.onboarding}
             element={
@@ -140,21 +100,26 @@ export function AppRouter() {
             }
           />
           <Route
-            path={ROUTES.mockInterview}
             element={
               <ProtectedRoute>
-                <MockInterviewPage />
+                <DefaultLayout showSavedLink />
               </ProtectedRoute>
             }
-          />
-          <Route
-            path={ROUTES.roadmap}
-            element={
-              <ProtectedRoute>
-                <RoadmapPage />
-              </ProtectedRoute>
-            }
-          />
+          >
+            <Route path={ROUTES.reports} element={<MyReportsPage />} />
+            <Route path={routePatterns.reportDetailAnalysis} element={<DetailedAnalysisReportPage />} />
+            <Route path={ROUTES.reportsDetailAnalysis} element={<DetailedAnalysisReportPage />} />
+            <Route path={ROUTES.reportsPayment} element={<AnalysisPaymentPage />} />
+            <Route path={ROUTES.notifications} element={<NotificationsPage />} />
+            <Route path={ROUTES.mockInterview} element={<MockInterviewPage />} />
+            <Route path={ROUTES.roadmap} element={<RoadmapPage />} />
+            <Route path={ROUTES.profile} element={<ProfileLayout />}>
+              <Route index element={<ProfilePage />} />
+              <Route path="saved" element={<ProfileSavedPage />} />
+              <Route path="edit" element={<ProfileEditPage />} />
+              <Route path="re-analyze" element={<ProfileReanalyzePage />} />
+            </Route>
+          </Route>
           <Route
             path={ROUTES.admin}
             element={
@@ -168,16 +133,6 @@ export function AppRouter() {
             <Route path="moderation" element={<AdminModerationPage />} />
             <Route path="graph-db" element={<AdminGraphPage />} />
           </Route>
-          <Route path={ROUTES.community} element={<CommunityListPage />} />
-          <Route
-            path={ROUTES.communityWrite}
-            element={
-              <ProtectedRoute>
-                <CommunityWritePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route path={`${ROUTES.community}/:id`} element={<CommunityDetailPage />} />
           <Route path="*" element={<Navigate to={ROUTES.home} replace />} />
         </Routes>
       </div>

@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import AppTopNav from '../../shared/components/AppTopNav'
 import { useNotifications } from '../hooks/useNotifications'
 import type { NotificationFilter, NotificationItem } from '../types/notification'
 import NotificationListItem from '../components/NotificationListItem'
@@ -34,8 +33,6 @@ function NotificationsPage() {
 
   return (
     <main className="profile-layout-shell notifications-page-shell">
-      <AppTopNav showSavedLink />
-
       <section className="profile-layout-content notifications-page-content">
         <div className="profile-page profile-fade-in notifications-page-wrap">
           <section className="profile-card notifications-page-card">

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES, routePaths } from '../../routes/paths'
-import AppTopNav from '../../shared/components/AppTopNav'
 import '../../profile/styles/profile-pages.css'
 import { getStudies } from '../services/studyService'
 import '../styles/study-pages.css'
@@ -66,7 +65,6 @@ function StudyListPage() {
 
   return (
     <main className="profile-layout-shell">
-      <AppTopNav loginRedirectPath={ROUTES.study} />
       <section className="profile-layout-content study-page">
         <section className="profile-card study-page-card">
           <div className="study-header-block">

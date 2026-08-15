@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { getAnalysisSummary, generateRoadmap, saveRoadmap } from '../../api/services/roadmapService'
 import type { AnalysisSummary, GeneratedRoadmap } from '../../api/types/roadmap'
-import AppTopNav from '../../shared/components/AppTopNav'
 import RoadmapResultCard from '../components/RoadmapResultCard'
 import RoadmapSummaryCard from '../components/RoadmapSummaryCard'
 import SavedRoadmapsExplorer from '../components/SavedRoadmapsExplorer'
@@ -100,7 +99,6 @@ function RoadmapPage() {
 
   return (
     <main className="profile-layout-shell roadmap-page-shell">
-      <AppTopNav showSavedLink />
       <section className="profile-layout-content profile-page profile-fade-in">
         <section className="profile-card roadmap-page-card">
           <header className="profile-card-header">

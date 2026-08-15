@@ -1,8 +1,6 @@
 import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { createCommunityPost } from '../../api/services/communityService'
-import { ROUTES } from '../../routes/paths'
-import AppTopNav from '../../shared/components/AppTopNav'
 import CommunityPostTypeSelector from '../components/CommunityPostTypeSelector'
 import TagSelector from '../components/TagSelector'
 import { getRoadmapShareCandidates } from '../services/roadmapShareService'
@@ -229,8 +227,6 @@ function CommunityWritePage() {
 
   return (
     <main className="community-page">
-      <AppTopNav loginRedirectPath={ROUTES.communityWrite} />
-
       <section className="community-container community-write-panel">
         <h1>게시글 작성</h1>
         <p className="community-subtext">게시글 유형에 맞는 템플릿으로 내용을 구조화해 공유하세요.</p>
