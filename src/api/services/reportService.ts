@@ -1,6 +1,8 @@
 import { mockReports } from '../../profile/data/mockReports'
 import type { DetailedReport } from '../../profile/types/report'
 
+// Intentional mock domain: reports backend API is not implemented yet.
+
 export async function getMyReports(): Promise<DetailedReport[]> {
   return Promise.resolve(mockReports)
 }

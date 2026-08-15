@@ -1,6 +1,8 @@
 import { mockGeneratedQuestions } from '../data/mockInterviewData'
 import type { InterviewAnalysisSummary, InterviewQuestion } from '../types/mockInterview'
 
+// Intentional mock domain: mock interview backend API is not implemented yet.
+
 const wait = (ms: number) => new Promise((resolve) => {
   window.setTimeout(resolve, ms)
 })

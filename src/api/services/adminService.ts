@@ -9,6 +9,8 @@ import type {
   ReportedContent,
 } from '../../api/types/admin'
 
+// Intentional mock domain: admin backend API is not implemented yet.
+
 const wait = (ms: number) =>
   new Promise<void>((resolve) => {
     window.setTimeout(resolve, ms)

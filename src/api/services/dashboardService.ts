@@ -1,8 +1,8 @@
-import { API_ENDPOINTS } from '../constants/endpoints'
-import { httpClient } from '../client/httpClient'
 import type { DashboardData } from '../types/dashboard'
 import { mockReports } from '../../profile/data/mockReports'
 import { jobPostings } from '../../jobs/data/jobPostings'
+
+// Intentional mock domain: dashboard backend API is not implemented yet.
 
 const latestReport = mockReports[0]
 const discoveredTechKeywords = Array.from(new Set([...(latestReport?.githubStacks ?? []), ...(latestReport?.resumeStacks ?? [])]))
@@ -75,11 +75,5 @@ const recommendedJobsById = mockDashboardData.recommendedJobs.map((job) => {
 mockDashboardData.recommendedJobs = recommendedJobsById
 
 export async function getDashboardData(): Promise<DashboardData> {
-  try {
-    return await httpClient<DashboardData>(API_ENDPOINTS.dashboard.summary, {
-      method: 'GET',
-    })
-  } catch {
-    return mockDashboardData
-  }
+  return Promise.resolve(mockDashboardData)
 }
