@@ -1,15 +1,19 @@
 export interface ProfileSummary {
   name: string
   age: number
-  imageUrl: string | null
-  targetRole?: string
-  targetIndustry?: string
+  profileImageUrl: string | null
+  desiredJob: string
+  desiredCompany: string
+  experienceYears: string
+  portfolioFileName: string
+  portfolioUrl: string | null
+  githubConnected: boolean
 }
 
 export interface UpdateProfilePayload {
   name: string
   age: number
-  imageBase64?: string | null
+  profileImageUrl?: string | null
 }
 
 export interface ReanalyzePayload {
@@ -20,5 +24,5 @@ export interface ReanalyzePayload {
 }
 
 export interface DeleteAccountResponse {
-  success: boolean
+  success?: boolean
 }

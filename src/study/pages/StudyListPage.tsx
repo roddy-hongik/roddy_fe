@@ -4,7 +4,7 @@ import { ROUTES, routePaths } from '../../routes/paths'
 import '../../profile/styles/profile-pages.css'
 import { getStudies } from '../services/studyService'
 import '../styles/study-pages.css'
-import type { StudyPost } from '../types/study'
+import type { StudyPostSummary } from '../types/study'
 
 const formatStudyDateTime = (value: string) =>
   new Date(value).toLocaleString('ko-KR', {
@@ -14,11 +14,9 @@ const formatStudyDateTime = (value: string) =>
     minute: '2-digit',
   })
 
-const getAcceptedCount = (study: StudyPost) => study.applicants.filter((applicant) => applicant.status === 'accepted').length
-
 function StudyListPage() {
   const navigate = useNavigate()
-  const [studies, setStudies] = useState<StudyPost[]>([])
+  const [studies, setStudies] = useState<StudyPostSummary[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isError, setIsError] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(Boolean(localStorage.getItem('accessToken')))
@@ -42,7 +40,7 @@ function StudyListPage() {
     getStudies()
       .then((data) => {
         if (isMounted) {
-          setStudies(data)
+          setStudies(data.studies)
         }
       })
       .catch(() => {
@@ -90,25 +88,25 @@ function StudyListPage() {
           {!isLoading && !isError && studies.length > 0 ? (
             <div className="study-list-grid">
               {studies.map((study) => (
-                <button key={study.id} type="button" className="study-card" onClick={() => navigate(routePaths.studyDetail(study.id))}>
+                <button key={study.id} type="button" className="study-card" onClick={() => navigate(routePaths.studyDetail(String(study.id)))}>
                   <div className="study-card-head">
                     <div className="study-badge-row">
-                      <span className={`study-mode-badge is-${study.mode}`}>{study.mode === 'offline' ? '대면' : '비대면'}</span>
-                      <span className={`study-status-badge ${study.status === 'completed' ? 'is-completed' : ''}`}>
-                        {study.status === 'recruiting' ? '모집중' : '모집완료'}
+                      <span className={`study-mode-badge is-${study.mode.toLowerCase()}`}>{study.modeDisplayName}</span>
+                      <span className={`study-status-badge ${study.status === 'CLOSED' ? 'is-completed' : ''}`}>
+                        {study.statusDisplayName}
                       </span>
                     </div>
-                    <span className="study-meta-pill">{study.authorName}</span>
+                    <span className="study-meta-pill">백엔드 연동</span>
                   </div>
                   <div>
                     <h2>{study.title}</h2>
                   </div>
-                  <p>{study.description}</p>
+                  <p>{study.contentPreview}</p>
                   <div className="study-meta-row">
                     <span className="study-meta-pill">{study.location}</span>
                     <span className="study-meta-pill">{formatStudyDateTime(study.scheduledAt)}</span>
                     <span className="study-meta-pill">
-                      모집 {getAcceptedCount(study)} / {study.capacity}
+                      지원 {study.applicantCount} / 정원 {study.capacity}
                     </span>
                   </div>
                 </button>

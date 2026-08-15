@@ -3,6 +3,8 @@ import type { NotificationItem } from '../types/notification'
 import { getCurrentAccountStorageId } from '../../auth/utils/accountStorage'
 import { cloneValue, emitRoddyDataChange, parseStoredJson } from '../../shared/utils/localStorageSync'
 
+// Intentional mock domain: notifications backend API is not implemented yet.
+
 const NOTIFICATIONS_STORAGE_KEY = 'roddy.notifications.v1'
 
 const wait = (ms: number) =>

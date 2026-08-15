@@ -42,6 +42,7 @@ export interface GeneralPostSummary extends BaseCommunityPost {
 export interface GeneralPostDetail extends GeneralPostSummary {
   content: string
   imageUrls: string[]
+  liked?: boolean
   comments?: CommunityComment[]
 }
 
@@ -55,6 +56,8 @@ export interface RoadmapSharePost extends BaseCommunityPost {
   recommendedSkills: string[]
   roadmapSteps: RoadmapStep[]
   description: string
+  liked?: boolean
+  imageUrls?: string[]
   comments?: CommunityComment[]
 }
 
@@ -70,6 +73,8 @@ export interface InterviewPost extends BaseCommunityPost {
   preparationProcess: string
   experienceDetail: string
   advice: string
+  liked?: boolean
+  imageUrls?: string[]
   comments?: CommunityComment[]
 }
 
@@ -95,50 +100,16 @@ export interface RoadmapShareCandidate {
   createdAt: string
 }
 
-interface CreatePostPayloadBase {
-  title: string
+export interface CreateCommunityPostPayload {
+  type: CommunityPostType
   tag: JobTrackTagKey
-  authorName?: string
-}
-
-export interface CreateGeneralPostPayload extends CreatePostPayloadBase {
-  type: 'general'
+  title: string
   content: string
+  company?: string
+  jobRole?: string
+  techStacks: string[]
   image?: File | null
 }
-
-export interface CreateRoadmapSharePayload extends CreatePostPayloadBase {
-  type: 'roadmap'
-  summary: string
-  description: string
-  roadmapId: string
-  roadmapTitle: string
-  targetJob: string
-  targetCompany?: string
-  recommendedSkills: string[]
-  roadmapSteps: RoadmapStep[]
-  tags?: string[]
-}
-
-export interface CreateInterviewPostPayload extends CreatePostPayloadBase {
-  type: 'interview'
-  subtype: InterviewSubtype
-  company: string
-  jobRole: string
-  preparationPeriod: string
-  techStacks: string[]
-  processSummary: string
-  background: string
-  preparationProcess: string
-  experienceDetail: string
-  advice: string
-  tags?: string[]
-}
-
-export type CreateCommunityPostPayload =
-  | CreateGeneralPostPayload
-  | CreateRoadmapSharePayload
-  | CreateInterviewPostPayload
 
 export interface CreateCommunityPostResponse {
   id: string
@@ -146,7 +117,7 @@ export interface CreateCommunityPostResponse {
 
 export interface CreateCommentPayload {
   content: string
-  parentId: string | null
+  parentId?: string | null
   authorName?: string
 }
 

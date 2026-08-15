@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { ChangeEvent, FormEvent } from 'react'
+import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getProfileSummary, updateProfile } from '../../api/services/profileService'
 import type { UpdateProfilePayload } from '../types/profile'
@@ -7,19 +7,6 @@ import type { UpdateProfilePayload } from '../types/profile'
 type ProfileEditForm = {
   name: string
   age: string
-  imageFile: File | null
-}
-
-async function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => {
-      const result = typeof reader.result === 'string' ? reader.result : ''
-      resolve(result)
-    }
-    reader.onerror = () => reject(new Error('파일을 읽는 중 오류가 발생했습니다.'))
-    reader.readAsDataURL(file)
-  })
 }
 
 function ProfileEditPage() {
@@ -27,7 +14,6 @@ function ProfileEditPage() {
   const [form, setForm] = useState<ProfileEditForm>({
     name: localStorage.getItem('userName') ?? '',
     age: localStorage.getItem('userAge') ?? '',
-    imageFile: null,
   })
   const [previewUrl, setPreviewUrl] = useState<string | null>(localStorage.getItem('userImageUrl'))
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -52,9 +38,8 @@ function ProfileEditPage() {
         setForm({
           name: data.name,
           age: String(data.age),
-          imageFile: null,
         })
-        setPreviewUrl(data.imageUrl)
+        setPreviewUrl(data.profileImageUrl)
       })
       .catch(() => {
         // Fallback to local storage values.
@@ -64,20 +49,6 @@ function ProfileEditPage() {
       isMounted = false
     }
   }, [])
-
-  const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const nextFile = event.target.files?.[0] ?? null
-
-    if (!nextFile) {
-      setForm((current) => ({ ...current, imageFile: null }))
-      return
-    }
-
-    setForm((current) => ({ ...current, imageFile: nextFile }))
-
-    const objectUrl = URL.createObjectURL(nextFile)
-    setPreviewUrl(objectUrl)
-  }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -89,16 +60,12 @@ function ProfileEditPage() {
         age: Number(form.age),
       }
 
-      if (form.imageFile) {
-        payload.imageBase64 = await fileToBase64(form.imageFile)
-      }
-
       const updated = await updateProfile(payload)
 
       localStorage.setItem('userName', updated.name)
       localStorage.setItem('userAge', String(updated.age))
-      if (updated.imageUrl) {
-        localStorage.setItem('userImageUrl', updated.imageUrl)
+      if (updated.profileImageUrl) {
+        localStorage.setItem('userImageUrl', updated.profileImageUrl)
       }
 
       navigate('/profile')
@@ -122,16 +89,13 @@ function ProfileEditPage() {
       <section className="profile-card profile-edit-card">
         <header className="profile-card-header">
           <h1>프로필 수정</h1>
-          <p>이미지, 이름, 나이를 업데이트할 수 있습니다.</p>
+          <p>백엔드 스펙 기준으로 이름과 나이를 수정할 수 있습니다.</p>
         </header>
 
         <form className="profile-edit-form" onSubmit={handleSubmit}>
-          <label className="profile-field">
-            <span>프로필 이미지</span>
-            <input type="file" accept="image/*" onChange={handleImageChange} />
-          </label>
-
           {previewUrl && <img className="profile-preview-image" src={previewUrl} alt="프로필 미리보기" />}
+
+          <p className="profile-meta-text">프로필 이미지 업로드는 백엔드 전용 업로드 API가 준비되면 다시 열 예정입니다.</p>
 
           <label className="profile-field">
             <span>이름</span>

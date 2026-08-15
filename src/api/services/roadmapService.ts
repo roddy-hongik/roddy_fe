@@ -1,6 +1,8 @@
 import type { AnalysisSummary, GeneratedRoadmap, RoadmapStep, SaveRoadmapResult, SavedRoadmap } from '../types/roadmap'
 import { createMockRoadmap, mockAnalysisSummary } from '../../roadmap/data/mockRoadmapData'
 
+// Intentional mock domain: roadmap backend API is not implemented yet.
+
 const ROADMAP_STORAGE_KEY = 'roddy.saved-roadmaps.v2'
 
 const wait = (ms: number) =>

@@ -2,6 +2,8 @@ import { jobPostings, type JobPosting } from '../data/jobPostings'
 import { getCurrentAccountStorageId } from '../../auth/utils/accountStorage'
 import { cloneValue, emitRoddyDataChange, parseStoredJson } from '../../shared/utils/localStorageSync'
 
+// Intentional mock domain: jobs backend API is not implemented yet.
+
 const JOB_SCRAP_STORAGE_KEY = 'roddy.jobs.scraps.v1'
 
 const DEFAULT_SCRAPPED_JOB_IDS = ['2', 'adl-data-platform']

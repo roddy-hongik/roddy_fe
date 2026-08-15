@@ -16,9 +16,9 @@ export async function updateProfile(payload: UpdateProfilePayload): Promise<Prof
 }
 
 export async function requestProfileReanalysis(payload: ReanalyzePayload): Promise<{ taskId?: string }> {
-  return httpClient<{ taskId?: string }>(API_ENDPOINTS.profile.reanalyze, {
-    method: 'POST',
-    body: JSON.stringify(payload),
+  void payload
+  return Promise.resolve({
+    taskId: `mock-profile-reanalyze-${Date.now()}`,
   })
 }
 
