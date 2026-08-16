@@ -10,7 +10,6 @@ type AppTopNavProps = {
   onLogout?: () => void
   rightSlot?: ReactNode
   showSavedLink?: boolean
-  userNameOverride?: string
   notificationSlot?: ReactNode
 }
 
@@ -26,7 +25,7 @@ const readAuthSnapshot = (): AuthSnapshot => ({
   userRole: localStorage.getItem('userRole') ?? '',
 })
 
-function AppTopNav({ loginRedirectPath, onLogout, rightSlot, showSavedLink = false, userNameOverride, notificationSlot }: AppTopNavProps) {
+function AppTopNav({ loginRedirectPath, onLogout, rightSlot, showSavedLink = false, notificationSlot }: AppTopNavProps) {
   const location = useLocation()
   const navigate = useNavigate()
   const [authSnapshot, setAuthSnapshot] = useState<AuthSnapshot>(() => readAuthSnapshot())
@@ -47,7 +46,7 @@ function AppTopNav({ loginRedirectPath, onLogout, rightSlot, showSavedLink = fal
     }
   }, [])
 
-  const userName = userNameOverride ?? authSnapshot.storedUserName
+  const userName = authSnapshot.storedUserName
   const isAdmin = authSnapshot.userRole === 'admin'
 
   const handleLoginRedirect = () => {

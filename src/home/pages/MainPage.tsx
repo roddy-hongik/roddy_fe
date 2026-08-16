@@ -4,9 +4,7 @@ import { PolarAngleAxis, PolarGrid, Radar, RadarChart, ResponsiveContainer, Tool
 import { getDashboardData } from '../../api/services/dashboardService'
 import { getCurrentAccountStorageId } from '../../auth/utils/accountStorage'
 import { AUTH_CHANGE_EVENT } from '../../auth/utils/authEvents'
-import NotificationsDropdown from '../../notifications/components/NotificationsDropdown'
 import { ROUTES, routePaths } from '../../routes/paths'
-import AppTopNav from '../../shared/components/AppTopNav'
 import type { DashboardData } from '../../api/types/dashboard'
 import '../styles/main-page.css'
 
@@ -92,14 +90,6 @@ function MainPage() {
 
   const resolvedDashboardData = isLoggedIn && loadedDashboardAccountId === authAccountId ? dashboardData : null
 
-  const userName = useMemo(() => {
-    if (resolvedDashboardData?.userName) {
-      return resolvedDashboardData.userName
-    }
-
-    return localStorage.getItem('userName') ?? '신애'
-  }, [resolvedDashboardData])
-
   const handleOpenJobPosting = (jobId: string) => {
     navigate(routePaths.jobDetail(jobId))
   }
@@ -141,8 +131,6 @@ function MainPage() {
 
   return (
     <main className="main-page">
-      <AppTopNav userNameOverride={userName} notificationSlot={<NotificationsDropdown />} />
-
       <section className="hero">
         <div className={`hero-content ${isLoggedIn ? '' : 'is-blurred'}`}>
           <div className="hero-top">
