@@ -48,10 +48,10 @@ export function AppRouter() {
     <Suspense fallback={<RouteFallback />}>
       <div className="app-shell">
         <Routes>
-          <Route path={ROUTES.home} element={<MainPage />} />
           <Route path={ROUTES.login} element={<LoginPage />} />
           <Route path={ROUTES.terms} element={<TermsPage />} />
           <Route element={<DefaultLayout />}>
+            <Route path={ROUTES.home} element={<MainPage />} />
             <Route path={ROUTES.jobs} element={<JobPostingsPage />} />
             <Route path={ROUTES.study} element={<StudyListPage />} />
             <Route path={routePatterns.studyDetail} element={<StudyDetailPage />} />
