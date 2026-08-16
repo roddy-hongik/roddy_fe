@@ -23,6 +23,8 @@ function ProfilePage() {
   const [profile, setProfile] = useState<ProfileSummary>(FALLBACK_PROFILE)
   const [isLoading, setIsLoading] = useState(true)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
+  const [loadError, setLoadError] = useState('')
   const preferredCompanies = localStorage.getItem('userPreferredCompanies') ?? '-'
 
   useEffect(() => {
@@ -34,11 +36,14 @@ function ProfilePage() {
           return
         }
 
+        setLoadError('')
         setProfile(data)
         localStorage.setItem('userName', data.name)
         localStorage.setItem('userAge', String(data.age))
         if (data.profileImageUrl) {
           localStorage.setItem('userImageUrl', data.profileImageUrl)
+        } else {
+          localStorage.removeItem('userImageUrl')
         }
         localStorage.setItem('userDesiredJob', data.desiredJob)
         localStorage.setItem('userPreferredCompanies', data.desiredCompany)
@@ -52,6 +57,7 @@ function ProfilePage() {
         }
 
         setProfile(FALLBACK_PROFILE)
+        setLoadError('프로필 정보를 최신 상태로 불러오지 못했습니다. 저장된 정보로 표시합니다.')
       })
       .finally(() => {
         if (isMounted) {
@@ -68,10 +74,8 @@ function ProfilePage() {
 
   const handleDeleteAccount = async () => {
     try {
+      setDeleteError('')
       await deleteAccount()
-    } catch {
-      // Delete API failure should not block local logout flow.
-    } finally {
       clearAuthSession()
       localStorage.removeItem('userAge')
       localStorage.removeItem('userImageUrl')
@@ -82,6 +86,8 @@ function ProfilePage() {
       localStorage.removeItem('userPortfolioUrl')
       emitAuthChange()
       navigate(ROUTES.login, { replace: true })
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : '회원 탈퇴에 실패했습니다.')
     }
   }
 
@@ -91,6 +97,7 @@ function ProfilePage() {
         <header className="profile-card-header">
           <h1>마이페이지</h1>
           <p>개인 정보와 커리어 설정을 한 화면에서 관리하세요.</p>
+          {loadError ? <p className="profile-error-text">{loadError}</p> : null}
         </header>
 
         <section className="profile-hero-section glass-style">
@@ -164,6 +171,7 @@ function ProfilePage() {
           <div className="profile-modal">
             <h3 id="delete-title">회원 탈퇴</h3>
             <p>탈퇴 후 데이터는 복구할 수 없습니다. 정말 진행할까요?</p>
+            {deleteError ? <p className="profile-error-text">{deleteError}</p> : null}
             <div className="profile-modal-actions">
               <button type="button" className="profile-ghost-btn" onClick={() => setIsDeleteModalOpen(false)}>
                 취소

@@ -132,6 +132,12 @@ function OnboardingPage() {
     }
 
     if (careerType === 'years' && careerYears.trim() === '') {
+      setSubmitError('경력 연차를 입력해 주세요.')
+      return
+    }
+
+    if (Number(age) < 1) {
+      setSubmitError('나이는 1 이상으로 입력해 주세요.')
       return
     }
 
@@ -160,6 +166,10 @@ function OnboardingPage() {
       localStorage.setItem('userName', response.name)
       localStorage.setItem('userPreferredCompanies', response.desiredCompany)
       localStorage.setItem('userAge', String(response.age))
+      localStorage.setItem('userDesiredJob', response.desiredJob)
+      localStorage.setItem('userExperienceYears', response.experienceLevel)
+      localStorage.setItem('userPortfolioFileName', response.portfolioFileName)
+      localStorage.setItem('githubConnected', String(response.githubConnected))
       markOnboardingCompleted()
       emitAuthChange()
       navigate('/onboarding/github')
@@ -223,7 +233,7 @@ function OnboardingPage() {
             <span className="field-label">나이</span>
             <input
               type="number"
-              min={0}
+              min={1}
               value={age}
               onChange={(event) => setAge(event.target.value)}
               placeholder="나이를 입력해 주세요"
