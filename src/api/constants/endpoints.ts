@@ -22,8 +22,10 @@ export const API_ENDPOINTS = {
     posts: '/api/studies',
     detail: '/api/studies/:id',
     apply: '/api/studies/:id/applications',
+    updateApplicationStatus: '/api/studies/:id/applications/:applicationId',
     cancelApplication: '/api/studies/:id/applications/me',
     close: '/api/studies/:id/close',
+    reopen: '/api/studies/:id/reopen',
     myApplications: '/api/studies/applications/me',
   },
   community: {

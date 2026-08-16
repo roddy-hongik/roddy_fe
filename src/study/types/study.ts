@@ -1,6 +1,15 @@
 export type StudyMode = 'OFFLINE' | 'ONLINE'
 export type StudyStatus = 'RECRUITING' | 'CLOSED'
-export type StudyApplicationStatus = 'APPLIED' | 'CANCELED'
+export type StudyApplicationStatus = 'APPLIED' | 'ACCEPTED' | 'REJECTED' | 'CANCELED'
+
+export interface StudyApplicantSummary {
+  applicationId: number
+  applicantId: number
+  applicantName: string
+  status: StudyApplicationStatus
+  statusDisplayName: string
+  appliedAt: string
+}
 
 export interface StudyPostSummary {
   id: number
@@ -33,6 +42,7 @@ export interface StudyPostDetail {
   myApplicationStatus: StudyApplicationStatus | null
   myApplicationStatusDisplayName: string | null
   isAuthor: boolean
+  applicants: StudyApplicantSummary[]
 }
 
 export interface StudyPostListResponse {

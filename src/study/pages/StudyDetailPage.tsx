@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ROUTES } from '../../routes/paths'
 import '../../profile/styles/profile-pages.css'
-import { applyToStudy, cancelStudyApplication, closeStudy, getStudyDetail } from '../services/studyService'
+import { applyToStudy, cancelStudyApplication, closeStudy, getStudyDetail, reopenStudy, sortStudyApplicants, updateStudyApplicationStatus } from '../services/studyService'
 import '../styles/study-pages.css'
-import type { StudyPostDetail } from '../types/study'
+import type { StudyApplicationStatus, StudyPostDetail } from '../types/study'
 
 const formatStudyDateTime = (value: string) =>
   new Date(value).toLocaleString('ko-KR', {
@@ -23,6 +23,7 @@ function StudyDetailPage() {
   const [isError, setIsError] = useState(false)
   const [isApplying, setIsApplying] = useState(false)
   const [isManaging, setIsManaging] = useState(false)
+  const [managingApplicationId, setManagingApplicationId] = useState<number | null>(null)
   const [isLoggedIn, setIsLoggedIn] = useState(Boolean(localStorage.getItem('accessToken')))
 
   useEffect(() => {
@@ -72,6 +73,7 @@ function StudyDetailPage() {
   const myApplicationStatus = useMemo(() => study?.myApplicationStatus ?? null, [study])
   const canApply = useMemo(() => !isAuthor && study?.status === 'RECRUITING' && myApplicationStatus !== 'APPLIED', [isAuthor, myApplicationStatus, study])
   const canCancel = useMemo(() => !isAuthor && myApplicationStatus === 'APPLIED', [isAuthor, myApplicationStatus])
+  const applicants = useMemo(() => sortStudyApplicants(study?.applicants ?? []), [study?.applicants])
 
   const handleApply = async () => {
     if (!studyId) {
@@ -159,6 +161,66 @@ function StudyDetailPage() {
     }
   }
 
+  const handleStudyReopen = async () => {
+    if (!studyId) {
+      return
+    }
+
+    setIsManaging(true)
+
+    try {
+      const response = await reopenStudy(studyId)
+      setStudy((current) =>
+        current
+          ? {
+              ...current,
+              status: response.status,
+              statusDisplayName: response.statusDisplayName,
+            }
+          : current,
+      )
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '스터디 상태 변경에 실패했습니다.'
+      alert(message)
+    } finally {
+      setIsManaging(false)
+    }
+  }
+
+  const handleApplicationStatusUpdate = async (applicationId: number, status: StudyApplicationStatus) => {
+    if (!studyId) {
+      return
+    }
+
+    setManagingApplicationId(applicationId)
+
+    try {
+      const response = await updateStudyApplicationStatus(studyId, applicationId, status)
+      setStudy((current) =>
+        current
+          ? {
+              ...current,
+              applicantCount: response.applicantCount,
+              applicants: current.applicants.map((applicant) =>
+                applicant.applicationId === applicationId
+                  ? {
+                      ...applicant,
+                      status: response.status,
+                      statusDisplayName: response.statusDisplayName,
+                    }
+                  : applicant,
+              ),
+            }
+          : current,
+      )
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '지원 상태 변경에 실패했습니다.'
+      alert(message)
+    } finally {
+      setManagingApplicationId(null)
+    }
+  }
+
   if (isLoading) {
     return (
       <main className="profile-layout-shell">
@@ -200,8 +262,13 @@ function StudyDetailPage() {
             </div>
 
             {isAuthor ? (
-              <button type="button" className="profile-action-btn" onClick={() => void handleStudyClose()} disabled={isManaging || study.status === 'CLOSED'}>
-                {isManaging ? '처리 중...' : study.status === 'CLOSED' ? '모집 완료됨' : '모집 완료 처리'}
+              <button
+                type="button"
+                className="profile-action-btn"
+                onClick={() => void (study.status === 'CLOSED' ? handleStudyReopen() : handleStudyClose())}
+                disabled={isManaging}
+              >
+                {isManaging ? '처리 중...' : study.status === 'CLOSED' ? '모집 재오픈' : '모집 완료 처리'}
               </button>
             ) : canCancel ? (
               <button type="button" className="profile-ghost-btn" onClick={() => void handleCancelApplication()} disabled={isApplying}>
@@ -251,13 +318,59 @@ function StudyDetailPage() {
                 <div className="study-manage-head">
                   <div>
                     <h2>스터디 관리</h2>
-                    <p className="profile-meta-text">현재 백엔드에서는 모집 완료 처리까지만 지원합니다.</p>
+                    <p className="profile-meta-text">지원자 상태 변경과 모집 상태 변경을 백엔드와 바로 연동합니다.</p>
                   </div>
                 </div>
 
-                <div className="study-empty-state">
-                  <p>지원자 승인/거절 기능은 백엔드 API가 준비되면 다시 열 예정입니다.</p>
-                </div>
+                {applicants.length === 0 ? (
+                  <div className="study-empty-state">
+                    <p>아직 지원한 멤버가 없습니다.</p>
+                  </div>
+                ) : (
+                  <div className="study-applications">
+                    {applicants.map((applicant) => {
+                      const isApplicationUpdating = managingApplicationId === applicant.applicationId
+                      const canAccept = applicant.status !== 'ACCEPTED' && applicant.status !== 'CANCELED'
+                      const canReject = applicant.status !== 'REJECTED' && applicant.status !== 'CANCELED'
+
+                      return (
+                        <article key={applicant.applicationId} className="study-application-card">
+                          <div className="study-application-card-head">
+                            <div className="study-status-stack">
+                              <strong>{applicant.applicantName}</strong>
+                              <span className="profile-meta-text">{formatStudyDateTime(applicant.appliedAt)} 지원</span>
+                            </div>
+                            <span
+                              className={`study-application-status ${
+                                applicant.status === 'ACCEPTED' ? 'is-accepted' : applicant.status === 'REJECTED' ? 'is-rejected' : ''
+                              }`.trim()}
+                            >
+                              {applicant.statusDisplayName}
+                            </span>
+                          </div>
+                          <div className="study-inline-actions">
+                            <button
+                              type="button"
+                              className="profile-action-btn"
+                              disabled={!canAccept || isApplicationUpdating}
+                              onClick={() => void handleApplicationStatusUpdate(applicant.applicationId, 'ACCEPTED')}
+                            >
+                              {isApplicationUpdating ? '처리 중...' : '수락'}
+                            </button>
+                            <button
+                              type="button"
+                              className="profile-ghost-btn"
+                              disabled={!canReject || isApplicationUpdating}
+                              onClick={() => void handleApplicationStatusUpdate(applicant.applicationId, 'REJECTED')}
+                            >
+                              거절
+                            </button>
+                          </div>
+                        </article>
+                      )
+                    })}
+                  </div>
+                )}
               </section>
             ) : null}
           </div>
