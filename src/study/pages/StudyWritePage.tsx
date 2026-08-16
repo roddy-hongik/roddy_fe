@@ -6,6 +6,8 @@ import { createStudy } from '../services/studyService'
 import '../styles/study-pages.css'
 import type { StudyMode } from '../types/study'
 
+const toStudyScheduledAtPayload = (value: string) => (value.length === 16 ? `${value}:00` : value)
+
 function StudyWritePage() {
   const navigate = useNavigate()
   const [title, setTitle] = useState('')
@@ -45,11 +47,11 @@ function StudyWritePage() {
 
     try {
       const response = await createStudy({
-        title,
-        content: description,
+        title: title.trim(),
+        content: description.trim(),
         mode,
-        location,
-        scheduledAt: new Date(scheduledAt).toISOString(),
+        location: location.trim(),
+        scheduledAt: toStudyScheduledAtPayload(scheduledAt),
         capacity: numericCapacity,
       })
 

@@ -219,6 +219,22 @@
   gap: 12px;
 }
 
+.study-status-stack {
+  display: grid;
+  gap: 6px;
+}
+
+.study-status-stack strong {
+  color: #f3f7ff;
+}
+
+.study-inline-actions {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .study-application-status {
   color: #dbe8ff;
   font-size: 0.9rem;

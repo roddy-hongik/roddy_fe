@@ -23,6 +23,4 @@ export interface ReanalyzePayload {
   preferredCompanies: string[]
 }
 
-export interface DeleteAccountResponse {
-  success?: boolean
-}
+export type DeleteAccountResponse = void

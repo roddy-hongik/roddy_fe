@@ -5,6 +5,10 @@ import { emitAuthChange } from '../../auth/utils/authEvents'
 import { isGithubConnected, markGithubConnected } from '../../auth/utils/authStorage'
 import '../styles/github-connect-page.css'
 
+async function loadGithubConnectionState() {
+  return getGithubConnectionStatus()
+}
+
 function GithubConnectPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -20,7 +24,7 @@ function GithubConnectPage() {
   useEffect(() => {
     let isMounted = true
 
-    getGithubConnectionStatus()
+    loadGithubConnectionState()
       .then((data) => {
         if (!isMounted) {
           return
@@ -53,6 +57,9 @@ function GithubConnectPage() {
     }
 
     setShowConnectedBadge(true)
+    setIsConnected(true)
+    markGithubConnected(true)
+    emitAuthChange()
     setConnectionError('')
   }, [callbackReason, callbackStatus])
 

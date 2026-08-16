@@ -17,6 +17,7 @@ function ProfileEditPage() {
   })
   const [previewUrl, setPreviewUrl] = useState<string | null>(localStorage.getItem('userImageUrl'))
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
 
   useEffect(() => {
     return () => {
@@ -52,12 +53,14 @@ function ProfileEditPage() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    setSubmitError('')
     setIsSubmitting(true)
 
     try {
       const payload: UpdateProfilePayload = {
         name: form.name.trim(),
         age: Number(form.age),
+        profileImageUrl: previewUrl,
       }
 
       const updated = await updateProfile(payload)
@@ -66,19 +69,13 @@ function ProfileEditPage() {
       localStorage.setItem('userAge', String(updated.age))
       if (updated.profileImageUrl) {
         localStorage.setItem('userImageUrl', updated.profileImageUrl)
+      } else {
+        localStorage.removeItem('userImageUrl')
       }
 
       navigate('/profile')
-    } catch {
-      const fallbackName = form.name.trim()
-      const fallbackAge = String(Number(form.age) || 0)
-
-      localStorage.setItem('userName', fallbackName)
-      localStorage.setItem('userAge', fallbackAge)
-      if (previewUrl) {
-        localStorage.setItem('userImageUrl', previewUrl)
-      }
-      navigate('/profile')
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : '프로필 저장에 실패했습니다.')
     } finally {
       setIsSubmitting(false)
     }
@@ -96,6 +93,7 @@ function ProfileEditPage() {
           {previewUrl && <img className="profile-preview-image" src={previewUrl} alt="프로필 미리보기" />}
 
           <p className="profile-meta-text">프로필 이미지 업로드는 백엔드 전용 업로드 API가 준비되면 다시 열 예정입니다.</p>
+          {submitError ? <p className="profile-error-text">{submitError}</p> : null}
 
           <label className="profile-field">
             <span>이름</span>
