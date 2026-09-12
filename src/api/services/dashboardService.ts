@@ -1,6 +1,5 @@
 import type { DashboardData } from '../types/dashboard'
 import { mockReports } from '../../profile/data/mockReports'
-import { jobPostings } from '../../jobs/data/jobPostings'
 
 // Intentional mock domain: dashboard backend API is not implemented yet.
 
@@ -54,25 +53,6 @@ const mockDashboardData: DashboardData = {
     relatedStacks: category.detailStacks,
   })),
 }
-
-const recommendedJobsById = mockDashboardData.recommendedJobs.map((job) => {
-  const matchedJob = jobPostings.find((posting) => posting.id === job.id)
-
-  if (!matchedJob) {
-    return job
-  }
-
-  return {
-    ...job,
-    id: matchedJob.id,
-    company: matchedJob.company,
-    title: matchedJob.title,
-    location: matchedJob.location,
-    techTags: matchedJob.techStacks.slice(0, 3),
-  }
-})
-
-mockDashboardData.recommendedJobs = recommendedJobsById
 
 export async function getDashboardData(): Promise<DashboardData> {
   return Promise.resolve(mockDashboardData)

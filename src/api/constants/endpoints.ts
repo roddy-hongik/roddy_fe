@@ -39,9 +39,11 @@ export const API_ENDPOINTS = {
   dashboard: {
     summary: '/api/dashboard/summary',
   },
-  // Mock domain until backend API is implemented.
   jobs: {
-    match: '/api/jobs/:id/match',
+    list: '/api/jobs',
+    detail: '/api/jobs/:id',
+    scrap: '/api/jobs/:id/scrap',
+    myScraps: '/api/jobs/scraps/me',
   },
   // Mock domain until backend API is implemented.
   roadmap: {

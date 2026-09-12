@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getLikedCommunityPosts, type CommunityPostLikeSummary } from '../../community/services/communityLikeService'
 import JobScrapButton from '../../jobs/components/JobScrapButton'
-import { getScrappedJobs, type JobPostingPreview } from '../../jobs/services/jobScrapService'
+import { getScrappedJobPostings } from '../../jobs/services/jobPostingService'
+import type { JobPostingSummary } from '../../jobs/types/jobPosting'
+import { formatDeadline, formatPostedAt } from '../../jobs/utils/jobFormat'
 import { routePaths } from '../../routes/paths'
 import { formatDateLabel } from '../../shared/utils/dateFormat'
 import { RODDY_DATA_CHANGE_EVENT } from '../../shared/utils/localStorageSync'
@@ -13,7 +15,7 @@ function ProfileSavedPage() {
   const navigate = useNavigate()
   const [selectedTab, setSelectedTab] = useState<SavedTab>('community')
   const [likedPosts, setLikedPosts] = useState<CommunityPostLikeSummary[]>([])
-  const [scrappedJobs, setScrappedJobs] = useState<JobPostingPreview[]>([])
+  const [scrappedJobs, setScrappedJobs] = useState<JobPostingSummary[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isError, setIsError] = useState(false)
   const communityTabId = 'saved-community-tab'
@@ -29,7 +31,7 @@ function ProfileSavedPage() {
       setIsError(false)
 
       try {
-        const [likedResult, scrappedResult] = await Promise.allSettled([getLikedCommunityPosts(), getScrappedJobs()])
+        const [likedResult, scrappedResult] = await Promise.allSettled([getLikedCommunityPosts(), getScrappedJobPostings()])
 
         if (!isMounted) {
           return
@@ -63,7 +65,7 @@ function ProfileSavedPage() {
 
     const handleDataChange = (event: Event) => {
       const customEvent = event as CustomEvent<{ key: string }>
-      if (customEvent.detail?.key === 'roddy.jobs.scraps.v1' || customEvent.detail?.key === 'roddy.community.likes.v1') {
+      if (customEvent.detail?.key === 'roddy.community.likes.v1') {
         refreshSavedContents()
       }
     }
@@ -77,6 +79,15 @@ function ProfileSavedPage() {
       window.removeEventListener('storage', refreshSavedContents)
     }
   }, [])
+
+  /** 스크랩을 해제하면 목록에서 바로 빼준다. 스크랩한 공고만 모아 보는 화면이기 때문이다. */
+  const handleJobScrapToggled = (jobPostingId: number, isScrapped: boolean) => {
+    setScrappedJobs((previous) =>
+      isScrapped
+        ? previous.map((job) => (job.id === jobPostingId ? { ...job, isScrapped } : job))
+        : previous.filter((job) => job.id !== jobPostingId),
+    )
+  }
 
   const getPostTypeLabel = (type: CommunityPostLikeSummary['type']) => {
     if (type === 'roadmap') {
@@ -158,24 +169,24 @@ function ProfileSavedPage() {
             <section id={jobsPanelId} role="tabpanel" aria-labelledby={jobsTabId} className="saved-card-list">
               {scrappedJobs.map((job) => (
                 <article key={job.id} className="saved-content-card saved-job-card">
-                  <button type="button" className="saved-content-click" onClick={() => navigate(routePaths.jobDetail(job.id))}>
+                  <button type="button" className="saved-content-click" onClick={() => navigate(routePaths.jobDetail(String(job.id)))}>
                     <div className="saved-content-top">
                       <span className="saved-type-badge">채용공고</span>
-                      <span className="saved-date-label">등록 {formatDateLabel(job.postedAt)}</span>
+                      <span className="saved-date-label">등록 {formatPostedAt(job.postedAt) || '-'}</span>
                     </div>
                     <strong>{job.title}</strong>
                     <p>{job.company}</p>
                     <div className="saved-meta-row">
-                      <span>매칭률 {job.matchingScore == null ? '-' : `${job.matchingScore}%`}</span>
-                      <span>마감 {job.deadline}</span>
-                    </div>
-                    <div className="saved-chip-row">
-                      {job.techStacks.map((stack) => (
-                        <span key={stack}>{stack}</span>
-                      ))}
+                      <span>{job.location ?? '근무지 정보 없음'}</span>
+                      <span>마감 {formatDeadline(job.deadline)}</span>
                     </div>
                   </button>
-                  <JobScrapButton jobId={job.id} className="saved-job-scrap-button" />
+                  <JobScrapButton
+                    jobPostingId={job.id}
+                    isScrapped={job.isScrapped}
+                    className="saved-job-scrap-button"
+                    onToggled={(isScrapped) => handleJobScrapToggled(job.id, isScrapped)}
+                  />
                 </article>
               ))}
             </section>

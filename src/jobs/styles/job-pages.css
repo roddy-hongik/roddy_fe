@@ -549,6 +549,45 @@
   margin-top: 18px;
 }
 
+/* 지원하기는 채용 사이트로 나가는 링크라 버튼과 같은 모양을 링크에도 준다. */
+.apply-btn-large {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+/* 수집한 공고 본문은 줄바꿈이 곧 문단 구분이다. */
+.detail-content {
+  white-space: pre-wrap;
+  line-height: 1.7;
+  color: #dbe6ff;
+  word-break: break-word;
+}
+
+.detail-note {
+  color: #9fb0d0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.jobs-load-more {
+  width: 100%;
+  margin-top: 16px;
+  border: 1px solid rgba(120, 150, 220, 0.35);
+  border-radius: 12px;
+  height: 44px;
+  background: transparent;
+  color: #cfe0ff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.jobs-load-more:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 @media (max-width: 1180px) {
   .detail-layout {
     grid-template-columns: 1fr;
