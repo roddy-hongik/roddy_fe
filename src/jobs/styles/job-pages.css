@@ -347,6 +347,27 @@
   min-width: 94px;
 }
 
+.detail-toolbar {
+  width: min(1240px, 100%);
+  margin: 16px auto 0;
+  display: flex;
+}
+
+.detail-back-button {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(136, 177, 255, 0.28);
+  background: rgba(17, 29, 62, 0.62);
+  color: #d8e7ff;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.detail-back-button:hover {
+  background: rgba(47, 76, 148, 0.72);
+}
+
 .detail-layout {
   width: min(1240px, 100%);
   margin: 20px auto 0;

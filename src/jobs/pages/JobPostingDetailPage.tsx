@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ROUTES } from '../../routes/paths'
 import { AUTH_CHANGE_EVENT } from '../../auth/utils/authEvents'
@@ -9,13 +9,24 @@ import type { JobPostingDetail } from '../types/jobPosting'
 import { formatDeadline, formatPostedAt, orNotProvided } from '../utils/jobFormat'
 import '../styles/job-pages.css'
 
+/** 어느 요청의 결과인지 함께 들고 있으면 로딩/에러를 따로 저장하지 않고 지금 화면과 비교해 가려낼 수 있다. */
+type DetailResult = {
+  requestKey: string
+  job: JobPostingDetail | null
+  isError: boolean
+}
+
+const toRequestKey = (jobId: string, isLoggedIn: boolean) => `${jobId}::${isLoggedIn}`
+
 function JobPostingDetailPage() {
   const navigate = useNavigate()
   const { jobId } = useParams()
-  const [job, setJob] = useState<JobPostingDetail | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isError, setIsError] = useState(false)
+  const [result, setResult] = useState<DetailResult | null>(null)
+  const [isScrapPending, setIsScrapPending] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(Boolean(localStorage.getItem('accessToken')))
+
+  /** 먼저 떠난 요청이 나중에 도착해 최신 화면을 덮어쓰지 않도록 한다. */
+  const requestIdRef = useRef(0)
 
   useEffect(() => {
     const syncLoginStatus = () => {
@@ -32,57 +43,62 @@ function JobPostingDetailPage() {
     }
   }, [])
 
+  const requestKey = jobId ? toRequestKey(jobId, isLoggedIn) : ''
+
   useEffect(() => {
     if (!jobId) {
       return
     }
 
-    let isMounted = true
-    setIsLoading(true)
-    setIsError(false)
+    const requestId = requestIdRef.current + 1
+    requestIdRef.current = requestId
 
     getJobPosting(jobId)
       .then((response) => {
-        if (!isMounted) {
+        if (requestIdRef.current !== requestId) {
           return
         }
 
-        setJob(response)
+        setResult({ requestKey, job: response, isError: false })
       })
       .catch(() => {
-        if (!isMounted) {
+        if (requestIdRef.current !== requestId) {
           return
         }
 
-        setJob(null)
-        setIsError(true)
-      })
-      .finally(() => {
-        if (isMounted) {
-          setIsLoading(false)
-        }
+        setResult({ requestKey, job: null, isError: true })
       })
 
     return () => {
-      isMounted = false
+      requestIdRef.current += 1
     }
-  }, [jobId, isLoggedIn])
+  }, [jobId, requestKey])
 
-  const topNav = (
-    <AppTopNav
-      loginRedirectPath={ROUTES.jobs}
-      rightSlot={
-        <button type="button" className="app-top-nav__action-button" onClick={() => navigate(ROUTES.jobs)}>
-          목록으로
-        </button>
-      }
-    />
+  /** 지금 보고 있는 조건의 응답만 화면에 쓴다. 아직 없으면 그게 곧 로딩 중이라는 뜻이다. */
+  const currentResult = result && result.requestKey === requestKey ? result : null
+  const isLoading = currentResult === null
+  const isError = currentResult?.isError ?? false
+  const job = currentResult?.job ?? null
+
+  const handleScrapToggled = (isScrapped: boolean) => {
+    setResult((previous) => (previous?.job ? { ...previous, job: { ...previous.job, isScrapped } } : previous))
+  }
+
+  const topNav = <AppTopNav loginRedirectPath={ROUTES.jobs} />
+
+  const backToList = (
+    <div className="detail-toolbar">
+      <button type="button" className="detail-back-button" onClick={() => navigate(ROUTES.jobs)}>
+        목록으로
+      </button>
+    </div>
   )
 
   if (isLoading) {
     return (
       <main className="jobs-page detail-page">
         {topNav}
+        {backToList}
         <section className="detail-layout">
           <article className="glass-panel detail-main">
             <p className="detail-note">공고를 불러오는 중입니다.</p>
@@ -96,6 +112,7 @@ function JobPostingDetailPage() {
     return (
       <main className="jobs-page detail-page">
         {topNav}
+        {backToList}
         <section className="detail-layout">
           <article className="glass-panel detail-main">
             <p className="detail-note">공고를 찾을 수 없습니다. 마감되었거나 삭제된 공고일 수 있습니다.</p>
@@ -108,13 +125,10 @@ function JobPostingDetailPage() {
     )
   }
 
-  const handleScrapToggled = (isScrapped: boolean) => {
-    setJob((previous) => (previous ? { ...previous, isScrapped } : previous))
-  }
-
   return (
     <main className="jobs-page detail-page">
       {topNav}
+      {backToList}
 
       <section className="detail-layout">
         <article className="glass-panel detail-main">
@@ -142,7 +156,9 @@ function JobPostingDetailPage() {
                   jobPostingId={job.id}
                   isScrapped={job.isScrapped}
                   className="detail-scrap-button"
+                  disabled={isScrapPending}
                   onToggled={handleScrapToggled}
+                  onTogglingChange={setIsScrapPending}
                 />
               ) : null}
               <a className="apply-btn-large" href={job.applyUrl} target="_blank" rel="noreferrer noopener">
@@ -193,7 +209,9 @@ function JobPostingDetailPage() {
               jobPostingId={job.id}
               isScrapped={job.isScrapped}
               className="detail-side-scrap-button"
+              disabled={isScrapPending}
               onToggled={handleScrapToggled}
+              onTogglingChange={setIsScrapPending}
             />
           ) : null}
           <a className="apply-btn-large full" href={job.applyUrl} target="_blank" rel="noreferrer noopener">
