@@ -413,6 +413,39 @@
   padding: 18px;
 }
 
+.saved-status-block {
+  margin-top: 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(131, 168, 255, 0.24);
+  background: rgba(11, 21, 49, 0.62);
+  color: #c8d7f5;
+  padding: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.saved-status-block p {
+  margin: 0;
+}
+
+.saved-retry-button {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(136, 177, 255, 0.32);
+  background: rgba(17, 29, 62, 0.72);
+  color: #d8e7ff;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.saved-retry-button:hover {
+  background: rgba(47, 76, 148, 0.72);
+}
+
 .profile-account-card {
   min-height: auto;
 }

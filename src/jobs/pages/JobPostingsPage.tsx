@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { AUTH_CHANGE_EVENT } from '../../auth/utils/authEvents'
 import { routePaths } from '../../routes/paths'
 import JobScrapButton from '../components/JobScrapButton'
@@ -17,6 +17,7 @@ function JobPostingsPage() {
   const [companyQuery, setCompanyQuery] = useState('')
   const [keyword, setKeyword] = useState('')
   const [jobs, setJobs] = useState<JobPostingSummary[]>([])
+  /** 화면에 실제로 반영된 마지막 응답의 페이지. 요청이 성공해야만 앞으로 나간다. */
   const [page, setPage] = useState(0)
   const [totalElements, setTotalElements] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
@@ -45,7 +46,6 @@ function JobPostingsPage() {
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setKeyword(companyQuery.trim())
-      setPage(0)
     }, SEARCH_DEBOUNCE_MS)
 
     return () => window.clearTimeout(timer)
@@ -70,6 +70,7 @@ function JobPostingsPage() {
       }
 
       setJobs((previous) => (shouldAppend ? [...previous, ...response.jobs] : response.jobs))
+      setPage(nextPage)
       setTotalElements(response.totalElements)
       setTotalPages(response.totalPages)
     } catch {
@@ -95,9 +96,7 @@ function JobPostingsPage() {
   }, [keyword, loadJobs, isLoggedIn])
 
   const handleLoadMore = () => {
-    const nextPage = page + 1
-    setPage(nextPage)
-    loadJobs(nextPage, keyword, true)
+    loadJobs(page + 1, keyword, true)
   }
 
   const handleScrapToggled = (jobPostingId: number, isScrapped: boolean) => {
@@ -140,7 +139,7 @@ function JobPostingsPage() {
             ) : (
               <div className="headline-grid">
                 {headlineJobs.map((job) => (
-                  <article key={job.id} className="headline-card" onClick={() => navigate(routePaths.jobDetail(String(job.id)))}>
+                  <article key={job.id} className="headline-card">
                     <div className="headline-card-top">
                       <p className="company">{job.company}</p>
                       <JobScrapButton
@@ -149,14 +148,17 @@ function JobPostingsPage() {
                         onToggled={(isScrapped) => handleScrapToggled(job.id, isScrapped)}
                       />
                     </div>
-                    <h2>{job.title}</h2>
-                    <p className="meta">{joinMeta(job.location, job.experience, job.workType)}</p>
-                    <p className="match">
-                      {isLoggedIn ? '상세에서 공고 내용 확인' : '로그인 후 스크랩할 수 있어요'}
-                    </p>
-                    <p className="deadline">
-                      등록 {formatPostedAt(job.postedAt) || '-'} · 마감 {formatDeadline(job.deadline)}
-                    </p>
+                    {/* 카드 전체 onClick 대신 링크를 둬서 키보드와 스크린 리더로도 상세로 갈 수 있게 한다. */}
+                    <Link className="headline-card-link" to={routePaths.jobDetail(String(job.id))}>
+                      <h2>{job.title}</h2>
+                      <p className="meta">{joinMeta(job.location, job.experience, job.workType)}</p>
+                      <p className="match">
+                        {isLoggedIn ? '상세에서 공고 내용 확인' : '로그인 후 스크랩할 수 있어요'}
+                      </p>
+                      <p className="deadline">
+                        등록 {formatPostedAt(job.postedAt) || '-'} · 마감 {formatDeadline(job.deadline)}
+                      </p>
+                    </Link>
                   </article>
                 ))}
               </div>
