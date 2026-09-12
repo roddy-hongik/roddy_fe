@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getLikedCommunityPosts, type CommunityPostLikeSummary } from '../../community/services/communityLikeService'
 import JobScrapButton from '../../jobs/components/JobScrapButton'
@@ -17,45 +17,49 @@ function ProfileSavedPage() {
   const [likedPosts, setLikedPosts] = useState<CommunityPostLikeSummary[]>([])
   const [scrappedJobs, setScrappedJobs] = useState<JobPostingSummary[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [isError, setIsError] = useState(false)
+  /** 탭마다 따로 들고 있어야 한쪽만 실패했을 때 그 탭을 "저장한 게 없다"고 잘못 말하지 않는다. */
+  const [likedError, setLikedError] = useState(false)
+  const [scrappedError, setScrappedError] = useState(false)
+  const isMountedRef = useRef(true)
   const communityTabId = 'saved-community-tab'
   const jobsTabId = 'saved-jobs-tab'
   const communityPanelId = 'saved-community-panel'
   const jobsPanelId = 'saved-jobs-panel'
 
-  useEffect(() => {
-    let isMounted = true
+  const loadSavedContents = useCallback(async () => {
+    setIsLoading(true)
+    setLikedError(false)
+    setScrappedError(false)
 
-    const loadSavedContents = async () => {
-      setIsLoading(true)
-      setIsError(false)
+    try {
+      const [likedResult, scrappedResult] = await Promise.allSettled([getLikedCommunityPosts(), getScrappedJobPostings()])
 
-      try {
-        const [likedResult, scrappedResult] = await Promise.allSettled([getLikedCommunityPosts(), getScrappedJobPostings()])
+      if (!isMountedRef.current) {
+        return
+      }
 
-        if (!isMounted) {
-          return
-        }
+      if (likedResult.status === 'fulfilled') {
+        setLikedPosts(likedResult.value)
+      } else {
+        setLikedPosts([])
+        setLikedError(true)
+      }
 
-        if (likedResult.status === 'fulfilled') {
-          setLikedPosts(likedResult.value)
-        } else {
-          setLikedPosts([])
-        }
-
-        if (scrappedResult.status === 'fulfilled') {
-          setScrappedJobs(scrappedResult.value)
-        } else {
-          setScrappedJobs([])
-        }
-
-        setIsError(likedResult.status === 'rejected' && scrappedResult.status === 'rejected')
-      } finally {
-        if (isMounted) {
-          setIsLoading(false)
-        }
+      if (scrappedResult.status === 'fulfilled') {
+        setScrappedJobs(scrappedResult.value)
+      } else {
+        setScrappedJobs([])
+        setScrappedError(true)
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setIsLoading(false)
       }
     }
+  }, [])
+
+  useEffect(() => {
+    isMountedRef.current = true
 
     void loadSavedContents()
 
@@ -74,11 +78,11 @@ function ProfileSavedPage() {
     window.addEventListener('storage', refreshSavedContents)
 
     return () => {
-      isMounted = false
+      isMountedRef.current = false
       window.removeEventListener(RODDY_DATA_CHANGE_EVENT, handleDataChange)
       window.removeEventListener('storage', refreshSavedContents)
     }
-  }, [])
+  }, [loadSavedContents])
 
   /** 스크랩을 해제하면 목록에서 바로 빼준다. 스크랩한 공고만 모아 보는 화면이기 때문이다. */
   const handleJobScrapToggled = (jobPostingId: number, isScrapped: boolean) => {
@@ -100,6 +104,15 @@ function ProfileSavedPage() {
 
     return '일반글'
   }
+
+  const renderLoadFailure = (panelId: string, tabId: string, message: string) => (
+    <div id={panelId} role="tabpanel" aria-labelledby={tabId} className="saved-status-block">
+      <p>{message}</p>
+      <button type="button" className="saved-retry-button" onClick={() => void loadSavedContents()}>
+        다시 시도
+      </button>
+    </div>
+  )
 
   return (
     <div className="profile-page profile-fade-in">
@@ -136,10 +149,11 @@ function ProfileSavedPage() {
         </header>
 
         {isLoading ? <p className="saved-status">저장한 콘텐츠를 불러오는 중입니다...</p> : null}
-        {!isLoading && isError ? <p className="saved-status">저장한 콘텐츠를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p> : null}
 
-        {!isLoading && !isError && selectedTab === 'community' ? (
-          likedPosts.length > 0 ? (
+        {!isLoading && selectedTab === 'community' ? (
+          likedError ? (
+            renderLoadFailure(communityPanelId, communityTabId, '좋아요한 커뮤니티 글을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.')
+          ) : likedPosts.length > 0 ? (
             <section id={communityPanelId} role="tabpanel" aria-labelledby={communityTabId} className="saved-card-list">
               {likedPosts.map((post) => (
                 <button key={post.id} type="button" className="saved-content-card" onClick={() => navigate(`/community/${post.id}`)}>
@@ -164,8 +178,10 @@ function ProfileSavedPage() {
           )
         ) : null}
 
-        {!isLoading && !isError && selectedTab === 'jobs' ? (
-          scrappedJobs.length > 0 ? (
+        {!isLoading && selectedTab === 'jobs' ? (
+          scrappedError ? (
+            renderLoadFailure(jobsPanelId, jobsTabId, '스크랩한 채용공고를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.')
+          ) : scrappedJobs.length > 0 ? (
             <section id={jobsPanelId} role="tabpanel" aria-labelledby={jobsTabId} className="saved-card-list">
               {scrappedJobs.map((job) => (
                 <article key={job.id} className="saved-content-card saved-job-card">
