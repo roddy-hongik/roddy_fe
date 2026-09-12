@@ -1,19 +1,27 @@
-import type { MouseEvent } from 'react'
-import { useJobScrap } from '../hooks/useJobScrap'
+import { useState, type MouseEvent } from 'react'
+import { toggleJobScrap } from '../services/jobPostingService'
 
 type JobScrapButtonProps = {
-  jobId: string
+  jobPostingId: number
+  /** 목록/상세 응답이 이미 스크랩 여부를 알려주므로 상태는 화면이 들고 있는다. */
+  isScrapped: boolean
   className?: string
-  onToggle?: (isScrapped: boolean) => void
+  onToggled?: (isScrapped: boolean) => void
 }
 
-function JobScrapButton({ jobId, className = '', onToggle }: JobScrapButtonProps) {
-  const { isScrapped, isToggling, toggleScrap } = useJobScrap(jobId)
+function JobScrapButton({ jobPostingId, isScrapped, className = '', onToggled }: JobScrapButtonProps) {
+  const [isToggling, setIsToggling] = useState(false)
 
   const handleClick = async (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation()
-    const response = await toggleScrap()
-    onToggle?.(response.isScrapped)
+    setIsToggling(true)
+
+    try {
+      const response = await toggleJobScrap(jobPostingId)
+      onToggled?.(response.isScrapped)
+    } finally {
+      setIsToggling(false)
+    }
   }
 
   return (
