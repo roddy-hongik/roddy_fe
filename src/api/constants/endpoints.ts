@@ -35,7 +35,6 @@ export const API_ENDPOINTS = {
     report: '/api/community/posts/:id/report',
     comments: '/api/community/posts/:id/comments',
   },
-  // Mock domain until backend API is implemented.
   dashboard: {
     summary: '/api/dashboard/summary',
   },
