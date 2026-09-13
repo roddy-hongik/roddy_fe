@@ -9,8 +9,10 @@ import type {
   CreateCommentResponse,
   CreateCommunityPostPayload,
   CreateCommunityPostResponse,
+  InterviewSubtype,
   JobTrackTagKey,
 } from '../../community/types/community'
+import type { RoadmapStep } from '../types/roadmap'
 
 type BackendCommunityPostCategory = 'FREE' | 'ROADMAP' | 'PASS_REVIEW_INTERVIEW'
 type BackendCommunityJobCategory = 'B2C' | 'FINTECH' | 'B2B' | 'INFRA_DEVOPS' | 'GENERALIST'
@@ -18,24 +20,43 @@ type BackendCommunityJobCategory = 'B2C' | 'FINTECH' | 'B2B' | 'INFRA_DEVOPS' | 
 interface BackendCommunityCommentResponse {
   id: number
   content: string
-  authorName: string
+  author: string
+  parentId: number | null
+  depth: 0 | 1
   createdAt: string
 }
 
 interface BackendCommunityPostListItemResponse {
   id: number
-  postCategory: BackendCommunityPostCategory
-  postCategoryDisplayName: string
-  jobCategory: BackendCommunityJobCategory
-  jobCategoryDisplayName: string
+  type: 'general' | 'roadmap' | 'interview'
+  tag: JobTrackTagKey
+  tags: string[]
   title: string
   authorName: string
   createdAt: string
-  viewCount: number
-  likeCount: number
+  views: number
+  likes: number
+  commentCount: number
+  excerpt: string | null
+  content: string | null
+  roadmapId: string | null
+  roadmapTitle: string | null
+  summary: string | null
+  targetJob: string | null
+  targetCompany: string | null
+  recommendedSkills: string[] | null
+  roadmapSteps: RoadmapStep[] | null
+  description: string | null
+  subtype: InterviewSubtype | null
   company: string | null
-  position: string | null
-  techStacks: string[]
+  jobRole: string | null
+  preparationPeriod: string | null
+  techStacks: string[] | null
+  processSummary: string | null
+  background: string | null
+  preparationProcess: string | null
+  experienceDetail: string | null
+  advice: string | null
 }
 
 interface BackendCommunityPostDetailResponse extends BackendCommunityPostListItemResponse {
@@ -54,14 +75,6 @@ interface BackendTogglePostLikeResponse {
   likeCount: number
 }
 
-const jobCategoryToTagKey: Record<BackendCommunityJobCategory, JobTrackTagKey> = {
-  B2C: 'b2c',
-  FINTECH: 'fintech',
-  B2B: 'b2b',
-  INFRA_DEVOPS: 'infra-devops',
-  GENERALIST: 'generalist',
-}
-
 const tagKeyToJobCategory: Record<JobTrackTagKey, BackendCommunityJobCategory> = {
   b2c: 'B2C',
   fintech: 'FINTECH',
@@ -72,58 +85,27 @@ const tagKeyToJobCategory: Record<JobTrackTagKey, BackendCommunityJobCategory> =
 
 const replacePostId = (path: string, postId: string | number) => path.replace(':id', encodeURIComponent(String(postId)))
 
-const roadmapStages = ['기초', '심화', '실전 프로젝트'] as const
-
-const createRoadmapSteps = (techStacks: string[]) =>
-  techStacks.map((stack, index) => ({
-    stage: roadmapStages[index % roadmapStages.length],
-    goal: `${stack} 역량 강화`,
-    topics: [stack],
-    outputs: [`${stack} 기반 회고 정리`],
-  }))
-
 const mapComments = (comments: BackendCommunityCommentResponse[]): CommunityComment[] =>
   comments.map((comment) => ({
     id: String(comment.id),
-    author: comment.authorName,
+    author: comment.author,
     content: comment.content,
-    depth: 0,
-    parentId: null,
+    depth: comment.depth,
+    parentId: comment.parentId === null ? null : String(comment.parentId),
     createdAt: comment.createdAt,
   }))
-
-const buildTags = (item: BackendCommunityPostListItemResponse) =>
-  Array.from(
-    new Set(
-      [item.postCategoryDisplayName, item.company, item.position, ...item.techStacks]
-        .map((value) => value?.trim())
-        .filter((value): value is string => Boolean(value)),
-    ),
-  )
-
-const mapPostCategoryToType = (category: BackendCommunityPostCategory) => {
-  if (category === 'ROADMAP') {
-    return 'roadmap' as const
-  }
-
-  if (category === 'PASS_REVIEW_INTERVIEW') {
-    return 'interview' as const
-  }
-
-  return 'general' as const
-}
 
 const mapPostSummary = (item: BackendCommunityPostListItemResponse): CommunityPostSummary => {
   const base = {
     id: String(item.id),
-    type: mapPostCategoryToType(item.postCategory),
+    type: item.type,
     title: item.title,
     authorName: item.authorName,
-    views: item.viewCount,
-    likes: item.likeCount,
-    commentCount: 0,
-    tag: jobCategoryToTagKey[item.jobCategory],
-    tags: buildTags(item),
+    views: item.views,
+    likes: item.likes,
+    commentCount: item.commentCount,
+    tag: item.tag,
+    tags: item.tags,
     createdAt: item.createdAt,
   }
 
@@ -131,14 +113,14 @@ const mapPostSummary = (item: BackendCommunityPostListItemResponse): CommunityPo
     return {
       ...base,
       type: 'roadmap',
-      roadmapId: String(item.id),
-      roadmapTitle: item.title,
-      summary: [item.company, item.position].filter(Boolean).join(' · ') || item.postCategoryDisplayName,
-      targetJob: item.position || item.jobCategoryDisplayName,
-      targetCompany: item.company || undefined,
-      recommendedSkills: item.techStacks,
-      roadmapSteps: createRoadmapSteps(item.techStacks),
-      description: '',
+      roadmapId: item.roadmapId ?? String(item.id),
+      roadmapTitle: item.roadmapTitle ?? item.title,
+      summary: item.summary ?? item.content ?? '',
+      targetJob: item.targetJob ?? '',
+      targetCompany: item.targetCompany ?? undefined,
+      recommendedSkills: item.recommendedSkills ?? [],
+      roadmapSteps: item.roadmapSteps ?? [],
+      description: item.description ?? '',
     }
   }
 
@@ -146,23 +128,23 @@ const mapPostSummary = (item: BackendCommunityPostListItemResponse): CommunityPo
     return {
       ...base,
       type: 'interview',
-      subtype: 'accepted',
+      subtype: item.subtype ?? 'accepted',
       company: item.company || '-',
-      jobRole: item.position || item.jobCategoryDisplayName,
-      preparationPeriod: '미입력',
-      techStacks: item.techStacks,
-      processSummary: item.postCategoryDisplayName,
-      background: '',
-      preparationProcess: '',
-      experienceDetail: '',
-      advice: '',
+      jobRole: item.jobRole ?? '',
+      preparationPeriod: item.preparationPeriod ?? '미입력',
+      techStacks: item.techStacks ?? [],
+      processSummary: item.processSummary ?? '',
+      background: item.background ?? '',
+      preparationProcess: item.preparationProcess ?? '',
+      experienceDetail: item.experienceDetail ?? '',
+      advice: item.advice ?? '',
     }
   }
 
   return {
     ...base,
     type: 'general',
-    excerpt: [item.company, item.position, ...item.techStacks].filter(Boolean).join(' · '),
+    excerpt: item.excerpt ?? item.content ?? '',
   }
 }
 
@@ -173,8 +155,6 @@ const mapPostDetail = (item: BackendCommunityPostDetailResponse): CommunityPostD
   if (summary.type === 'roadmap') {
     return {
       ...summary,
-      summary: item.content,
-      description: item.content,
       liked: item.liked,
       imageUrls: item.imageUrls,
       comments,
@@ -184,11 +164,6 @@ const mapPostDetail = (item: BackendCommunityPostDetailResponse): CommunityPostD
   if (summary.type === 'interview') {
     return {
       ...summary,
-      processSummary: item.content,
-      background: item.content,
-      preparationProcess: item.content,
-      experienceDetail: item.content,
-      advice: item.content,
       liked: item.liked,
       imageUrls: item.imageUrls,
       comments,
@@ -236,7 +211,7 @@ const buildQueryString = (filters: CommunityPostFilters) => {
   }
 
   if (filters.jobRole) {
-    params.set('position', filters.jobRole)
+    params.set('jobRole', filters.jobRole)
   }
 
   if (filters.techStack) {
@@ -270,19 +245,55 @@ export async function createCommunityPost(payload: CreateCommunityPostPayload): 
   formData.append('title', payload.title.trim())
   formData.append('content', payload.content.trim())
 
+  payload.techStacks.forEach((stack) => {
+    const normalizedStack = stack.trim()
+    if (normalizedStack) {
+      formData.append('tags', normalizedStack)
+      formData.append('techStacks', normalizedStack)
+    }
+  })
+
   if (payload.company?.trim()) {
     formData.append('company', payload.company.trim())
   }
 
   if (payload.jobRole?.trim()) {
-    formData.append('position', payload.jobRole.trim())
+    formData.append('jobRole', payload.jobRole.trim())
   }
 
-  payload.techStacks.forEach((stack) => {
-    if (stack.trim()) {
-      formData.append('techStacks', stack.trim())
+  if (payload.type === 'roadmap') {
+    formData.append('roadmapTitle', payload.title.trim())
+    formData.append('summary', payload.content.trim())
+    formData.append('description', payload.content.trim())
+
+    if (payload.jobRole?.trim()) {
+      formData.append('targetJob', payload.jobRole.trim())
     }
-  })
+
+    if (payload.company?.trim()) {
+      formData.append('targetCompany', payload.company.trim())
+    }
+
+    payload.techStacks.forEach((stack) => {
+      if (stack.trim()) {
+        formData.append('recommendedSkills', stack.trim())
+      }
+    })
+  }
+
+  if (payload.type === 'interview') {
+    formData.append('interviewSubtype', 'ACCEPTED')
+    formData.append('preparationPeriod', '미입력')
+    formData.append('processSummary', payload.content.trim())
+    formData.append('background', payload.content.trim())
+    formData.append('preparationProcess', payload.content.trim())
+    formData.append('experienceDetail', payload.content.trim())
+    formData.append('advice', payload.content.trim())
+
+    if (payload.jobRole?.trim()) {
+      formData.append('position', payload.jobRole.trim())
+    }
+  }
 
   if (payload.image) {
     formData.append('images', payload.image)
@@ -320,15 +331,18 @@ export async function reportCommunityPost(postId: string): Promise<{ success: bo
 export async function addCommunityComment(postId: string, payload: CreateCommentPayload): Promise<CreateCommentResponse> {
   const response = await httpClient<BackendCommunityCommentResponse>(replacePostId(API_ENDPOINTS.community.comments, postId), {
     method: 'POST',
-    body: JSON.stringify({ content: payload.content }),
+    body: JSON.stringify({
+      content: payload.content,
+      parentCommentId: payload.parentId ? Number(payload.parentId) : null,
+    }),
   })
 
   return {
     id: String(response.id),
-    author: response.authorName,
+    author: response.author,
     content: response.content,
-    depth: 0,
-    parentId: null,
+    depth: response.depth,
+    parentId: response.parentId === null ? null : String(response.parentId),
     createdAt: response.createdAt,
   }
 }
