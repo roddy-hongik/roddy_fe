@@ -1,4 +1,6 @@
-import { mockAdminUsers, mockCrawlingDashboard, mockGraphSearchResult, mockReportedContents } from '../../admin/data/mockAdminData'
+import { mockAdminUsers, mockGraphSearchResult, mockReportedContents } from '../../admin/data/mockAdminData'
+import { httpClient } from '../client/httpClient'
+import { API_ENDPOINTS } from '../constants/endpoints'
 import type {
   AdminUser,
   AdminUserStatus,
@@ -9,7 +11,7 @@ import type {
   ReportedContent,
 } from '../../api/types/admin'
 
-// Intentional mock domain: admin backend API is not implemented yet.
+// Crawling is backed by the API. Users, moderation and graph stay intentional mocks until their APIs exist.
 
 const wait = (ms: number) =>
   new Promise<void>((resolve) => {
@@ -18,30 +20,16 @@ const wait = (ms: number) =>
 
 const clone = <T,>(value: T): T => JSON.parse(JSON.stringify(value)) as T
 
-let crawlingState: CrawlingDashboard = clone(mockCrawlingDashboard)
 let usersState: AdminUser[] = clone(mockAdminUsers)
 let reportedContentState: ReportedContent[] = clone(mockReportedContents)
 let graphState: GraphSearchResult = clone(mockGraphSearchResult)
 
-export const getCrawlingDashboard = async (): Promise<CrawlingDashboard> => {
-  await wait(250)
-  return clone(crawlingState)
-}
+export const getCrawlingDashboard = async (): Promise<CrawlingDashboard> =>
+  httpClient<CrawlingDashboard>(API_ENDPOINTS.admin.crawlingDashboard, { method: 'GET' })
 
-export const refreshCrawlingDashboard = async (): Promise<CrawlingDashboard> => {
-  await wait(350)
-  const nextLastCrawledAt = new Date().toISOString()
-  crawlingState = {
-    ...crawlingState,
-    lastCrawledAt: nextLastCrawledAt,
-    platforms: crawlingState.platforms.map((platform) => ({
-      ...platform,
-      lastCrawledAt: nextLastCrawledAt,
-    })),
-  }
-
-  return clone(crawlingState)
-}
+/** 전체 수집을 시작한다. 수 분이 걸려 바로 현황을 돌려주고, 이미 돌고 있으면 409 로 실패한다. */
+export const startCrawling = async (): Promise<CrawlingDashboard> =>
+  httpClient<CrawlingDashboard>(API_ENDPOINTS.admin.crawlingRun, { method: 'POST' })
 
 export const getAdminUsers = async (): Promise<AdminUser[]> => {
   await wait(220)

@@ -1,21 +1,32 @@
-export type CrawlingPlatformStatus = 'healthy' | 'warning' | 'error'
+/** 마지막 수집 결과로 매긴 상태. warning 은 점검에 걸렸거나 아직 한 번도 수집하지 않은 회사다. */
+export type CrawlingCompanyStatus = 'healthy' | 'warning' | 'error'
 
-export type CrawlingPlatform = {
+/** 수집 현황의 한 줄. 회사 채용 사이트를 직접 수집하므로 한 줄이 곧 회사 한 곳이다. */
+export type CrawlingCompany = {
+  /** 수집 명세의 회사 코드 (예: kakao) */
   id: string
   name: string
   collectedToday: number
   successCount: number
   failCount: number
-  lastCrawledAt: string
-  status: CrawlingPlatformStatus
+  /** 한 번도 수집하지 않았으면 null */
+  lastCrawledAt: string | null
+  status: CrawlingCompanyStatus
 }
 
 export type CrawlingDashboard = {
   totalCollectedToday: number
   successCount: number
   failCount: number
-  lastCrawledAt: string
-  platforms: CrawlingPlatform[]
+  lastCrawledAt: string | null
+  /** 마지막 수집이 실패한 회사 수 */
+  errorCount: number
+  /** 점검에 걸렸거나 아직 한 번도 수집하지 않은 회사 수 */
+  warningCount: number
+  /** 지금 수집이 돌고 있는지. 켜져 있으면 끝날 때까지 다시 조회한다. */
+  running: boolean
+  /** 문제가 있는 회사가 앞에 온다. */
+  companies: CrawlingCompany[]
 }
 
 export type AdminUserStatus = 'active' | 'suspended'
