@@ -35,7 +35,6 @@ export const API_ENDPOINTS = {
     report: '/api/community/posts/:id/report',
     comments: '/api/community/posts/:id/comments',
   },
-  // Mock domain until backend API is implemented.
   dashboard: {
     summary: '/api/dashboard/summary',
   },
@@ -54,11 +53,14 @@ export const API_ENDPOINTS = {
   mockInterview: {
     questions: '/api/mock-interview/questions',
   },
-  // Mock domain until backend API is implemented.
+  notifications: {
+    list: '/api/notifications',
+    read: '/api/notifications/:id/read',
+    readAll: '/api/notifications/read-all',
+  },
   reports: {
-    myReports: '/api/reports/me',
-    detail: '/api/reports/:id',
-    detailAnalysis: '/api/reports/:id/detail-analysis',
+    myReports: '/api/analysis/reports/me',
+    detail: '/api/analysis/reports/:id',
     payment: '/api/reports/payment',
   },
   // Crawling is backed by the API. The other admin endpoints are mock domains until their APIs exist.

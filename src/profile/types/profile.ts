@@ -16,11 +16,4 @@ export interface UpdateProfilePayload {
   profileImageUrl?: string | null
 }
 
-export interface ReanalyzePayload {
-  reportTitle: string
-  portfolioFileName: string
-  categories: string[]
-  preferredCompanies: string[]
-}
-
 export type DeleteAccountResponse = void

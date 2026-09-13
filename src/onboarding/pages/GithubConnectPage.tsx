@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { getGithubAuthorizationUrl, getGithubConnectionStatus } from '../../api/services/onboardingService'
+import { requestAnalysis } from '../../api/services/reportService'
 import { emitAuthChange } from '../../auth/utils/authEvents'
 import { isGithubConnected, markGithubConnected } from '../../auth/utils/authStorage'
 import '../styles/github-connect-page.css'
@@ -12,14 +13,16 @@ async function loadGithubConnectionState() {
 function GithubConnectPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const [isConnected, setIsConnected] = useState(isGithubConnected())
-  const [isConnecting, setIsConnecting] = useState(false)
-  const [showConnectedBadge, setShowConnectedBadge] = useState(isGithubConnected())
-  const [connectionError, setConnectionError] = useState('')
-  const [githubUrl, setGithubUrl] = useState<string | null>(null)
-
   const callbackStatus = searchParams.get('status')
   const callbackReason = searchParams.get('reason')
+  const connectedFromCallback = callbackStatus === 'success'
+  const [isConnected, setIsConnected] = useState(isGithubConnected() || connectedFromCallback)
+  const [isConnecting, setIsConnecting] = useState(false)
+  const [isStartingAnalysis, setIsStartingAnalysis] = useState(false)
+  const [connectionError, setConnectionError] = useState(
+    callbackStatus === 'error' && callbackReason ? `GitHub 연동에 실패했습니다. (${callbackReason})` : '',
+  )
+  const [githubUrl, setGithubUrl] = useState<string | null>(null)
 
   useEffect(() => {
     let isMounted = true
@@ -49,19 +52,23 @@ function GithubConnectPage() {
   }, [])
 
   useEffect(() => {
-    if (callbackStatus !== 'success') {
-      if (callbackStatus === 'error' && callbackReason) {
-        setConnectionError(`GitHub 연동에 실패했습니다. (${callbackReason})`)
-      }
-      return
+    if (connectedFromCallback) {
+      markGithubConnected(true)
+      emitAuthChange()
     }
+  }, [connectedFromCallback])
 
-    setShowConnectedBadge(true)
-    setIsConnected(true)
-    markGithubConnected(true)
-    emitAuthChange()
+  const handleStartAnalysis = async () => {
+    setIsStartingAnalysis(true)
     setConnectionError('')
-  }, [callbackReason, callbackStatus])
+    try {
+      await requestAnalysis()
+      navigate('/onboarding/analysis-waiting', { state: { analysisStarted: true } })
+    } catch (error) {
+      setConnectionError(error instanceof Error ? error.message : '분석을 시작하지 못했습니다.')
+      setIsStartingAnalysis(false)
+    }
+  }
 
   const canGoNext = useMemo(() => isConnected || callbackStatus === 'success', [callbackStatus, isConnected])
 
@@ -85,7 +92,7 @@ function GithubConnectPage() {
   return (
     <main className="github-connect-page">
       <section className="login-card github-connect-card">
-        {showConnectedBadge && (
+        {isConnected && (
           <div className="github-float-check" role="status" aria-live="polite">
             <span className="check-icon" aria-hidden="true">
               ✓
@@ -130,8 +137,8 @@ function GithubConnectPage() {
 
         {canGoNext && (
           <div className="github-next-wrap">
-            <button type="button" className="github-analyze-button" onClick={() => navigate('/onboarding/analysis-waiting')}>
-              다음으로
+            <button type="button" className="github-analyze-button" disabled={isStartingAnalysis} onClick={() => void handleStartAnalysis()}>
+              {isStartingAnalysis ? '분석 요청 중...' : '다음으로'}
             </button>
           </div>
         )}
