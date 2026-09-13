@@ -18,11 +18,19 @@ export const clearAuthSession = () => {
   localStorage.removeItem(GITHUB_CONNECTED_KEY)
 }
 
-export const storeAuthSession = (payload: LoginResponse, userName: string, userRole = 'user') => {
+/**
+ * 저장은 소문자('admin' / 'user')로 한다. 화면 곳곳이 이 값과 비교한다.
+ * 권한이 비어 오면 관리자로 보지 않는다.
+ */
+const toStoredRole = (role: LoginResponse['role'] | undefined) => (role === 'ADMIN' ? 'admin' : 'user')
+
+export const isAdminSession = () => localStorage.getItem(USER_ROLE_KEY) === 'admin'
+
+export const storeAuthSession = (payload: LoginResponse, userName: string) => {
   localStorage.setItem(ACCESS_TOKEN_KEY, payload.accessToken)
   localStorage.setItem(REFRESH_TOKEN_KEY, payload.refreshToken)
   localStorage.setItem(USER_NAME_KEY, userName)
-  localStorage.setItem(USER_ROLE_KEY, userRole)
+  localStorage.setItem(USER_ROLE_KEY, toStoredRole(payload.role))
   localStorage.setItem(IS_ONBOARD_KEY, String(payload.isOnboard))
   localStorage.setItem(GITHUB_CONNECTED_KEY, String(payload.githubConnected))
 }

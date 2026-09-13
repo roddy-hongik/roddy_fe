@@ -35,7 +35,7 @@ function SocialLoginButtons() {
 
     try {
       const response = await requestSocialLogin(provider, 'mock-social-access-token')
-      storeAuthSession(response, '신애', 'admin')
+      storeAuthSession(response, '신애')
       emitAuthChange()
       navigate(resolveNextPath(response.isOnboard, response.githubConnected), { replace: true })
     } finally {
