@@ -1,16 +1,16 @@
-import type { AdminUserStatus, CrawlingPlatformStatus, ReportedContentStatus } from '../../api/types/admin'
+import type { AdminUserStatus, CrawlingCompanyStatus, ReportedContentStatus } from '../../api/types/admin'
 import { crawlingStatusLabelMap, userStatusLabelMap } from '../utils/adminFormat'
 
 type StatusBadgeProps = {
   type: 'crawling' | 'user' | 'content'
-  value: CrawlingPlatformStatus | AdminUserStatus | ReportedContentStatus
+  value: CrawlingCompanyStatus | AdminUserStatus | ReportedContentStatus
 }
 
 function StatusBadge({ type, value }: StatusBadgeProps) {
   const toneClass = `is-${String(value)}`
 
   if (type === 'crawling') {
-    const label = crawlingStatusLabelMap[value as CrawlingPlatformStatus]
+    const label = crawlingStatusLabelMap[value as CrawlingCompanyStatus]
     return <span className={`admin-status-badge ${toneClass}`}>{label}</span>
   }
 

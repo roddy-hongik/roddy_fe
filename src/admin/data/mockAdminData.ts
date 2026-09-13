@@ -1,31 +1,4 @@
-import type { AdminUser, CrawlingDashboard, GraphSearchResult, ReportedContent } from '../../api/types/admin'
-
-export const mockCrawlingDashboard: CrawlingDashboard = {
-  totalCollectedToday: 128,
-  successCount: 120,
-  failCount: 8,
-  lastCrawledAt: '2026-03-16T09:30:00',
-  platforms: [
-    {
-      id: 'saramin',
-      name: '사람인',
-      collectedToday: 54,
-      successCount: 52,
-      failCount: 2,
-      lastCrawledAt: '2026-03-16T09:20:00',
-      status: 'healthy',
-    },
-    {
-      id: 'wanted',
-      name: '원티드',
-      collectedToday: 74,
-      successCount: 68,
-      failCount: 6,
-      lastCrawledAt: '2026-03-16T09:28:00',
-      status: 'warning',
-    },
-  ],
-}
+import type { AdminUser, GraphSearchResult, ReportedContent } from '../../api/types/admin'
 
 export const mockAdminUsers: AdminUser[] = [
   {

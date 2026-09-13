@@ -1,13 +1,19 @@
-import type { AdminUserStatus, ContentType, CrawlingPlatformStatus } from '../../api/types/admin'
+import type { AdminUserStatus, ContentType, CrawlingCompanyStatus } from '../../api/types/admin'
 
-export const formatDateTime = (value: string) =>
-  new Date(value).toLocaleString('ko-KR', {
+/** 값이 없으면(예: 한 번도 수집하지 않은 회사) 기록이 없다고 보여준다. */
+export const formatDateTime = (value: string | null) => {
+  if (!value) {
+    return '기록 없음'
+  }
+
+  return new Date(value).toLocaleString('ko-KR', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
   })
+}
 
 export const formatDate = (value: string) =>
   new Date(value).toLocaleDateString('ko-KR', {
@@ -16,9 +22,9 @@ export const formatDate = (value: string) =>
     day: '2-digit',
   })
 
-export const crawlingStatusLabelMap: Record<CrawlingPlatformStatus, string> = {
+export const crawlingStatusLabelMap: Record<CrawlingCompanyStatus, string> = {
   healthy: '정상',
-  warning: '지연',
+  warning: '주의',
   error: '오류',
 }
 
