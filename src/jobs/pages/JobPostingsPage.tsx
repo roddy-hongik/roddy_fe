@@ -4,8 +4,8 @@ import { AUTH_CHANGE_EVENT } from '../../auth/utils/authEvents'
 import { routePaths } from '../../routes/paths'
 import JobScrapButton from '../components/JobScrapButton'
 import { getJobPostings } from '../services/jobPostingService'
-import type { JobPostingSummary } from '../types/jobPosting'
-import { formatDeadline, formatPostedAt, joinMeta, orNotProvided } from '../utils/jobFormat'
+import type { JobPostingSort, JobPostingSummary } from '../types/jobPosting'
+import { formatDeadline, formatMatchLabel, formatPostedAt, joinMeta, orNotProvided } from '../utils/jobFormat'
 import '../styles/job-pages.css'
 
 const PAGE_SIZE = 20
@@ -24,6 +24,9 @@ function JobPostingsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isError, setIsError] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(Boolean(localStorage.getItem('accessToken')))
+  const [sort, setSort] = useState<JobPostingSort>('latest')
+  /** 매칭률은 로그인해야 나오므로, 로그아웃 상태에서는 고른 정렬과 상관없이 최신순이다. */
+  const effectiveSort: JobPostingSort = isLoggedIn ? sort : 'latest'
 
   /** 검색어가 바뀌는 사이에 먼저 떠난 요청이 나중에 도착해 화면을 덮어쓰지 않도록 한다. */
   const requestIdRef = useRef(0)
@@ -51,7 +54,7 @@ function JobPostingsPage() {
     return () => window.clearTimeout(timer)
   }, [companyQuery])
 
-  const loadJobs = useCallback(async (nextPage: number, searchKeyword: string, shouldAppend: boolean) => {
+  const loadJobs = useCallback(async (nextPage: number, searchKeyword: string, nextSort: JobPostingSort, shouldAppend: boolean) => {
     const requestId = requestIdRef.current + 1
     requestIdRef.current = requestId
 
@@ -61,6 +64,8 @@ function JobPostingsPage() {
     try {
       const response = await getJobPostings({
         keyword: searchKeyword || undefined,
+        // 최신순은 백엔드 기본값이라 따로 보내지 않는다.
+        sort: nextSort === 'match' ? 'match' : undefined,
         page: nextPage,
         size: PAGE_SIZE,
       })
@@ -92,11 +97,11 @@ function JobPostingsPage() {
   }, [])
 
   useEffect(() => {
-    loadJobs(0, keyword, false)
-  }, [keyword, loadJobs, isLoggedIn])
+    loadJobs(0, keyword, effectiveSort, false)
+  }, [keyword, effectiveSort, loadJobs, isLoggedIn])
 
   const handleLoadMore = () => {
-    loadJobs(page + 1, keyword, true)
+    loadJobs(page + 1, keyword, effectiveSort, true)
   }
 
   const handleScrapToggled = (jobPostingId: number, isScrapped: boolean) => {
@@ -108,6 +113,9 @@ function JobPostingsPage() {
   const headlineJobs = useMemo(() => jobs.slice(0, HEADLINE_COUNT), [jobs])
   const hasMore = page + 1 < totalPages
   const isInitialLoading = isLoading && jobs.length === 0
+  /** 매칭률순을 골랐는데 낼 수 있는 매칭률이 하나도 없으면 백엔드가 최신순으로 돌려준다. 그 사실을 숨기지 않는다. */
+  const isMatchSortUnavailable =
+    effectiveSort === 'match' && !isLoading && jobs.length > 0 && jobs.every((job) => job.matchRate === null)
 
   return (
     <main className="jobs-page">
@@ -116,7 +124,11 @@ function JobPostingsPage() {
           <section className="glass-panel search-summary-panel">
             <div className="summary-header">
               <h1>채용공고 탐색</h1>
-              <p>회사 채용 사이트에서 직접 수집한 공고를 최신순으로 보여줍니다.</p>
+              <p>
+                {effectiveSort === 'match'
+                  ? '내 기술 스택과 매칭률이 높은 공고부터 보여줍니다.'
+                  : '회사 채용 사이트에서 직접 수집한 공고를 최신순으로 보여줍니다.'}
+              </p>
             </div>
 
             <div className="company-search-block">
@@ -129,6 +141,30 @@ function JobPostingsPage() {
               />
               <span>{totalElements}건</span>
             </div>
+
+            {isLoggedIn ? (
+              <div className="jobs-sort-toggle" role="group" aria-label="공고 정렬">
+                <button
+                  type="button"
+                  className={`jobs-sort-button ${effectiveSort === 'latest' ? 'is-active' : ''}`.trim()}
+                  aria-pressed={effectiveSort === 'latest'}
+                  onClick={() => setSort('latest')}
+                >
+                  최신순
+                </button>
+                <button
+                  type="button"
+                  className={`jobs-sort-button ${effectiveSort === 'match' ? 'is-active' : ''}`.trim()}
+                  aria-pressed={effectiveSort === 'match'}
+                  onClick={() => setSort('match')}
+                >
+                  매칭률순
+                </button>
+                {isMatchSortUnavailable ? (
+                  <p className="jobs-sort-hint">아직 매칭률을 낼 수 없어 최신순으로 보여줍니다.</p>
+                ) : null}
+              </div>
+            ) : null}
 
             {isInitialLoading ? (
               <p className="empty-result">공고를 불러오는 중입니다.</p>
@@ -152,9 +188,7 @@ function JobPostingsPage() {
                     <Link className="headline-card-link" to={routePaths.jobDetail(String(job.id))}>
                       <h2>{job.title}</h2>
                       <p className="meta">{joinMeta(job.location, job.experience, job.workType)}</p>
-                      <p className="match">
-                        {isLoggedIn ? '상세에서 공고 내용 확인' : '로그인 후 스크랩할 수 있어요'}
-                      </p>
+                      <p className="match">{formatMatchLabel(job.matchRate, isLoggedIn)}</p>
                       <p className="deadline">
                         등록 {formatPostedAt(job.postedAt) || '-'} · 마감 {formatDeadline(job.deadline)}
                       </p>
@@ -175,7 +209,9 @@ function JobPostingsPage() {
                     <strong>{job.title}</strong>
                     <span>{orNotProvided(job.experience)}</span>
                     <span>{orNotProvided(job.location)}</span>
-                    <span className="row-match">마감 {formatDeadline(job.deadline)}</span>
+                    <span className="row-match">
+                      {job.matchRate !== null ? `매칭 ${job.matchRate}%` : `마감 ${formatDeadline(job.deadline)}`}
+                    </span>
                   </button>
                   <JobScrapButton
                     jobPostingId={job.id}

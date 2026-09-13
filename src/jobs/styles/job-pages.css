@@ -621,6 +621,53 @@
   cursor: default;
 }
 
+/* 목록 정렬 전환. 매칭률은 로그인해야 나오므로 로그인한 사용자에게만 보인다. */
+.jobs-sort-toggle {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.jobs-sort-button {
+  min-height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(136, 177, 255, 0.28);
+  background: rgba(21, 34, 72, 0.6);
+  color: #dce8ff;
+  padding: 0 14px;
+  font-size: 0.86rem;
+  cursor: pointer;
+}
+
+.jobs-sort-button.is-active {
+  border-color: transparent;
+  background: linear-gradient(90deg, #2a57d8 0%, #4f79ef 100%);
+  color: #fff;
+}
+
+.jobs-sort-hint {
+  margin: 0;
+  color: #9fb0d0;
+  font-size: 0.82rem;
+}
+
+/* 공고는 요구하지만 내가 갖고 있지 않은 기술. 가진 기술과 한눈에 갈리도록 옅게 둔다. */
+.stack-fit-card.is-missing {
+  border-style: dashed;
+  background: rgba(13, 24, 50, 0.3);
+}
+
+.stack-fit-card.is-missing h3 {
+  color: #bdd0fa;
+}
+
+.detail-inline-link {
+  color: #95beff;
+  font-weight: 700;
+}
+
 @media (max-width: 1180px) {
   .detail-layout {
     grid-template-columns: 1fr;

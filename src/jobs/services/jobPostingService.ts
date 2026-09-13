@@ -3,6 +3,7 @@ import { API_ENDPOINTS } from '../../api/constants/endpoints'
 import type {
   JobPostingDetail,
   JobPostingListResponse,
+  JobPostingMatch,
   JobPostingSearchParams,
   JobPostingSummary,
   ToggleJobScrapResponse,
@@ -47,5 +48,12 @@ export async function getScrappedJobPostings(): Promise<JobPostingSummary[]> {
 export async function toggleJobScrap(jobPostingId: number): Promise<ToggleJobScrapResponse> {
   return httpClient<ToggleJobScrapResponse>(replaceJobId(API_ENDPOINTS.jobs.scrap, jobPostingId), {
     method: 'POST',
+  })
+}
+
+/** 로그인해야 부를 수 있다. 역량 분석 전이면 matchRate 가 비어서 온다. */
+export async function getJobPostingMatch(jobPostingId: number | string): Promise<JobPostingMatch> {
+  return httpClient<JobPostingMatch>(replaceJobId(API_ENDPOINTS.jobs.match, jobPostingId), {
+    method: 'GET',
   })
 }
