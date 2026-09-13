@@ -4,6 +4,7 @@ import type {
   CommunityComment,
   CommunityPostDetail,
   CommunityPostFilters,
+  CommunityPostPage,
   CommunityPostSummary,
   CreateCommentPayload,
   CreateCommentResponse,
@@ -16,6 +17,8 @@ import type { RoadmapStep } from '../types/roadmap'
 
 type BackendCommunityPostCategory = 'FREE' | 'ROADMAP' | 'PASS_REVIEW_INTERVIEW'
 type BackendCommunityJobCategory = 'B2C' | 'FINTECH' | 'B2B' | 'INFRA_DEVOPS' | 'GENERALIST'
+
+export const COMMUNITY_POST_PAGE_SIZE = 20
 
 interface BackendCommunityCommentResponse {
   id: number
@@ -68,6 +71,10 @@ interface BackendCommunityPostDetailResponse extends BackendCommunityPostListIte
 
 interface BackendCommunityPostListResponse {
   posts: BackendCommunityPostListItemResponse[]
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
 }
 
 interface BackendTogglePostLikeResponse {
@@ -191,7 +198,7 @@ const toBackendPostCategory = (type: CreateCommunityPostPayload['type']): Backen
   return 'FREE'
 }
 
-const buildQueryString = (filters: CommunityPostFilters) => {
+const buildQueryString = (filters: CommunityPostFilters, page: number, size: number) => {
   const params = new URLSearchParams()
 
   if (filters.type && filters.type !== 'all') {
@@ -218,16 +225,26 @@ const buildQueryString = (filters: CommunityPostFilters) => {
     params.set('techStack', filters.techStack)
   }
 
-  const query = params.toString()
-  return query ? `${API_ENDPOINTS.community.posts}?${query}` : API_ENDPOINTS.community.posts
+  params.set('page', String(page))
+  params.set('size', String(size))
+
+  return `${API_ENDPOINTS.community.posts}?${params.toString()}`
 }
 
-export async function getCommunityPosts(filters: CommunityPostFilters = {}): Promise<CommunityPostSummary[]> {
-  const response = await httpClient<BackendCommunityPostListResponse>(buildQueryString(filters), {
+export async function getCommunityPosts(
+  filters: CommunityPostFilters = {},
+  page = 0,
+  size = COMMUNITY_POST_PAGE_SIZE,
+): Promise<CommunityPostPage> {
+  const response = await httpClient<BackendCommunityPostListResponse>(buildQueryString(filters, page, size), {
     method: 'GET',
   })
 
-  return response.posts.map(mapPostSummary)
+  return {
+    posts: response.posts.map(mapPostSummary),
+    page: response.page,
+    totalPages: response.totalPages,
+  }
 }
 
 export async function getCommunityPostDetail(postId: string): Promise<CommunityPostDetail> {
@@ -262,23 +279,25 @@ export async function createCommunityPost(payload: CreateCommunityPostPayload): 
   }
 
   if (payload.type === 'roadmap') {
-    formData.append('roadmapTitle', payload.title.trim())
     formData.append('summary', payload.content.trim())
     formData.append('description', payload.content.trim())
 
-    if (payload.jobRole?.trim()) {
-      formData.append('targetJob', payload.jobRole.trim())
-    }
+    if (payload.roadmap) {
+      // 저장한 로드맵을 그대로 싣는다. 목표 직무·기업, 부족 기술, 단계는 로드맵을 만들 당시의 값이다.
+      const { roadmap } = payload
+      formData.append('roadmapId', roadmap.id)
+      formData.append('roadmapTitle', roadmap.roadmapTitle)
+      formData.append('targetJob', roadmap.targetJob)
 
-    if (payload.company?.trim()) {
-      formData.append('targetCompany', payload.company.trim())
-    }
-
-    payload.techStacks.forEach((stack) => {
-      if (stack.trim()) {
-        formData.append('recommendedSkills', stack.trim())
+      if (roadmap.targetCompany) {
+        formData.append('targetCompany', roadmap.targetCompany)
       }
-    })
+
+      roadmap.recommendedSkills.forEach((skill) => {
+        formData.append('recommendedSkills', skill)
+      })
+      formData.append('roadmapStepsJson', JSON.stringify(roadmap.roadmapSteps))
+    }
   }
 
   if (payload.type === 'interview') {

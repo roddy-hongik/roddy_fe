@@ -19,6 +19,11 @@ function CommunityListPage() {
   const [posts, setPosts] = useState<CommunityPostSummary[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isError, setIsError] = useState(false)
+  /** 화면에 반영된 마지막 페이지. 다음 페이지를 받아야만 앞으로 나간다. */
+  const [page, setPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [isLoadMoreError, setIsLoadMoreError] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(Boolean(localStorage.getItem('accessToken')))
 
   useEffect(() => {
@@ -38,12 +43,14 @@ function CommunityListPage() {
     let isMounted = true
 
     getCommunityPosts()
-      .then((data) => {
+      .then((response) => {
         if (!isMounted) {
           return
         }
 
-        setPosts(data)
+        setPosts(response.posts)
+        setPage(response.page)
+        setTotalPages(response.totalPages)
       })
       .catch(() => {
         if (!isMounted) {
@@ -63,6 +70,30 @@ function CommunityListPage() {
       isMounted = false
     }
   }, [])
+
+  const hasMore = page + 1 < totalPages
+
+  const handleLoadMore = () => {
+    setIsLoadingMore(true)
+    setIsLoadMoreError(false)
+
+    getCommunityPosts({}, page + 1)
+      .then((response) => {
+        // 앞 페이지를 받은 뒤 새 글이 올라오면 페이지 경계가 밀려 이미 받은 글이 다시 온다.
+        setPosts((previous) => [
+          ...previous,
+          ...response.posts.filter((post) => !previous.some((existing) => existing.id === post.id)),
+        ])
+        setPage(response.page)
+        setTotalPages(response.totalPages)
+      })
+      .catch(() => {
+        setIsLoadMoreError(true)
+      })
+      .finally(() => {
+        setIsLoadingMore(false)
+      })
+  }
 
   const companyOptions = useMemo(
     () =>
@@ -261,6 +292,13 @@ function CommunityListPage() {
           {!isLoading && !isError && filteredPosts.length === 0 ? <p className="community-status-text">{emptyLabel}</p> : null}
           {!isLoading && !isError && filteredPosts.map((post) => <PostListItem key={post.id} post={post} onClick={(postId) => navigate(`/community/${postId}`)} />)}
         </section>
+
+        {!isLoading && !isError && hasMore ? (
+          <button type="button" className="community-outline-btn" disabled={isLoadingMore} onClick={handleLoadMore}>
+            {isLoadingMore ? '불러오는 중...' : '더 보기'}
+          </button>
+        ) : null}
+        {isLoadMoreError ? <p className="community-status-text">다음 게시글을 불러오지 못했습니다. 다시 시도해 주세요.</p> : null}
       </section>
     </main>
   )
