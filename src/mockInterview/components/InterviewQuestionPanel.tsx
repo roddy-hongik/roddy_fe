@@ -55,7 +55,7 @@ function InterviewQuestionPanel({
               <article key={question.id} className={`mock-question-item ${isActive ? 'active' : ''}`}>
                 <div className="mock-question-bubble">
                   <span className="mock-question-order">Q{index + 1}</span>
-                  <p>{question.content}</p>
+                  <p>{question.question}</p>
                 </div>
 
                 <label className="mock-answer-field" htmlFor={`answer-${question.id}`}>

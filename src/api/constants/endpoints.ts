@@ -51,6 +51,9 @@ export const API_ENDPOINTS = {
     generate: '/api/roadmap/generate',
     saved: '/api/roadmap/saved',
   },
+  mockInterview: {
+    questions: '/api/mock-interview/questions',
+  },
   // Mock domain until backend API is implemented.
   reports: {
     myReports: '/api/reports/me',

@@ -116,7 +116,7 @@ function RoadmapPage() {
               <section className="roadmap-generate-card glass-style" aria-live="polite">
                 <h2>AI 로드맵 생성</h2>
                 <p className="profile-meta-text">
-                  생성 조건: {summary.targetJob} · {summary.targetCompany} · Gap {summary.gapSkills.join(', ') || '-'}
+                  생성 조건: {summary.targetJob} · {summary.targetCompany ?? '희망 기업 미설정'} · Gap {summary.gapSkills.join(', ') || '-'}
                 </p>
                 <div className="roadmap-generate-actions">
                   <button type="button" className="profile-action-btn" onClick={handleGenerateRoadmap} disabled={isGenerating || !hasGap}>

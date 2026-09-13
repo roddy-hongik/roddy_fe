@@ -2,7 +2,7 @@ export type AnalysisSummary = {
   currentSkills: string[]
   gapSkills: string[]
   targetJob: string
-  targetCompany: string
+  targetCompany: string | null
 }
 
 export type RoadmapStage = '기초' | '심화' | '실전 프로젝트'
