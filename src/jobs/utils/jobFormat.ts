@@ -25,3 +25,12 @@ export function joinMeta(...values: Array<string | null>) {
   const filled = values.filter((value): value is string => Boolean(value && value.trim()))
   return filled.length > 0 ? filled.join(' · ') : NOT_PROVIDED
 }
+
+/** 매칭률 자리에 넣을 문구. null 은 0% 가 아니라 "아직 낼 수 없음"이라 숫자를 지어내지 않는다. */
+export function formatMatchLabel(matchRate: number | null, isLoggedIn: boolean) {
+  if (matchRate !== null) {
+    return `매칭률 ${matchRate}%`
+  }
+
+  return isLoggedIn ? '매칭률 계산 전' : '로그인 후 매칭률 확인'
+}
