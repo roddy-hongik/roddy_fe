@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { requestAnalysis } from '../../api/services/reportService'
 import { getProfileSummary } from '../../api/services/profileService'
 import { ROUTES } from '../../routes/paths'
+import { toDesiredJobLabel } from '../../shared/utils/careerLabels'
 import type { ProfileSummary } from '../types/profile'
 
 function ProfileReanalyzePage() {
@@ -64,7 +65,7 @@ function ProfileReanalyzePage() {
         {!isLoading && profile ? (
           <section className="report-section glass-style">
             <h2>현재 분석 기준</h2>
-            <p className="profile-meta-text">희망 직무: {profile.desiredJob || '미설정'}</p>
+            <p className="profile-meta-text">희망 직무: {toDesiredJobLabel(profile.desiredJob) || '미설정'}</p>
             <p className="profile-meta-text">희망 기업: {profile.desiredCompany || '미설정'}</p>
             <p className="profile-meta-text">포트폴리오: {profile.portfolioFileName || '미등록'}</p>
             <p className="profile-meta-text">GitHub: {profile.githubConnected ? '연결됨' : '연결되지 않음'}</p>

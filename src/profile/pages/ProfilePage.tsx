@@ -4,6 +4,7 @@ import { deleteAccount, getProfileSummary } from '../../api/services/profileServ
 import { emitAuthChange } from '../../auth/utils/authEvents'
 import { clearAuthSession } from '../../auth/utils/authStorage'
 import { ROUTES } from '../../routes/paths'
+import { toDesiredJobLabel, toExperienceLevelLabel } from '../../shared/utils/careerLabels'
 import type { ProfileSummary } from '../types/profile'
 
 const FALLBACK_PROFILE: ProfileSummary = {
@@ -126,7 +127,7 @@ function ProfilePage() {
                 </div>
                 <div className="profile-info-row">
                   <span>희망 직무</span>
-                  <strong>{profile.desiredJob || '-'}</strong>
+                  <strong>{toDesiredJobLabel(profile.desiredJob) || '-'}</strong>
                 </div>
                 <div className="profile-info-row">
                   <span>희망 기업</span>
@@ -134,7 +135,7 @@ function ProfilePage() {
                 </div>
                 <div className="profile-info-row">
                   <span>경력</span>
-                  <strong>{profile.experienceYears || '-'}</strong>
+                  <strong>{toExperienceLevelLabel(profile.experienceYears) || '-'}</strong>
                 </div>
                 <div className="profile-info-row">
                   <span>GitHub 연동</span>
