@@ -1,8 +1,16 @@
-import { useEffect, useState } from 'react'
-import type { FormEvent } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import type { ChangeEvent, FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getProfileSummary, updateProfile } from '../../api/services/profileService'
+import {
+  getProfileSummary,
+  requestProfileImagePresign,
+  updateProfile,
+  uploadProfileImage,
+} from '../../api/services/profileService'
 import type { UpdateProfilePayload } from '../types/profile'
+
+const PROFILE_IMAGE_MAX_BYTES = 5 * 1024 * 1024
+const PROFILE_IMAGE_TYPES = new Set(['image/png', 'image/jpeg'])
 
 type ProfileEditForm = {
   name: string
@@ -11,11 +19,14 @@ type ProfileEditForm = {
 
 function ProfileEditPage() {
   const navigate = useNavigate()
+  const hasEditedImage = useRef(false)
   const [form, setForm] = useState<ProfileEditForm>({
     name: localStorage.getItem('userName') ?? '',
     age: localStorage.getItem('userAge') ?? '',
   })
   const [previewUrl, setPreviewUrl] = useState<string | null>(localStorage.getItem('userImageUrl'))
+  const [selectedImage, setSelectedImage] = useState<File | null>(null)
+  const [removeProfileImage, setRemoveProfileImage] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
 
@@ -40,7 +51,9 @@ function ProfileEditPage() {
           name: data.name,
           age: String(data.age),
         })
-        setPreviewUrl(data.profileImageUrl)
+        if (!hasEditedImage.current) {
+          setPreviewUrl(data.profileImageUrl)
+        }
       })
       .catch(() => {
         // Fallback to local storage values.
@@ -51,16 +64,56 @@ function ProfileEditPage() {
     }
   }, [])
 
+  const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) {
+      return
+    }
+
+    setSubmitError('')
+    if (!PROFILE_IMAGE_TYPES.has(file.type)) {
+      setSubmitError('PNG 또는 JPG 이미지만 선택할 수 있습니다.')
+      event.target.value = ''
+      return
+    }
+    if (file.size > PROFILE_IMAGE_MAX_BYTES) {
+      setSubmitError('프로필 이미지는 5MB 이하만 선택할 수 있습니다.')
+      event.target.value = ''
+      return
+    }
+
+    setSelectedImage(file)
+    setRemoveProfileImage(false)
+    hasEditedImage.current = true
+    setPreviewUrl(URL.createObjectURL(file))
+  }
+
+  const handleRemoveImage = () => {
+    setSelectedImage(null)
+    setRemoveProfileImage(true)
+    hasEditedImage.current = true
+    setPreviewUrl(null)
+    setSubmitError('')
+  }
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setSubmitError('')
     setIsSubmitting(true)
 
     try {
+      let profileImageObjectKey: string | undefined
+      if (selectedImage) {
+        const presign = await requestProfileImagePresign(selectedImage.name)
+        await uploadProfileImage(presign, selectedImage)
+        profileImageObjectKey = presign.objectKey
+      }
+
       const payload: UpdateProfilePayload = {
         name: form.name.trim(),
         age: Number(form.age),
-        profileImageUrl: previewUrl,
+        profileImageObjectKey,
+        removeProfileImage: removeProfileImage || undefined,
       }
 
       const updated = await updateProfile(payload)
@@ -86,13 +139,32 @@ function ProfileEditPage() {
       <section className="profile-card profile-edit-card">
         <header className="profile-card-header">
           <h1>프로필 수정</h1>
-          <p>백엔드 스펙 기준으로 이름과 나이를 수정할 수 있습니다.</p>
+          <p>이름, 나이와 프로필 이미지를 수정할 수 있습니다.</p>
         </header>
 
         <form className="profile-edit-form" onSubmit={handleSubmit}>
           {previewUrl && <img className="profile-preview-image" src={previewUrl} alt="프로필 미리보기" />}
 
-          <p className="profile-meta-text">프로필 이미지 업로드는 백엔드 전용 업로드 API가 준비되면 다시 열 예정입니다.</p>
+          <label className="profile-field">
+            <span>프로필 이미지</span>
+            <input
+              type="file"
+              accept="image/png,image/jpeg,.png,.jpg,.jpeg"
+              onChange={handleImageChange}
+              disabled={isSubmitting}
+            />
+            <small>PNG 또는 JPG, 최대 5MB</small>
+          </label>
+          {previewUrl ? (
+            <button
+              type="button"
+              className="profile-ghost-btn profile-image-remove-btn"
+              onClick={handleRemoveImage}
+              disabled={isSubmitting}
+            >
+              이미지 삭제
+            </button>
+          ) : null}
           {submitError ? <p className="profile-error-text">{submitError}</p> : null}
 
           <label className="profile-field">
