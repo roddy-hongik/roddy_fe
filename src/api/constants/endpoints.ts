@@ -14,6 +14,7 @@ export const API_ENDPOINTS = {
   profile: {
     summary: '/api/mypage/profile',
     update: '/api/mypage/profile',
+    imagePresign: '/api/mypage/profile-image/presign',
     deleteAccount: '/api/mypage/me',
     // Backend API is not available yet. Keep the frontend placeholder flow for now.
     reanalyze: '/api/reports/reanalyze',
