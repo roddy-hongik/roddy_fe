@@ -653,6 +653,21 @@
   font-size: 0.82rem;
 }
 
+/* 공고는 요구하지만 내가 갖고 있지 않은 기술. 가진 기술과 한눈에 갈리도록 옅게 둔다. */
+.stack-fit-card.is-missing {
+  border-style: dashed;
+  background: rgba(13, 24, 50, 0.3);
+}
+
+.stack-fit-card.is-missing h3 {
+  color: #bdd0fa;
+}
+
+.detail-inline-link {
+  color: #95beff;
+  font-weight: 700;
+}
+
 @media (max-width: 1180px) {
   .detail-layout {
     grid-template-columns: 1fr;
