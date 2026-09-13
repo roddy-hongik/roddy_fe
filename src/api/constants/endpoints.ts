@@ -54,6 +54,11 @@ export const API_ENDPOINTS = {
   mockInterview: {
     questions: '/api/mock-interview/questions',
   },
+  notifications: {
+    list: '/api/notifications',
+    read: '/api/notifications/:id/read',
+    readAll: '/api/notifications/read-all',
+  },
   // Mock domain until backend API is implemented.
   reports: {
     myReports: '/api/reports/me',
