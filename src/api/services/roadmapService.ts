@@ -19,5 +19,9 @@ export const saveRoadmap = (roadmap: GeneratedRoadmap): Promise<SaveRoadmapResul
     body: JSON.stringify({
       title: roadmap.title,
       steps: roadmap.steps,
+      currentSkills: roadmap.currentSkills,
+      gapSkills: roadmap.gapSkills,
+      targetJob: roadmap.targetJob,
+      targetCompany: roadmap.targetCompany,
     }),
   })
