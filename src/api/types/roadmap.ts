@@ -17,6 +17,10 @@ export type RoadmapStep = {
 export type GeneratedRoadmap = {
   title: string
   steps: RoadmapStep[]
+  currentSkills: string[]
+  gapSkills: string[]
+  targetJob: string
+  targetCompany: string
 }
 
 export type SavedRoadmap = {
