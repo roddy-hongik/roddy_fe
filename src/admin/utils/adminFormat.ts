@@ -6,7 +6,13 @@ export const formatDateTime = (value: string | null) => {
     return '기록 없음'
   }
 
-  return new Date(value).toLocaleString('ko-KR', {
+  const date = new Date(value)
+  // 알아볼 수 없는 값이면 "Invalid Date" 대신 받은 값을 그대로 보여준다.
+  if (Number.isNaN(date.getTime())) {
+    return value
+  }
+
+  return date.toLocaleString('ko-KR', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
