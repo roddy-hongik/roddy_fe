@@ -1,6 +1,8 @@
 import { httpClient } from '../client/httpClient'
 import { API_ENDPOINTS } from '../constants/endpoints'
-import type { AnalysisSummary, GeneratedRoadmap, SaveRoadmapResult, SavedRoadmap } from '../types/roadmap'
+import type { AnalysisSummary, GeneratedRoadmap, SaveRoadmapResult, SavedRoadmapPage } from '../types/roadmap'
+
+export const SAVED_ROADMAP_PAGE_SIZE = 20
 
 export const getAnalysisSummary = (): Promise<AnalysisSummary> =>
   httpClient<AnalysisSummary>(API_ENDPOINTS.roadmap.summary)
@@ -10,8 +12,8 @@ export const generateRoadmap = (): Promise<GeneratedRoadmap> =>
     method: 'POST',
   })
 
-export const getSavedRoadmaps = (): Promise<SavedRoadmap[]> =>
-  httpClient<SavedRoadmap[]>(API_ENDPOINTS.roadmap.saved)
+export const getSavedRoadmaps = (page = 0, size = SAVED_ROADMAP_PAGE_SIZE): Promise<SavedRoadmapPage> =>
+  httpClient<SavedRoadmapPage>(`${API_ENDPOINTS.roadmap.saved}?page=${page}&size=${size}`)
 
 export const saveRoadmap = (roadmap: GeneratedRoadmap): Promise<SaveRoadmapResult> =>
   httpClient<SaveRoadmapResult>(API_ENDPOINTS.roadmap.saved, {

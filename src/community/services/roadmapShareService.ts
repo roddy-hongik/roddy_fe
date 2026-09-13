@@ -1,10 +1,11 @@
 import { getSavedRoadmaps } from '../../api/services/roadmapService'
 import type { RoadmapShareCandidate } from '../types/community'
 
+/** 공유 후보는 최근에 저장한 로드맵 한 페이지다. */
 export async function getRoadmapShareCandidates(): Promise<RoadmapShareCandidate[]> {
-  const savedRoadmaps = await getSavedRoadmaps()
+  const { roadmaps } = await getSavedRoadmaps()
 
-  return savedRoadmaps.map((roadmap) => ({
+  return roadmaps.map((roadmap) => ({
     id: roadmap.id,
     roadmapTitle: roadmap.roadmapTitle,
     targetJob: roadmap.targetJob,
