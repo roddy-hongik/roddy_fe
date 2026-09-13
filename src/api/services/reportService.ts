@@ -50,3 +50,9 @@ export const getLatestDetailedReport = (): Promise<DetailedReport | null> =>
 
 export const getDetailedReport = (reportId: number): Promise<DetailedReport | null> =>
   httpClient<ReportDetailResponse>(reportPath(reportId)).then(toDetailedReport)
+
+export const requestAnalysis = (): Promise<ReportDetailResponse> =>
+  httpClient<ReportDetailResponse>('/api/analysis/me', { method: 'POST' })
+
+export const getLatestAnalysisStatus = (): Promise<ReportDetailResponse> =>
+  httpClient<ReportDetailResponse>('/api/analysis/me')

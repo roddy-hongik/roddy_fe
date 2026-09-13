@@ -1,6 +1,6 @@
 import { API_ENDPOINTS } from '../constants/endpoints'
 import { httpClient } from '../client/httpClient'
-import type { DeleteAccountResponse, ProfileSummary, ReanalyzePayload, UpdateProfilePayload } from '../../profile/types/profile'
+import type { DeleteAccountResponse, ProfileSummary, UpdateProfilePayload } from '../../profile/types/profile'
 
 export async function getProfileSummary(): Promise<ProfileSummary> {
   return httpClient<ProfileSummary>(API_ENDPOINTS.profile.summary, {
@@ -12,13 +12,6 @@ export async function updateProfile(payload: UpdateProfilePayload): Promise<Prof
   return httpClient<ProfileSummary>(API_ENDPOINTS.profile.update, {
     method: 'PATCH',
     body: JSON.stringify(payload),
-  })
-}
-
-export async function requestProfileReanalysis(payload: ReanalyzePayload): Promise<{ taskId?: string }> {
-  void payload
-  return Promise.resolve({
-    taskId: `mock-profile-reanalyze-${Date.now()}`,
   })
 }
 
