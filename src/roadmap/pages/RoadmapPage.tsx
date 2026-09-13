@@ -66,7 +66,7 @@ function RoadmapPage() {
     setSaveErrorMessage(null)
 
     try {
-      const roadmap = await generateRoadmap(summary)
+      const roadmap = await generateRoadmap()
       setGeneratedRoadmap(roadmap)
     } catch {
       setGenerateErrorMessage('로드맵 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.')
@@ -84,7 +84,7 @@ function RoadmapPage() {
     setSaveErrorMessage(null)
 
     try {
-      const result = await saveRoadmap(summary, generatedRoadmap)
+      const result = await saveRoadmap(generatedRoadmap)
       if (!result.saved) {
         setSaveErrorMessage('동일한 로드맵이 이미 저장되어 있습니다.')
         return

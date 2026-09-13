@@ -46,7 +46,6 @@ export const API_ENDPOINTS = {
     myScraps: '/api/jobs/scraps/me',
     match: '/api/jobs/:id/match',
   },
-  // Mock domain until backend API is implemented.
   roadmap: {
     summary: '/api/roadmap/summary',
     generate: '/api/roadmap/generate',
