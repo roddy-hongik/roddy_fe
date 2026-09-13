@@ -52,22 +52,34 @@ function AdminCrawlingPage() {
     }
 
     let isMounted = true
-    const timerId = window.setInterval(() => {
-      getCrawlingDashboard()
-        .then((response) => {
-          if (isMounted) {
-            setDashboard(response)
-            setIsError(false)
-          }
-        })
-        .catch(() => {
-          // 한 번 놓쳐도 다음 주기에 다시 부른다. 보고 있던 표는 지우지 않는다.
-        })
-    }, POLLING_INTERVAL_MS)
+    let timerId: number | undefined
+
+    // 앞선 요청이 끝난 뒤에 다음 요청을 예약한다. 응답이 늦어도 요청이 겹치거나 오래된 응답이 새 응답을 덮지 않는다.
+    const scheduleNextPoll = () => {
+      timerId = window.setTimeout(() => {
+        getCrawlingDashboard()
+          .then((response) => {
+            if (isMounted) {
+              setDashboard(response)
+              setIsError(false)
+            }
+          })
+          .catch(() => {
+            // 한 번 놓쳐도 다음 주기에 다시 부른다. 보고 있던 표는 지우지 않는다.
+          })
+          .finally(() => {
+            if (isMounted) {
+              scheduleNextPoll()
+            }
+          })
+      }, POLLING_INTERVAL_MS)
+    }
+
+    scheduleNextPoll()
 
     return () => {
       isMounted = false
-      window.clearInterval(timerId)
+      window.clearTimeout(timerId)
     }
   }, [isRunning])
 
@@ -77,11 +89,13 @@ function AdminCrawlingPage() {
 
     try {
       setDashboard(await startCrawling())
+      setIsError(false)
     } catch {
       // 다른 관리자나 예약 수집이 먼저 시작했을 수 있다. 그렇다면 실패가 아니라 진행 중으로 보여준다.
       try {
         const latest = await getCrawlingDashboard()
         setDashboard(latest)
+        setIsError(false)
         if (!latest.running) {
           setStartError(START_FAILED_MESSAGE)
         }
@@ -125,7 +139,7 @@ function AdminCrawlingPage() {
           type="button"
           className="admin-btn primary"
           onClick={handleStart}
-          disabled={isLoading || isError || isStarting || isRunning}
+          disabled={isLoading || isStarting || isRunning}
         >
           {startButtonLabel}
         </button>
