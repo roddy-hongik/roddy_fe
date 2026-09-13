@@ -64,12 +64,15 @@ export const API_ENDPOINTS = {
     detail: '/api/analysis/reports/:id',
     payment: '/api/reports/payment',
   },
-  // Crawling is backed by the API. The other admin endpoints are mock domains until their APIs exist.
+  // Crawling, users and moderation are backed by the API. Graph endpoints are mock domains until their APIs exist.
   admin: {
     crawlingDashboard: '/api/admin/crawling/dashboard',
     crawlingRun: '/api/admin/crawling/run',
     users: '/api/admin/users',
+    userStatus: '/api/admin/users/:id/status',
     reportedContents: '/api/admin/reported-contents',
+    reportedPost: '/api/admin/reported-contents/posts/:id',
+    reportedComment: '/api/admin/reported-contents/comments/:id',
     graphSearch: '/api/admin/graph/search',
     graphEdges: '/api/admin/graph/edges',
   },

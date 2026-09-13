@@ -38,14 +38,18 @@ export type AdminUser = {
   status: AdminUserStatus
   reportCount: number
   joinedAt: string
-  lastActiveAt: string
+  /** 마지막으로 로그인했거나 토큰을 재발급받은 시각. 기록이 없으면 null */
+  lastActiveAt: string | null
 }
 
 export type ContentType = 'post' | 'comment'
 export type ReportedContentStatus = 'reported' | 'removed'
 
 export type ReportedContent = {
+  /** 화면에서 쓰는 키. 글과 댓글의 id 는 서로 겹칠 수 있어 type 을 붙인다. 예: post-12 */
   id: string
+  /** 백엔드의 글 id 또는 댓글 id */
+  contentId: string
   type: ContentType
   author: string
   contentPreview: string
