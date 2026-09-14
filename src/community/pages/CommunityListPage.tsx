@@ -1,22 +1,69 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getCommunityPosts } from '../../api/services/communityService'
 import CommunityFilterBar from '../components/CommunityFilterBar'
 import PostListItem from '../components/PostListItem'
 import PostTypeTabs from '../components/PostTypeTabs'
 import TagSelector from '../components/TagSelector'
-import type { CommunityPostListTab, CommunityPostSummary, JobTrackTagKey } from '../types/community'
+import type { CommunityPostFilters, CommunityPostListTab, CommunityPostSummary, JobTrackTagKey } from '../types/community'
 import '../styles/community-pages.css'
+
+type FilterOptions = {
+  companies: string[]
+  jobs: string[]
+  techs: string[]
+}
+
+const EMPTY_OPTIONS: FilterOptions = { companies: [], jobs: [], techs: [] }
+
+/** 검색어는 입력을 멈춘 뒤에 조회한다. 글자마다 요청하지 않기 위함이다. */
+const SEARCH_DEBOUNCE_MS = 300
+
+const toSortedOptions = (values: string[]) =>
+  Array.from(new Set(values.filter((value) => value && value !== '-'))).sort((a, b) => a.localeCompare(b, 'ko'))
+
+/** 받은 글에서 필터 선택지를 모은다. 필터로 좁혀 받아도 앞서 본 선택지는 남겨 둬야 다른 값으로 바꿀 수 있다. */
+const mergeOptions = (previous: FilterOptions, posts: CommunityPostSummary[]): FilterOptions => ({
+  companies: toSortedOptions([
+    ...previous.companies,
+    ...posts.flatMap((post) => {
+      if (post.type === 'interview') {
+        return [post.company]
+      }
+      return post.type === 'roadmap' && post.targetCompany ? [post.targetCompany] : []
+    }),
+  ]),
+  jobs: toSortedOptions([
+    ...previous.jobs,
+    ...posts.flatMap((post) => {
+      if (post.type === 'interview') {
+        return [post.jobRole]
+      }
+      return post.type === 'roadmap' ? [post.targetJob] : []
+    }),
+  ]),
+  techs: toSortedOptions([
+    ...previous.techs,
+    ...posts.flatMap((post) => {
+      if (post.type === 'interview') {
+        return post.techStacks
+      }
+      return post.type === 'roadmap' ? post.recommendedSkills : []
+    }),
+  ]),
+})
 
 function CommunityListPage() {
   const navigate = useNavigate()
   const [selectedTab, setSelectedTab] = useState<CommunityPostListTab>('all')
   const [selectedTag, setSelectedTag] = useState<JobTrackTagKey | 'all'>('all')
   const [searchValue, setSearchValue] = useState('')
+  const [searchKeyword, setSearchKeyword] = useState('')
   const [selectedCompany, setSelectedCompany] = useState('')
   const [selectedJob, setSelectedJob] = useState('')
   const [selectedTech, setSelectedTech] = useState('')
   const [posts, setPosts] = useState<CommunityPostSummary[]>([])
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>(EMPTY_OPTIONS)
   const [isLoading, setIsLoading] = useState(true)
   const [isError, setIsError] = useState(false)
   /** 화면에 반영된 마지막 페이지. 다음 페이지를 받아야만 앞으로 나간다. */
@@ -25,6 +72,9 @@ function CommunityListPage() {
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [isLoadMoreError, setIsLoadMoreError] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(Boolean(localStorage.getItem('accessToken')))
+
+  /** 필터가 바뀌는 사이에 먼저 떠난 요청이 나중에 도착해 화면을 덮어쓰지 않도록 한다. */
+  const requestIdRef = useRef(0)
 
   useEffect(() => {
     const syncLoginStatus = () => {
@@ -40,201 +90,101 @@ function CommunityListPage() {
   }, [])
 
   useEffect(() => {
-    let isMounted = true
-
-    getCommunityPosts()
-      .then((response) => {
-        if (!isMounted) {
-          return
-        }
-
-        setPosts(response.posts)
-        setPage(response.page)
-        setTotalPages(response.totalPages)
-      })
-      .catch(() => {
-        if (!isMounted) {
-          return
-        }
-
-        setPosts([])
-        setIsError(true)
-      })
-      .finally(() => {
-        if (isMounted) {
-          setIsLoading(false)
-        }
-      })
+    const timer = window.setTimeout(() => {
+      setSearchKeyword(searchValue.trim())
+    }, SEARCH_DEBOUNCE_MS)
 
     return () => {
-      isMounted = false
+      window.clearTimeout(timer)
+    }
+  }, [searchValue])
+
+  /** 필터는 백엔드가 건다. 불러온 글 안에서만 거르면 뒤 페이지에만 있는 글을 찾지 못한다. */
+  const filters = useMemo<CommunityPostFilters>(
+    () => ({
+      type: selectedTab,
+      trackTag: selectedTag,
+      search: searchKeyword,
+      company: selectedCompany,
+      jobRole: selectedJob,
+      techStack: selectedTech,
+    }),
+    [searchKeyword, selectedCompany, selectedJob, selectedTab, selectedTag, selectedTech],
+  )
+
+  const loadPosts = useCallback(async (nextPage: number, nextFilters: CommunityPostFilters, shouldAppend: boolean) => {
+    const requestId = requestIdRef.current + 1
+    requestIdRef.current = requestId
+
+    if (shouldAppend) {
+      setIsLoadingMore(true)
+      setIsLoadMoreError(false)
+    } else {
+      setIsLoading(true)
+      setIsError(false)
+      setIsLoadingMore(false)
+      setIsLoadMoreError(false)
+    }
+
+    try {
+      const response = await getCommunityPosts(nextFilters, nextPage)
+
+      if (requestIdRef.current !== requestId) {
+        return
+      }
+
+      setPosts((previous) =>
+        shouldAppend
+          ? [
+              ...previous,
+              // 앞 페이지를 받은 뒤 새 글이 올라오면 페이지 경계가 밀려 이미 받은 글이 다시 온다.
+              ...response.posts.filter((post) => !previous.some((existing) => existing.id === post.id)),
+            ]
+          : response.posts,
+      )
+      setPage(response.page)
+      setTotalPages(response.totalPages)
+      setFilterOptions((previous) => mergeOptions(previous, response.posts))
+    } catch {
+      if (requestIdRef.current !== requestId) {
+        return
+      }
+
+      if (shouldAppend) {
+        setIsLoadMoreError(true)
+      } else {
+        setPosts([])
+        setTotalPages(0)
+        setIsError(true)
+      }
+    } finally {
+      if (requestIdRef.current === requestId) {
+        if (shouldAppend) {
+          setIsLoadingMore(false)
+        } else {
+          setIsLoading(false)
+        }
+      }
     }
   }, [])
+
+  useEffect(() => {
+    void loadPosts(0, filters, false)
+  }, [filters, loadPosts])
 
   const hasMore = page + 1 < totalPages
 
   const handleLoadMore = () => {
-    setIsLoadingMore(true)
-    setIsLoadMoreError(false)
-
-    getCommunityPosts({}, page + 1)
-      .then((response) => {
-        // 앞 페이지를 받은 뒤 새 글이 올라오면 페이지 경계가 밀려 이미 받은 글이 다시 온다.
-        setPosts((previous) => [
-          ...previous,
-          ...response.posts.filter((post) => !previous.some((existing) => existing.id === post.id)),
-        ])
-        setPage(response.page)
-        setTotalPages(response.totalPages)
-      })
-      .catch(() => {
-        setIsLoadMoreError(true)
-      })
-      .finally(() => {
-        setIsLoadingMore(false)
-      })
+    void loadPosts(page + 1, filters, true)
   }
 
-  const companyOptions = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          posts.flatMap((post) => {
-            if (post.type === 'interview') {
-              return [post.company]
-            }
-
-            if (post.type === 'roadmap' && post.targetCompany) {
-              return [post.targetCompany]
-            }
-
-            return []
-          }),
-        ),
-      ).sort((a, b) => a.localeCompare(b, 'ko')),
-    [posts],
-  )
-
-  const jobOptions = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          posts.flatMap((post) => {
-            if (post.type === 'interview') {
-              return [post.jobRole]
-            }
-
-            if (post.type === 'roadmap') {
-              return [post.targetJob]
-            }
-
-            return []
-          }),
-        ),
-      ).sort((a, b) => a.localeCompare(b, 'ko')),
-    [posts],
-  )
-
-  const techOptions = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          posts.flatMap((post) => {
-            if (post.type === 'interview') {
-              return post.techStacks
-            }
-
-            if (post.type === 'roadmap') {
-              return post.recommendedSkills
-            }
-
-            return []
-          }),
-        ),
-      ).sort((a, b) => a.localeCompare(b, 'ko')),
-    [posts],
-  )
-
-  const filteredPosts = useMemo(() => {
-    const keyword = searchValue.trim().toLowerCase()
-
-    return posts.filter((post) => {
-      if (selectedTab !== 'all' && post.type !== selectedTab) {
-        return false
-      }
-
-      if (selectedTag !== 'all' && post.tag !== selectedTag) {
-        return false
-      }
-
-      if (selectedCompany) {
-        if (post.type === 'interview' && post.company !== selectedCompany) {
-          return false
-        }
-
-        if (post.type === 'roadmap' && post.targetCompany !== selectedCompany) {
-          return false
-        }
-
-        if (post.type !== 'interview' && post.type !== 'roadmap') {
-          return false
-        }
-      }
-
-      if (selectedJob) {
-        if (post.type === 'roadmap' && post.targetJob !== selectedJob) {
-          return false
-        }
-
-        if (post.type === 'interview' && post.jobRole !== selectedJob) {
-          return false
-        }
-
-        if (post.type === 'general') {
-          return false
-        }
-      }
-
-      if (selectedTech) {
-        if (post.type === 'roadmap' && !post.recommendedSkills.includes(selectedTech)) {
-          return false
-        }
-
-        if (post.type === 'interview' && !post.techStacks.includes(selectedTech)) {
-          return false
-        }
-
-        if (post.type === 'general') {
-          return false
-        }
-      }
-
-      if (!keyword) {
-        return true
-      }
-
-      const searchable = [
-        post.title,
-        post.authorName,
-        ...post.tags,
-        post.type === 'general' ? `${post.excerpt}` : '',
-        post.type === 'roadmap' ? `${post.summary} ${post.targetJob} ${post.targetCompany ?? ''}` : '',
-        post.type === 'interview' ? `${post.company} ${post.jobRole} ${post.processSummary}` : '',
-      ]
-        .join(' ')
-        .toLowerCase()
-
-      return searchable.includes(keyword)
-    })
-  }, [posts, searchValue, selectedCompany, selectedJob, selectedTab, selectedTag, selectedTech])
-
   const emptyLabel = useMemo(() => {
-    if (selectedTab === 'all' && selectedTag === 'all' && !searchValue && !selectedCompany && !selectedJob && !selectedTech) {
+    if (selectedTab === 'all' && selectedTag === 'all' && !searchKeyword && !selectedCompany && !selectedJob && !selectedTech) {
       return '등록된 게시글이 없습니다.'
     }
 
     return '선택한 조건에 맞는 게시글이 없습니다.'
-  }, [searchValue, selectedCompany, selectedJob, selectedTab, selectedTag, selectedTech])
+  }, [searchKeyword, selectedCompany, selectedJob, selectedTab, selectedTag, selectedTech])
 
   const handleTabChange = (tab: CommunityPostListTab) => {
     setSelectedTab(tab)
@@ -274,11 +224,11 @@ function CommunityListPage() {
         <CommunityFilterBar
           selectedTab={selectedTab}
           searchValue={searchValue}
-          companyOptions={companyOptions}
+          companyOptions={filterOptions.companies}
           selectedCompany={selectedCompany}
-          jobOptions={jobOptions}
+          jobOptions={filterOptions.jobs}
           selectedJob={selectedJob}
-          techOptions={techOptions}
+          techOptions={filterOptions.techs}
           selectedTech={selectedTech}
           onSearchChange={setSearchValue}
           onCompanyChange={setSelectedCompany}
@@ -289,8 +239,8 @@ function CommunityListPage() {
         <section className="community-post-list" aria-live="polite">
           {isLoading ? <p className="community-status-text">게시글을 불러오는 중입니다...</p> : null}
           {!isLoading && isError ? <p className="community-status-text">게시글을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p> : null}
-          {!isLoading && !isError && filteredPosts.length === 0 ? <p className="community-status-text">{emptyLabel}</p> : null}
-          {!isLoading && !isError && filteredPosts.map((post) => <PostListItem key={post.id} post={post} onClick={(postId) => navigate(`/community/${postId}`)} />)}
+          {!isLoading && !isError && posts.length === 0 ? <p className="community-status-text">{emptyLabel}</p> : null}
+          {!isLoading && !isError && posts.map((post) => <PostListItem key={post.id} post={post} onClick={(postId) => navigate(`/community/${postId}`)} />)}
         </section>
 
         {!isLoading && !isError && hasMore ? (
