@@ -66,7 +66,6 @@ export const API_ENDPOINTS = {
     detail: '/api/analysis/reports/:id',
     payment: '/api/reports/payment',
   },
-  // Crawling, users and moderation are backed by the API. Graph endpoints are mock domains until their APIs exist.
   admin: {
     crawlingDashboard: '/api/admin/crawling/dashboard',
     crawlingRun: '/api/admin/crawling/run',
@@ -77,5 +76,7 @@ export const API_ENDPOINTS = {
     reportedComment: '/api/admin/reported-contents/comments/:id',
     graphSearch: '/api/admin/graph/search',
     graphEdges: '/api/admin/graph/edges',
+    graphEdge: '/api/admin/graph/edges/:id',
+    graphRebuild: '/api/admin/graph/rebuild',
   },
 } as const

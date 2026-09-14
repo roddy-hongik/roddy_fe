@@ -1,4 +1,10 @@
-import type { AdminUserStatus, ContentType, CrawlingCompanyStatus } from '../../api/types/admin'
+import type {
+  AdminUserStatus,
+  ContentType,
+  CrawlingCompanyStatus,
+  GraphEdgeCreatedBy,
+  GraphRelationType,
+} from '../../api/types/admin'
 
 /** 값이 없으면(예: 한 번도 수집하지 않은 회사) 기록이 없다고 보여준다. */
 export const formatDateTime = (value: string | null) => {
@@ -42,4 +48,16 @@ export const userStatusLabelMap: Record<AdminUserStatus, string> = {
 export const contentTypeLabelMap: Record<ContentType, string> = {
   post: '게시글',
   comment: '댓글',
+}
+
+export const graphCreatedByLabelMap: Record<GraphEdgeCreatedBy, string> = {
+  auto: '자동(공고)',
+  manual: '어드민',
+}
+
+export const graphRelationLabelMap: Record<GraphRelationType, string> = {
+  RELATED_TO: '관련 있음',
+  USED_WITH: '같은 공고에서 함께 요구됨',
+  PREREQUISITE_OF: 'Source 를 Target 보다 먼저 배움',
+  SIMILAR_TO: '서로 대신 쓸 수 있음',
 }

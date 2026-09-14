@@ -61,10 +61,16 @@ export type ReportedContent = {
 
 export type GraphRelationType = 'RELATED_TO' | 'USED_WITH' | 'PREREQUISITE_OF' | 'SIMILAR_TO'
 
+/** auto 는 모집 중인 공고로 자동 계산한 관계, manual 은 어드민이 만들거나 고친 관계다. */
+export type GraphEdgeCreatedBy = 'auto' | 'manual'
+
 export type GraphNodeSummary = {
+  /** 기술 이름. 노드는 이름으로 구분한다. */
   id: string
   name: string
+  /** 기술 사전의 분류 (language, backend, ...) */
   category: string
+  /** 지우지 않은 관계 수 */
   relationCount: number
 }
 
@@ -73,19 +79,29 @@ export type GraphEdge = {
   source: string
   relationType: GraphRelationType
   target: string
-  createdBy: 'AI' | 'manual'
+  createdBy: GraphEdgeCreatedBy
+  /** 0~1. 자동 관계는 함께 요구된 비율이고, 어드민이 만든 관계는 1 이다. */
   confidence: number
-  description?: string
+  description: string | null
 }
 
+/** 사전에 없는 기술이거나 아직 그래프를 갱신하지 않았으면 searchedNode 가 null 이고 관계도 비어 있다. */
 export type GraphSearchResult = {
   searchedNode: GraphNodeSummary | null
   edges: GraphEdge[]
 }
 
+/** 기술 이름에는 별칭(예: 자바)을 써도 된다. */
 export type EdgePayload = {
   source: string
   relationType: GraphRelationType
   target: string
   description?: string
+}
+
+export type GraphRebuildResult = {
+  /** 사전과 맞춘 기술 노드 수 */
+  technologyStackCount: number
+  /** 새로 만든 자동 관계 수 */
+  autoRelationCount: number
 }

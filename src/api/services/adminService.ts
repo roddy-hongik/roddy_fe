@@ -1,4 +1,3 @@
-import { mockGraphSearchResult } from '../../admin/data/mockAdminData'
 import { httpClient } from '../client/httpClient'
 import { API_ENDPOINTS } from '../constants/endpoints'
 import type {
@@ -7,20 +6,10 @@ import type {
   CrawlingDashboard,
   EdgePayload,
   GraphEdge,
+  GraphRebuildResult,
   GraphSearchResult,
   ReportedContent,
 } from '../../api/types/admin'
-
-// Crawling, users and moderation are backed by the API. Graph stays an intentional mock until its API exists.
-
-const wait = (ms: number) =>
-  new Promise<void>((resolve) => {
-    window.setTimeout(resolve, ms)
-  })
-
-const clone = <T,>(value: T): T => JSON.parse(JSON.stringify(value)) as T
-
-let graphState: GraphSearchResult = clone(mockGraphSearchResult)
 
 export const getCrawlingDashboard = async (): Promise<CrawlingDashboard> =>
   httpClient<CrawlingDashboard>(API_ENDPOINTS.admin.crawlingDashboard, { method: 'GET' })
@@ -79,88 +68,29 @@ export const removeReportedContent = async (content: ReportedContent, reason?: s
   await httpClient<null>(`${path}${query}`, { method: 'DELETE' })
 }
 
-export const searchGraphNode = async (keyword: string): Promise<GraphSearchResult> => {
-  await wait(260)
-  const trimmed = keyword.trim().toLowerCase()
+/** 기술 이름이나 별칭으로 찾는다. 사전에 없는 기술이거나 아직 그래프를 갱신하지 않았으면 searchedNode 가 null 이다. */
+export const searchGraphNode = async (keyword: string): Promise<GraphSearchResult> =>
+  httpClient<GraphSearchResult>(`${API_ENDPOINTS.admin.graphSearch}?keyword=${encodeURIComponent(keyword.trim())}`)
 
-  if (!trimmed) {
-    return {
-      searchedNode: null,
-      edges: [],
-    }
-  }
+/**
+ * 어드민이 만든 관계는 자동 계산이 덮어쓰지 않는다.
+ * 그래프에 없는 기술이면 404, 같은 기술끼리면 400, 이미 같은 관계가 있으면 409 로 실패한다.
+ */
+export const addGraphEdge = async (payload: EdgePayload): Promise<GraphEdge> =>
+  httpClient<GraphEdge>(API_ENDPOINTS.admin.graphEdges, { method: 'POST', body: JSON.stringify(payload) })
 
-  if (!graphState.searchedNode || !graphState.searchedNode.name.toLowerCase().includes(trimmed)) {
-    return {
-      searchedNode: {
-        id: 'n-fallback',
-        name: keyword.trim(),
-        category: 'unknown',
-        relationCount: 0,
-      },
-      edges: [],
-    }
-  }
-
-  return clone({
-    ...graphState,
-    searchedNode: {
-      ...graphState.searchedNode,
-      relationCount: graphState.edges.length,
-    },
+/** 고친 관계는 어드민이 만든 관계가 된다. 실패하는 경우는 추가와 같고, 이미 지워진 관계면 404 다. */
+export const updateGraphEdge = async (edgeId: string, payload: EdgePayload): Promise<GraphEdge> =>
+  httpClient<GraphEdge>(replaceId(API_ENDPOINTS.admin.graphEdge, edgeId), {
+    method: 'PUT',
+    body: JSON.stringify(payload),
   })
+
+/** 지운 자동 관계는 다음 갱신 때 다시 생기지 않는다. */
+export const deleteGraphEdge = async (edgeId: string): Promise<void> => {
+  await httpClient<null>(replaceId(API_ENDPOINTS.admin.graphEdge, edgeId), { method: 'DELETE' })
 }
 
-export const addGraphEdge = async (payload: EdgePayload): Promise<GraphEdge[]> => {
-  await wait(220)
-
-  const nextEdge: GraphEdge = {
-    id: `e-${Date.now()}`,
-    source: payload.source,
-    relationType: payload.relationType,
-    target: payload.target,
-    createdBy: 'manual',
-    confidence: 0.95,
-    description: payload.description,
-  }
-
-  graphState = {
-    searchedNode: graphState.searchedNode,
-    edges: [nextEdge, ...graphState.edges],
-  }
-
-  return clone(graphState.edges)
-}
-
-export const updateGraphEdge = async (edgeId: string, payload: EdgePayload): Promise<GraphEdge[]> => {
-  await wait(220)
-
-  graphState = {
-    searchedNode: graphState.searchedNode,
-    edges: graphState.edges.map((edge) =>
-      edge.id === edgeId
-        ? {
-            ...edge,
-            source: payload.source,
-            relationType: payload.relationType,
-            target: payload.target,
-            description: payload.description,
-            createdBy: 'manual',
-          }
-        : edge,
-    ),
-  }
-
-  return clone(graphState.edges)
-}
-
-export const deleteGraphEdge = async (edgeId: string): Promise<GraphEdge[]> => {
-  await wait(220)
-
-  graphState = {
-    searchedNode: graphState.searchedNode,
-    edges: graphState.edges.filter((edge) => edge.id !== edgeId),
-  }
-
-  return clone(graphState.edges)
-}
+/** 사전의 기술을 노드로 맞추고 모집 중인 공고로 자동 관계를 다시 계산한다. 수집이 끝날 때도 자동으로 돈다. */
+export const rebuildGraph = async (): Promise<GraphRebuildResult> =>
+  httpClient<GraphRebuildResult>(API_ENDPOINTS.admin.graphRebuild, { method: 'POST' })
