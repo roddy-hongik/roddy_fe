@@ -19,6 +19,7 @@ type CommunityWriteLocationState = {
 function CommunityWritePage() {
   const navigate = useNavigate()
   const initialState = useLocation().state as CommunityWriteLocationState
+  const initialRoadmapId = initialState?.initialRoadmapId
   const [selectedTag, setSelectedTag] = useState<JobTrackTagKey>('b2c')
   const [postType, setPostType] = useState<CommunityPostType>(initialState?.initialPostType ?? 'general')
   const [title, setTitle] = useState(initialState?.initialTitle ?? '')
@@ -31,7 +32,7 @@ function CommunityWritePage() {
   /** 공유할 수 있는 저장한 로드맵. 로드맵 공유를 고르면 한 번 불러온다. null 이면 아직 받지 못했다. */
   const [roadmapCandidates, setRoadmapCandidates] = useState<RoadmapShareCandidate[] | null>(null)
   const [isCandidateError, setIsCandidateError] = useState(false)
-  const [selectedRoadmapId, setSelectedRoadmapId] = useState(initialState?.initialRoadmapId ?? '')
+  const [selectedRoadmapId, setSelectedRoadmapId] = useState(initialRoadmapId ?? '')
 
   useEffect(() => {
     if (postType !== 'roadmap' || roadmapCandidates !== null || isCandidateError) {
@@ -40,7 +41,7 @@ function CommunityWritePage() {
 
     let isMounted = true
 
-    getRoadmapShareCandidates()
+    getRoadmapShareCandidates(initialRoadmapId)
       .then((candidates) => {
         if (isMounted) {
           setRoadmapCandidates(candidates)
@@ -55,7 +56,7 @@ function CommunityWritePage() {
     return () => {
       isMounted = false
     }
-  }, [postType, roadmapCandidates, isCandidateError])
+  }, [postType, roadmapCandidates, isCandidateError, initialRoadmapId])
 
   const handleTagSelect = (tag: JobTrackTagKey | 'all') => {
     if (tag !== 'all') {
@@ -144,7 +145,15 @@ function CommunityWritePage() {
               {roadmapCandidates === null && !isCandidateError ? (
                 <p className="community-upload-note">저장한 로드맵을 불러오는 중입니다...</p>
               ) : null}
-              {isCandidateError ? <p className="community-upload-note">저장한 로드맵을 불러오지 못했습니다.</p> : null}
+              {isCandidateError ? (
+                <div className="community-upload-note">
+                  <p>저장한 로드맵을 불러오지 못했습니다.</p>
+                  {/* 오류를 지우면 위의 effect 가 다시 불러온다. */}
+                  <button type="button" className="community-outline-btn" onClick={() => setIsCandidateError(false)}>
+                    다시 시도
+                  </button>
+                </div>
+              ) : null}
               {roadmapCandidates?.length === 0 ? (
                 <p className="community-upload-note">저장한 로드맵이 없습니다. 로드맵을 먼저 만들어 저장해 주세요.</p>
               ) : null}
