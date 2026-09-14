@@ -1,21 +1,14 @@
 import { httpClient } from '../client/httpClient'
 import { API_ENDPOINTS } from '../constants/endpoints'
 import type { DashboardData, DashboardSummaryResponse } from '../types/dashboard'
-
-const JOB_LABELS: Record<string, string> = {
-  BACKEND: '백엔드 개발자',
-  FRONTEND: '프론트엔드 개발자',
-  FULLSTACK: '풀스택 개발자',
-  MOBILE: '모바일 개발자',
-  DATA: '데이터 개발자',
-}
+import { toDesiredJobLabel } from '../../shared/utils/careerLabels'
 
 const toDashboardData = (response: DashboardSummaryResponse): DashboardData => ({
   userName: response.userName,
   reportId: response.reportId === null ? null : String(response.reportId),
   matchRate: {
     percent: response.bestMatchRate ?? 0,
-    targetRole: response.desiredJob ? (JOB_LABELS[response.desiredJob] ?? response.desiredJob) : '희망 직무 미설정',
+    targetRole: response.desiredJob ? toDesiredJobLabel(response.desiredJob) : '희망 직무 미설정',
     targetCompany: response.desiredCompany ?? '희망 기업 미설정',
   },
   techKeywords: response.techKeywords.map((keyword) =>
