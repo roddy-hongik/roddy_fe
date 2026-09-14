@@ -88,6 +88,13 @@ export interface CommunityPostPage {
   totalPages: number
 }
 
+/** 목록 필터의 선택지. 불러온 페이지와 상관없이 전체 글에서 모은 값이다. */
+export interface CommunityFilterOptions {
+  companies: string[]
+  jobRoles: string[]
+  techStacks: string[]
+}
+
 export interface CommunityPostFilters {
   type?: CommunityPostListTab
   trackTag?: JobTrackTagKey | 'all'

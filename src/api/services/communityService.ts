@@ -2,8 +2,10 @@ import { API_ENDPOINTS } from '../constants/endpoints'
 import { httpClient } from '../client/httpClient'
 import type {
   CommunityComment,
+  CommunityFilterOptions,
   CommunityPostDetail,
   CommunityPostFilters,
+  CommunityPostListTab,
   CommunityPostPage,
   CommunityPostSummary,
   CreateCommentPayload,
@@ -245,6 +247,15 @@ export async function getCommunityPosts(
     page: response.page,
     totalPages: response.totalPages,
   }
+}
+
+/** 목록 필터의 기업·직무·기술 선택지. 로드맵이나 인터뷰 탭이면 그 유형의 값만 받는다. */
+export async function getCommunityFilterOptions(type: CommunityPostListTab = 'all'): Promise<CommunityFilterOptions> {
+  const query = type === 'all' ? '' : `?postCategory=${toBackendPostCategory(type)}`
+
+  return httpClient<CommunityFilterOptions>(`${API_ENDPOINTS.community.filterOptions}${query}`, {
+    method: 'GET',
+  })
 }
 
 export async function getCommunityPostDetail(postId: string): Promise<CommunityPostDetail> {

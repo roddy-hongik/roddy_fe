@@ -1,57 +1,24 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getCommunityPosts } from '../../api/services/communityService'
+import { getCommunityFilterOptions, getCommunityPosts } from '../../api/services/communityService'
 import CommunityFilterBar from '../components/CommunityFilterBar'
 import PostListItem from '../components/PostListItem'
 import PostTypeTabs from '../components/PostTypeTabs'
 import TagSelector from '../components/TagSelector'
-import type { CommunityPostFilters, CommunityPostListTab, CommunityPostSummary, JobTrackTagKey } from '../types/community'
+import type {
+  CommunityFilterOptions,
+  CommunityPostFilters,
+  CommunityPostListTab,
+  CommunityPostSummary,
+  JobTrackTagKey,
+} from '../types/community'
 import '../styles/community-pages.css'
 
-type FilterOptions = {
-  companies: string[]
-  jobs: string[]
-  techs: string[]
-}
-
-const EMPTY_OPTIONS: FilterOptions = { companies: [], jobs: [], techs: [] }
+/** 선택지를 받지 못했을 때. 목록과 검색은 그대로 쓸 수 있다. */
+const EMPTY_OPTIONS: CommunityFilterOptions = { companies: [], jobRoles: [], techStacks: [] }
 
 /** 검색어는 입력을 멈춘 뒤에 조회한다. 글자마다 요청하지 않기 위함이다. */
 const SEARCH_DEBOUNCE_MS = 300
-
-const toSortedOptions = (values: string[]) =>
-  Array.from(new Set(values.filter((value) => value && value !== '-'))).sort((a, b) => a.localeCompare(b, 'ko'))
-
-/** 받은 글에서 필터 선택지를 모은다. 필터로 좁혀 받아도 앞서 본 선택지는 남겨 둬야 다른 값으로 바꿀 수 있다. */
-const mergeOptions = (previous: FilterOptions, posts: CommunityPostSummary[]): FilterOptions => ({
-  companies: toSortedOptions([
-    ...previous.companies,
-    ...posts.flatMap((post) => {
-      if (post.type === 'interview') {
-        return [post.company]
-      }
-      return post.type === 'roadmap' && post.targetCompany ? [post.targetCompany] : []
-    }),
-  ]),
-  jobs: toSortedOptions([
-    ...previous.jobs,
-    ...posts.flatMap((post) => {
-      if (post.type === 'interview') {
-        return [post.jobRole]
-      }
-      return post.type === 'roadmap' ? [post.targetJob] : []
-    }),
-  ]),
-  techs: toSortedOptions([
-    ...previous.techs,
-    ...posts.flatMap((post) => {
-      if (post.type === 'interview') {
-        return post.techStacks
-      }
-      return post.type === 'roadmap' ? post.recommendedSkills : []
-    }),
-  ]),
-})
 
 function CommunityListPage() {
   const navigate = useNavigate()
@@ -63,7 +30,7 @@ function CommunityListPage() {
   const [selectedJob, setSelectedJob] = useState('')
   const [selectedTech, setSelectedTech] = useState('')
   const [posts, setPosts] = useState<CommunityPostSummary[]>([])
-  const [filterOptions, setFilterOptions] = useState<FilterOptions>(EMPTY_OPTIONS)
+  const [filterOptions, setFilterOptions] = useState<CommunityFilterOptions>(EMPTY_OPTIONS)
   const [isLoading, setIsLoading] = useState(true)
   const [isError, setIsError] = useState(false)
   /** 화면에 반영된 마지막 페이지. 다음 페이지를 받아야만 앞으로 나간다. */
@@ -88,6 +55,27 @@ function CommunityListPage() {
       window.removeEventListener('storage', syncLoginStatus)
     }
   }, [])
+
+  /** 선택지는 불러온 글이 아니라 전체 글에서 받는다. 뒤 페이지에만 있는 기업·직무·기술도 고를 수 있어야 한다. */
+  useEffect(() => {
+    let isMounted = true
+
+    getCommunityFilterOptions(selectedTab)
+      .then((options) => {
+        if (isMounted) {
+          setFilterOptions(options)
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setFilterOptions(EMPTY_OPTIONS)
+        }
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [selectedTab])
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -144,7 +132,6 @@ function CommunityListPage() {
       )
       setPage(response.page)
       setTotalPages(response.totalPages)
-      setFilterOptions((previous) => mergeOptions(previous, response.posts))
     } catch {
       if (requestIdRef.current !== requestId) {
         return
@@ -226,9 +213,9 @@ function CommunityListPage() {
           searchValue={searchValue}
           companyOptions={filterOptions.companies}
           selectedCompany={selectedCompany}
-          jobOptions={filterOptions.jobs}
+          jobOptions={filterOptions.jobRoles}
           selectedJob={selectedJob}
-          techOptions={filterOptions.techs}
+          techOptions={filterOptions.techStacks}
           selectedTech={selectedTech}
           onSearchChange={setSearchValue}
           onCompanyChange={setSelectedCompany}
