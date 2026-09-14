@@ -97,7 +97,7 @@ function AdminModerationPage() {
         return b.reportCount - a.reportCount
       }
 
-      return +new Date(b.lastActiveAt) - +new Date(a.lastActiveAt)
+      return +new Date(b.lastActiveAt ?? 0) - +new Date(a.lastActiveAt ?? 0)
     })
   }, [userSearch, userSort, userStatusFilter, users])
 
@@ -123,10 +123,15 @@ function AdminModerationPage() {
       return
     }
 
-    const updatedUsers = await updateAdminUserStatus(pendingUserAction.user.id, pendingUserAction.nextStatus)
-    setUsers(updatedUsers)
-    setSelectedUser(updatedUsers.find((user) => user.id === pendingUserAction.user.id) ?? null)
-    setPendingUserAction(null)
+    try {
+      const updatedUser = await updateAdminUserStatus(pendingUserAction.user.id, pendingUserAction.nextStatus)
+      setUsers((previous) => previous.map((user) => (user.id === updatedUser.id ? updatedUser : user)))
+      setSelectedUser(updatedUser)
+    } catch (error) {
+      alert(error instanceof Error ? error.message : '계정 상태를 바꾸지 못했습니다.')
+    } finally {
+      setPendingUserAction(null)
+    }
   }
 
   const handleDeleteContent = async () => {
@@ -134,11 +139,17 @@ function AdminModerationPage() {
       return
     }
 
-    const nextContents = await removeReportedContent(pendingDeleteContent.id)
-    setContents(nextContents)
-    setSelectedContent(nextContents[0] ?? null)
-    setPendingDeleteContent(null)
-    setDeleteReason('')
+    try {
+      await removeReportedContent(pendingDeleteContent, deleteReason)
+      const nextContents = contents.filter((content) => content.id !== pendingDeleteContent.id)
+      setContents(nextContents)
+      setSelectedContent((previous) => (previous?.id === pendingDeleteContent.id ? (nextContents[0] ?? null) : previous))
+    } catch (error) {
+      alert(error instanceof Error ? error.message : '콘텐츠를 지우지 못했습니다.')
+    } finally {
+      setPendingDeleteContent(null)
+      setDeleteReason('')
+    }
   }
 
   return (
