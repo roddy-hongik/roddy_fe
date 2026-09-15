@@ -5,6 +5,7 @@ import { completeOnboarding } from '../../api/services/onboardingService'
 import type { DesiredJob } from '../../api/types/onboarding'
 import { emitAuthChange } from '../../auth/utils/authEvents'
 import { markOnboardingCompleted } from '../../auth/utils/authStorage'
+import { writeProfileCache } from '../../profile/utils/profileCache'
 import JobCategorySelector from '../components/JobCategorySelector'
 import type { JobCategory } from '../components/JobCategorySelector'
 import '../styles/onboarding-page.css'
@@ -164,12 +165,18 @@ function OnboardingPage() {
       })
 
       localStorage.setItem('userName', response.name)
-      localStorage.setItem('userPreferredCompanies', response.desiredCompany)
-      localStorage.setItem('userAge', String(response.age))
-      localStorage.setItem('userDesiredJob', response.desiredJob)
-      localStorage.setItem('userExperienceYears', response.experienceLevel)
-      localStorage.setItem('userPortfolioFileName', response.portfolioFileName)
       localStorage.setItem('githubConnected', String(response.githubConnected))
+      writeProfileCache({
+        name: response.name,
+        age: response.age,
+        profileImageUrl: null,
+        desiredJob: response.desiredJob,
+        desiredCompany: response.desiredCompany,
+        experienceYears: response.experienceLevel,
+        portfolioFileName: response.portfolioFileName,
+        portfolioUrl: null,
+        githubConnected: response.githubConnected,
+      })
       markOnboardingCompleted()
       emitAuthChange()
       navigate('/onboarding/github')

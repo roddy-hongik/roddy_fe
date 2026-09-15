@@ -8,6 +8,7 @@ import {
   uploadProfileImage,
 } from '../../api/services/profileService'
 import type { UpdateProfilePayload } from '../types/profile'
+import { readProfileCache, writeProfileCache } from '../utils/profileCache'
 
 const PROFILE_IMAGE_MAX_BYTES = 5 * 1024 * 1024
 const PROFILE_IMAGE_TYPES = new Set(['image/png', 'image/jpeg'])
@@ -20,11 +21,12 @@ type ProfileEditForm = {
 function ProfileEditPage() {
   const navigate = useNavigate()
   const hasEditedImage = useRef(false)
+  const cachedProfile = readProfileCache()
   const [form, setForm] = useState<ProfileEditForm>({
-    name: localStorage.getItem('userName') ?? '',
-    age: localStorage.getItem('userAge') ?? '',
+    name: cachedProfile?.name ?? localStorage.getItem('userName') ?? '',
+    age: cachedProfile ? String(cachedProfile.age) : '',
   })
-  const [previewUrl, setPreviewUrl] = useState<string | null>(localStorage.getItem('userImageUrl'))
+  const [previewUrl, setPreviewUrl] = useState<string | null>(cachedProfile?.profileImageUrl ?? null)
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
   const [removeProfileImage, setRemoveProfileImage] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -51,6 +53,7 @@ function ProfileEditPage() {
           name: data.name,
           age: String(data.age),
         })
+        writeProfileCache(data)
         if (!hasEditedImage.current) {
           setPreviewUrl(data.profileImageUrl)
         }
@@ -119,12 +122,7 @@ function ProfileEditPage() {
       const updated = await updateProfile(payload)
 
       localStorage.setItem('userName', updated.name)
-      localStorage.setItem('userAge', String(updated.age))
-      if (updated.profileImageUrl) {
-        localStorage.setItem('userImageUrl', updated.profileImageUrl)
-      } else {
-        localStorage.removeItem('userImageUrl')
-      }
+      writeProfileCache(updated)
 
       navigate('/profile')
     } catch (error) {

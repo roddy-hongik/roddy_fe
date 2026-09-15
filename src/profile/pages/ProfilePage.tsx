@@ -6,27 +6,21 @@ import { clearAuthSession } from '../../auth/utils/authStorage'
 import { ROUTES } from '../../routes/paths'
 import { toDesiredJobLabel, toExperienceLevelLabel } from '../../shared/utils/careerLabels'
 import type { ProfileSummary } from '../types/profile'
+import { clearProfileCache, readProfileCache, writeProfileCache } from '../utils/profileCache'
 
-const FALLBACK_PROFILE: ProfileSummary = {
-  name: localStorage.getItem('userName') ?? '사용자',
-  age: Number(localStorage.getItem('userAge') ?? 0),
-  profileImageUrl: localStorage.getItem('userImageUrl'),
-  desiredJob: localStorage.getItem('userDesiredJob') ?? '',
-  desiredCompany: localStorage.getItem('userPreferredCompanies') ?? '',
-  experienceYears: localStorage.getItem('userExperienceYears') ?? '',
-  portfolioFileName: localStorage.getItem('userPortfolioFileName') ?? '',
-  portfolioUrl: localStorage.getItem('userPortfolioUrl'),
-  githubConnected: localStorage.getItem('githubConnected') === 'true',
-}
+const emptyProfile = (): ProfileSummary => ({
+  name: localStorage.getItem('userName') ?? '사용자', age: 0, profileImageUrl: null,
+  desiredJob: '', desiredCompany: '', experienceYears: '', portfolioFileName: '',
+  portfolioUrl: null, githubConnected: false,
+})
 
 function ProfilePage() {
   const navigate = useNavigate()
-  const [profile, setProfile] = useState<ProfileSummary>(FALLBACK_PROFILE)
+  const [profile, setProfile] = useState<ProfileSummary>(() => readProfileCache() ?? emptyProfile())
   const [isLoading, setIsLoading] = useState(true)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [deleteError, setDeleteError] = useState('')
   const [loadError, setLoadError] = useState('')
-  const preferredCompanies = localStorage.getItem('userPreferredCompanies') ?? '-'
 
   useEffect(() => {
     let isMounted = true
@@ -39,26 +33,19 @@ function ProfilePage() {
 
         setLoadError('')
         setProfile(data)
+        writeProfileCache(data)
         localStorage.setItem('userName', data.name)
-        localStorage.setItem('userAge', String(data.age))
-        if (data.profileImageUrl) {
-          localStorage.setItem('userImageUrl', data.profileImageUrl)
-        } else {
-          localStorage.removeItem('userImageUrl')
-        }
-        localStorage.setItem('userDesiredJob', data.desiredJob)
-        localStorage.setItem('userPreferredCompanies', data.desiredCompany)
-        localStorage.setItem('userExperienceYears', data.experienceYears)
-        localStorage.setItem('userPortfolioFileName', data.portfolioFileName)
-        localStorage.setItem('userPortfolioUrl', data.portfolioUrl ?? '')
       })
       .catch(() => {
         if (!isMounted) {
           return
         }
 
-        setProfile(FALLBACK_PROFILE)
-        setLoadError('프로필 정보를 최신 상태로 불러오지 못했습니다. 저장된 정보로 표시합니다.')
+        const cached = readProfileCache()
+        setProfile(cached ?? emptyProfile())
+        setLoadError(cached
+          ? '프로필 정보를 최신 상태로 불러오지 못했습니다. 이 계정에 저장된 정보로 표시합니다.'
+          : '프로필 정보를 불러오지 못했습니다.')
       })
       .finally(() => {
         if (isMounted) {
@@ -77,14 +64,8 @@ function ProfilePage() {
     try {
       setDeleteError('')
       await deleteAccount()
+      clearProfileCache()
       clearAuthSession()
-      localStorage.removeItem('userAge')
-      localStorage.removeItem('userImageUrl')
-      localStorage.removeItem('userDesiredJob')
-      localStorage.removeItem('userPreferredCompanies')
-      localStorage.removeItem('userExperienceYears')
-      localStorage.removeItem('userPortfolioFileName')
-      localStorage.removeItem('userPortfolioUrl')
       emitAuthChange()
       navigate(ROUTES.login, { replace: true })
     } catch (error) {
@@ -132,7 +113,7 @@ function ProfilePage() {
                 </div>
                 <div className="profile-info-row">
                   <span>희망 기업</span>
-                  <strong>{profile.desiredCompany || preferredCompanies}</strong>
+                  <strong>{profile.desiredCompany || '-'}</strong>
                 </div>
                 <div className="profile-info-row">
                   <span>경력</span>
