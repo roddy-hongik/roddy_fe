@@ -24,6 +24,7 @@ export const mockCommunityPostDetails: CommunityPostDetail[] = [
         depth: 0,
         parentId: null,
         createdAt: '2026-03-06T10:08:00.000Z',
+        mine: false,
       },
       {
         id: 'c-2',
@@ -32,6 +33,7 @@ export const mockCommunityPostDetails: CommunityPostDetail[] = [
         depth: 1,
         parentId: 'c-1',
         createdAt: '2026-03-06T10:31:00.000Z',
+        mine: false,
       },
     ],
   },
@@ -99,6 +101,7 @@ export const mockCommunityPostDetails: CommunityPostDetail[] = [
         depth: 0,
         parentId: null,
         createdAt: '2026-03-16T11:05:00.000Z',
+        mine: false,
       },
       {
         id: 'c-roadmap-2',
@@ -107,6 +110,7 @@ export const mockCommunityPostDetails: CommunityPostDetail[] = [
         depth: 1,
         parentId: 'c-roadmap-1',
         createdAt: '2026-03-16T11:22:00.000Z',
+        mine: false,
       },
       {
         id: 'c-roadmap-3',
@@ -115,6 +119,7 @@ export const mockCommunityPostDetails: CommunityPostDetail[] = [
         depth: 0,
         parentId: null,
         createdAt: '2026-03-16T12:14:00.000Z',
+        mine: false,
       },
       {
         id: 'c-roadmap-4',
@@ -123,6 +128,7 @@ export const mockCommunityPostDetails: CommunityPostDetail[] = [
         depth: 1,
         parentId: 'c-roadmap-3',
         createdAt: '2026-03-16T12:31:00.000Z',
+        mine: false,
       },
     ],
   },
@@ -159,6 +165,7 @@ export const mockCommunityPostDetails: CommunityPostDetail[] = [
         depth: 0,
         parentId: null,
         createdAt: '2026-03-15T18:50:00.000Z',
+        mine: false,
       },
       {
         id: 'c-interview-2',
@@ -167,6 +174,7 @@ export const mockCommunityPostDetails: CommunityPostDetail[] = [
         depth: 1,
         parentId: 'c-interview-1',
         createdAt: '2026-03-15T19:08:00.000Z',
+        mine: false,
       },
       {
         id: 'c-interview-3',
@@ -175,6 +183,7 @@ export const mockCommunityPostDetails: CommunityPostDetail[] = [
         depth: 0,
         parentId: null,
         createdAt: '2026-03-15T19:28:00.000Z',
+        mine: false,
       },
       {
         id: 'c-interview-4',
@@ -183,6 +192,7 @@ export const mockCommunityPostDetails: CommunityPostDetail[] = [
         depth: 1,
         parentId: 'c-interview-3',
         createdAt: '2026-03-15T19:41:00.000Z',
+        mine: false,
       },
       {
         id: 'c-interview-5',
@@ -191,6 +201,7 @@ export const mockCommunityPostDetails: CommunityPostDetail[] = [
         depth: 0,
         parentId: null,
         createdAt: '2026-03-15T20:10:00.000Z',
+        mine: false,
       },
       {
         id: 'c-interview-6',
@@ -199,6 +210,7 @@ export const mockCommunityPostDetails: CommunityPostDetail[] = [
         depth: 0,
         parentId: null,
         createdAt: '2026-03-15T20:27:00.000Z',
+        mine: false,
       },
       {
         id: 'c-interview-7',
@@ -207,6 +219,7 @@ export const mockCommunityPostDetails: CommunityPostDetail[] = [
         depth: 0,
         parentId: null,
         createdAt: '2026-03-15T21:04:00.000Z',
+        mine: false,
       },
     ],
   },
@@ -243,6 +256,7 @@ export const mockCommunityPostDetails: CommunityPostDetail[] = [
         depth: 0,
         parentId: null,
         createdAt: '2026-03-14T13:04:00.000Z',
+        mine: false,
       },
     ],
   },

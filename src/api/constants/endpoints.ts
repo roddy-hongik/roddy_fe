@@ -35,6 +35,8 @@ export const API_ENDPOINTS = {
     like: '/api/community/posts/:id/like',
     report: '/api/community/posts/:id/report',
     comments: '/api/community/posts/:id/comments',
+    comment: '/api/community/comments/:id',
+    commentReport: '/api/community/comments/:id/report',
     likedPosts: '/api/community/posts/likes/me',
     filterOptions: '/api/community/posts/filter-options',
   },

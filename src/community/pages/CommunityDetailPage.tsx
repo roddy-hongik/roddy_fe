@@ -5,7 +5,7 @@ import { TAG_LABEL_MAP } from '../constants/jobTrackTags'
 import CommentItem from '../components/CommentItem'
 import { AlertIcon, EyeIcon, HeartIcon, MessageIcon } from '../components/icons'
 import PostTypeBadge from '../components/PostTypeBadge'
-import { getPostComments, reportPost, submitComment } from '../services/communityEngagementService'
+import { deleteComment, getPostComments, reportComment, reportPost, submitComment } from '../services/communityEngagementService'
 import { useCommunityPostLike } from '../hooks/useCommunityLikes'
 import type { CommunityComment, CommunityPostDetail } from '../types/community'
 import { formatCommunityCount, formatCommunityDateTime } from '../utils/communityFormat'
@@ -20,6 +20,8 @@ function CommunityDetailPage() {
   const [isError, setIsError] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(Boolean(localStorage.getItem('accessToken')))
   const [commentInput, setCommentInput] = useState('')
+  const [replyToId, setReplyToId] = useState<string | null>(null)
+  const [pendingCommentId, setPendingCommentId] = useState<string | null>(null)
   const [isCommentSubmitting, setIsCommentSubmitting] = useState(false)
   const { isLiked, isSubmitting: isLikeSubmitting, toggleLike } = useCommunityPostLike(id ?? '', post?.liked ?? false)
 
@@ -122,8 +124,9 @@ function CommunityDetailPage() {
 
     try {
       await reportPost(post.id)
-    } finally {
       alert('게시글 신고가 접수되었습니다.')
+    } catch {
+      alert('게시글 신고에 실패했습니다.')
     }
   }
 
@@ -142,14 +145,50 @@ function CommunityDetailPage() {
     setIsCommentSubmitting(true)
 
     try {
-      const response = await submitComment(post.id, { content: commentInput.trim() })
+      const response = await submitComment(post.id, { content: commentInput.trim(), parentId: replyToId ?? undefined })
       setComments((current) => [...current, response])
       setPost((current) => (current ? { ...current, commentCount: current.commentCount + 1 } : current))
       setCommentInput('')
+      setReplyToId(null)
     } catch {
       alert('댓글 작성에 실패했습니다.')
     } finally {
       setIsCommentSubmitting(false)
+    }
+  }
+
+  const handleReportComment = async (commentId: string) => {
+    setPendingCommentId(commentId)
+    try {
+      await reportComment(commentId)
+      alert('댓글 신고가 접수되었습니다.')
+    } catch {
+      alert('댓글 신고에 실패했습니다.')
+    } finally {
+      setPendingCommentId(null)
+    }
+  }
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (!window.confirm('댓글을 삭제하시겠습니까? 답글도 함께 삭제됩니다.')) {
+      return
+    }
+
+    setPendingCommentId(commentId)
+    try {
+      await deleteComment(commentId)
+      const removedIds = new Set(
+        comments.filter((comment) => comment.id === commentId || comment.parentId === commentId).map((comment) => comment.id),
+      )
+      setComments((current) => current.filter((comment) => !removedIds.has(comment.id)))
+      setPost((current) => current ? { ...current, commentCount: Math.max(0, current.commentCount - removedIds.size) } : current)
+      if (replyToId && removedIds.has(replyToId)) {
+        setReplyToId(null)
+      }
+    } catch {
+      alert('댓글 삭제에 실패했습니다.')
+    } finally {
+      setPendingCommentId(null)
     }
   }
 
@@ -241,23 +280,25 @@ function CommunityDetailPage() {
                 <CommentItem
                   key={comment.id}
                   comment={comment}
-                  canReply={false}
-                  canReport={false}
-                  canDelete={false}
-                  onReplyToggle={() => undefined}
-                  onReport={() => undefined}
-                  onDelete={() => undefined}
+                  isReply={comment.depth === 1}
+                  canReply={isLoggedIn && comment.depth === 0 && pendingCommentId === null}
+                  canReport={isLoggedIn && !comment.mine && pendingCommentId === null}
+                  canDelete={comment.mine && pendingCommentId === null}
+                  isReplying={replyToId === comment.id}
+                  onReplyToggle={(commentId) => setReplyToId((current) => current === commentId ? null : commentId)}
+                  onReport={handleReportComment}
+                  onDelete={handleDeleteComment}
                 />
               ))}
             </div>
 
             <form className="community-comment-form" onSubmit={handleCreateComment}>
-              <label htmlFor="community-comment-input">댓글 작성</label>
+              <label htmlFor="community-comment-input">{replyToId ? '답글 작성' : '댓글 작성'}</label>
               <textarea
                 id="community-comment-input"
                 value={commentInput}
                 onChange={(event) => setCommentInput(event.target.value)}
-                placeholder={isLoggedIn ? '댓글을 입력해 주세요' : '로그인 후 댓글을 작성할 수 있습니다'}
+                placeholder={isLoggedIn ? (replyToId ? '답글을 입력해 주세요' : '댓글을 입력해 주세요') : '로그인 후 댓글을 작성할 수 있습니다'}
                 rows={4}
                 maxLength={400}
                 disabled={!isLoggedIn || isCommentSubmitting}
@@ -265,7 +306,7 @@ function CommunityDetailPage() {
               <button type="submit" className="community-primary-btn" disabled={!isLoggedIn || isCommentSubmitting || !commentInput.trim()}>
                 {isCommentSubmitting ? '등록 중...' : '댓글 등록'}
               </button>
-              <p className="community-status-text">대댓글, 댓글 삭제, 댓글 신고는 백엔드 확장 후 다시 열 예정입니다.</p>
+              {replyToId ? <button type="button" className="community-outline-btn" onClick={() => setReplyToId(null)}>답글 취소</button> : null}
             </form>
           </div>
         </section>

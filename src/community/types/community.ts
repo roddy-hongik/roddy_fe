@@ -19,6 +19,7 @@ export interface CommunityComment {
   depth: 0 | 1
   parentId: string | null
   createdAt: string
+  mine: boolean
 }
 
 interface BaseCommunityPost {

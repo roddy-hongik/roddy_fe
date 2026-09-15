@@ -29,6 +29,7 @@ interface BackendCommunityCommentResponse {
   parentId: number | null
   depth: 0 | 1
   createdAt: string
+  mine: boolean
 }
 
 interface BackendCommunityPostListItemResponse {
@@ -102,6 +103,7 @@ const mapComments = (comments: BackendCommunityCommentResponse[]): CommunityComm
     depth: comment.depth,
     parentId: comment.parentId === null ? null : String(comment.parentId),
     createdAt: comment.createdAt,
+    mine: comment.mine,
   }))
 
 const mapPostSummary = (item: BackendCommunityPostListItemResponse): CommunityPostSummary => {
@@ -374,10 +376,25 @@ export async function addCommunityComment(postId: string, payload: CreateComment
     depth: response.depth,
     parentId: response.parentId === null ? null : String(response.parentId),
     createdAt: response.createdAt,
+    mine: response.mine,
   }
 }
 
 export async function getCommunityComments(postId: string): Promise<CreateCommentResponse[]> {
-  const post = await getCommunityPostDetail(postId)
-  return post.comments ?? []
+  const response = await httpClient<BackendCommunityCommentResponse[]>(replacePostId(API_ENDPOINTS.community.comments, postId), {
+    method: 'GET',
+  })
+  return mapComments(response)
+}
+
+export async function reportCommunityComment(commentId: string): Promise<void> {
+  await httpClient(replacePostId(API_ENDPOINTS.community.commentReport, commentId), {
+    method: 'POST',
+  })
+}
+
+export async function deleteCommunityComment(commentId: string): Promise<void> {
+  await httpClient(replacePostId(API_ENDPOINTS.community.comment, commentId), {
+    method: 'DELETE',
+  })
 }
