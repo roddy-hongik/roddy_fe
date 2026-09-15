@@ -94,6 +94,7 @@ function ProfilePage() {
 
   return (
     <div className="profile-page profile-fade-in">
+      <Link className="profile-action-btn" to={ROUTES.coverLetters}>내 자기소개서 관리</Link>
       <section className="profile-card">
         <header className="profile-card-header">
           <h1>마이페이지</h1>
