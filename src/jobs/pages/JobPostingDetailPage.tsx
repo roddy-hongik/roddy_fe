@@ -335,6 +335,7 @@ function JobPostingDetailPage() {
               onTogglingChange={setIsScrapPending}
             />
           ) : null}
+          <Link className="apply-btn-large full" to={`/cover-letters/new?jobPostingId=${job.id}`}>이 공고의 자기소개서 작성</Link>
           <a className="apply-btn-large full" href={job.applyUrl} target="_blank" rel="noreferrer noopener">
             채용 사이트에서 지원
           </a>
