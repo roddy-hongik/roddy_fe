@@ -4,6 +4,7 @@ import { getGithubAuthorizationUrl, getGithubConnectionStatus } from '../../api/
 import { requestAnalysis } from '../../api/services/reportService'
 import { emitAuthChange } from '../../auth/utils/authEvents'
 import { isGithubConnected, markGithubConnected } from '../../auth/utils/authStorage'
+import { updateProfileCache } from '../../profile/utils/profileCache'
 import '../styles/github-connect-page.css'
 
 async function loadGithubConnectionState() {
@@ -36,6 +37,7 @@ function GithubConnectPage() {
         setIsConnected(data.githubConnected)
         setGithubUrl(data.githubUrl)
         markGithubConnected(data.githubConnected)
+        updateProfileCache({ githubConnected: data.githubConnected })
         emitAuthChange()
       })
       .catch(() => {
@@ -54,6 +56,7 @@ function GithubConnectPage() {
   useEffect(() => {
     if (connectedFromCallback) {
       markGithubConnected(true)
+      updateProfileCache({ githubConnected: true })
       emitAuthChange()
     }
   }, [connectedFromCallback])

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { AUTH_CHANGE_EVENT, emitAuthChange } from '../../auth/utils/authEvents'
+import { clearAuthSession } from '../../auth/utils/authStorage'
 import { ROUTES } from '../../routes/paths'
 import '../styles/app-top-nav.css'
 
@@ -54,9 +55,7 @@ function AppTopNav({ loginRedirectPath, onLogout, rightSlot, showSavedLink = fal
   }
 
   const handleLogout = () => {
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('userName')
-    localStorage.removeItem('userRole')
+    clearAuthSession()
     emitAuthChange()
     setAuthSnapshot(readAuthSnapshot())
     onLogout?.()
