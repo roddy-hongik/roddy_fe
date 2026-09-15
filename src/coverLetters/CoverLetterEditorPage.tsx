@@ -98,6 +98,7 @@ function Editor({ id, initialJobId }: { id?: string; initialJobId: string | null
     <p>답변이 비어 있어도 저장할 수 있습니다. 문항은 최대 20개까지 작성할 수 있습니다.</p>
     <form onSubmit={submit}>
       <fieldset disabled={busy} className="cover-letter-fields">
+        <legend className="cover-letter-form-legend">자기소개서 작성 양식</legend>
         <label>제목<input value={title} onChange={event => { setTitle(event.target.value); changed() }} maxLength={255} required /></label>
         <section className="cover-letter-job" aria-label="연결 공고">
           <h2>연결 공고 <small>(선택)</small></h2>
