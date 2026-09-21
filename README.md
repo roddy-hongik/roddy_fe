@@ -1,5 +1,7 @@
 # Roddy Frontend API Mapping
 
+<img width="1672" height="941" alt="Roddy배너" src="https://github.com/user-attachments/assets/326d0b87-6d79-4e5e-b45c-7d8ec2af4772" />
+
 ## Summary
 
 프론트는 백엔드 실제 스펙 기준으로 `ApiResponse.result` 언랩, `/api/...` 경로 정리, 온보딩/마이페이지/스터디/커뮤니티 연동 구조를 우선 맞췄습니다.
