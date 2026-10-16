@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { AUTH_CHANGE_EVENT, emitAuthChange } from '../../auth/utils/authEvents'
+import { clearAuthSession } from '../../auth/utils/authStorage'
 import { ROUTES } from '../../routes/paths'
 import '../styles/app-top-nav.css'
 
@@ -10,7 +11,6 @@ type AppTopNavProps = {
   onLogout?: () => void
   rightSlot?: ReactNode
   showSavedLink?: boolean
-  userNameOverride?: string
   notificationSlot?: ReactNode
 }
 
@@ -26,7 +26,7 @@ const readAuthSnapshot = (): AuthSnapshot => ({
   userRole: localStorage.getItem('userRole') ?? '',
 })
 
-function AppTopNav({ loginRedirectPath, onLogout, rightSlot, showSavedLink = false, userNameOverride, notificationSlot }: AppTopNavProps) {
+function AppTopNav({ loginRedirectPath, onLogout, rightSlot, showSavedLink = false, notificationSlot }: AppTopNavProps) {
   const location = useLocation()
   const navigate = useNavigate()
   const [authSnapshot, setAuthSnapshot] = useState<AuthSnapshot>(() => readAuthSnapshot())
@@ -47,7 +47,7 @@ function AppTopNav({ loginRedirectPath, onLogout, rightSlot, showSavedLink = fal
     }
   }, [])
 
-  const userName = userNameOverride ?? authSnapshot.storedUserName
+  const userName = authSnapshot.storedUserName
   const isAdmin = authSnapshot.userRole === 'admin'
 
   const handleLoginRedirect = () => {
@@ -55,9 +55,7 @@ function AppTopNav({ loginRedirectPath, onLogout, rightSlot, showSavedLink = fal
   }
 
   const handleLogout = () => {
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('userName')
-    localStorage.removeItem('userRole')
+    clearAuthSession()
     emitAuthChange()
     setAuthSnapshot(readAuthSnapshot())
     onLogout?.()

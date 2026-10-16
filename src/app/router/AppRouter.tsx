@@ -4,6 +4,9 @@ import AdminGuard from '@/routes/AdminGuard'
 import ProtectedRoute from '@/routes/ProtectedRoute'
 import { ROUTES, routePatterns } from '@/routes/paths'
 
+const CoverLetterListPage = lazy(() => import('@/coverLetters/CoverLetterListPage'))
+const CoverLetterEditorPage = lazy(() => import('@/coverLetters/CoverLetterEditorPage'))
+
 const MainPage = lazy(() => import('@/home/pages/MainPage'))
 const JobPostingsPage = lazy(() => import('@/jobs/pages/JobPostingsPage'))
 const JobPostingDetailPage = lazy(() => import('@/jobs/pages/JobPostingDetailPage'))
@@ -48,10 +51,10 @@ export function AppRouter() {
     <Suspense fallback={<RouteFallback />}>
       <div className="app-shell">
         <Routes>
-          <Route path={ROUTES.home} element={<MainPage />} />
           <Route path={ROUTES.login} element={<LoginPage />} />
           <Route path={ROUTES.terms} element={<TermsPage />} />
           <Route element={<DefaultLayout />}>
+            <Route path={ROUTES.home} element={<MainPage />} />
             <Route path={ROUTES.jobs} element={<JobPostingsPage />} />
             <Route path={ROUTES.study} element={<StudyListPage />} />
             <Route path={routePatterns.studyDetail} element={<StudyDetailPage />} />
@@ -106,6 +109,9 @@ export function AppRouter() {
               </ProtectedRoute>
             }
           >
+            <Route path={ROUTES.coverLetters} element={<CoverLetterListPage />} />
+            <Route path="/cover-letters/new" element={<CoverLetterEditorPage />} />
+            <Route path="/cover-letters/:letterId" element={<CoverLetterEditorPage />} />
             <Route path={ROUTES.reports} element={<MyReportsPage />} />
             <Route path={routePatterns.reportDetailAnalysis} element={<DetailedAnalysisReportPage />} />
             <Route path={ROUTES.reportsDetailAnalysis} element={<DetailedAnalysisReportPage />} />

@@ -1,4 +1,5 @@
 import { emitAuthChange } from '../../auth/utils/authEvents'
+import { clearAuthSession } from '../../auth/utils/authStorage'
 import type { ApiEnvelope, ApiErrorPayload } from '../types/http'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
@@ -61,8 +62,7 @@ export async function httpClient<T>(path: string, options: RequestInit = {}): Pr
   const payload = (await parseResponsePayload(response)) as ApiEnvelope<T> | ApiErrorPayload | null
 
   if (response.status === 401 || response.status === 403) {
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('refreshToken')
+    clearAuthSession()
     emitAuthChange()
     window.location.href = '/login'
     throw new Error(toErrorMessage(response.status, response.statusText, payload ?? undefined))

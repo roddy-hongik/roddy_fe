@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getSavedRoadmaps } from '../../api/services/roadmapService'
 import type { SavedRoadmap } from '../../api/types/roadmap'
@@ -30,24 +30,36 @@ function SavedRoadmapsExplorer({
 }: SavedRoadmapsExplorerProps) {
   const navigate = useNavigate()
   const [roadmaps, setRoadmaps] = useState<SavedRoadmap[]>([])
+  /** 화면에 반영된 마지막 페이지. 다음 페이지를 받아야만 앞으로 나간다. */
+  const [page, setPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [isError, setIsError] = useState(false)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [isLoadMoreError, setIsLoadMoreError] = useState(false)
   const [selectedRoadmapId, setSelectedRoadmapId] = useState<string | null>(null)
   const [compareSelection, setCompareSelection] = useState<CompareSelection>({
     leftId: null,
     rightId: null,
   })
+  /** 목록을 처음부터 다시 받는 사이에 앞서 떠난 "더 보기" 응답이 도착해 섞이지 않도록 한다. */
+  const listVersionRef = useRef(0)
 
   useEffect(() => {
     let isMounted = true
+    listVersionRef.current += 1
 
     getSavedRoadmaps()
-      .then((items) => {
+      .then((response) => {
         if (!isMounted) {
           return
         }
 
+        const items = response.roadmaps
         setRoadmaps(items)
+        setPage(response.page)
+        setTotalPages(response.totalPages)
+        setIsLoadMoreError(false)
         setSelectedRoadmapId((prev) => (prev && items.some((item) => item.id === prev) ? prev : (items[0]?.id ?? null)))
         setIsError(false)
       })
@@ -66,6 +78,37 @@ function SavedRoadmapsExplorer({
       isMounted = false
     }
   }, [refreshKey])
+
+  const hasMore = page + 1 < totalPages
+
+  const handleLoadMore = () => {
+    const version = listVersionRef.current
+    setIsLoadingMore(true)
+    setIsLoadMoreError(false)
+
+    getSavedRoadmaps(page + 1)
+      .then((response) => {
+        if (listVersionRef.current !== version) {
+          return
+        }
+
+        // 앞 페이지를 받은 뒤 새로 저장한 로드맵이 있으면 페이지 경계가 밀려 이미 받은 로드맵이 다시 온다.
+        setRoadmaps((previous) => [
+          ...previous,
+          ...response.roadmaps.filter((item) => !previous.some((existing) => existing.id === item.id)),
+        ])
+        setPage(response.page)
+        setTotalPages(response.totalPages)
+      })
+      .catch(() => {
+        if (listVersionRef.current === version) {
+          setIsLoadMoreError(true)
+        }
+      })
+      .finally(() => {
+        setIsLoadingMore(false)
+      })
+  }
 
   const selectedRoadmap = useMemo(
     () => roadmaps.find((roadmap) => roadmap.id === selectedRoadmapId) ?? null,
@@ -178,7 +221,14 @@ function SavedRoadmapsExplorer({
                 </button>
               )
             })}
+
+            {hasMore ? (
+              <button type="button" className="profile-ghost-btn" disabled={isLoadingMore} onClick={handleLoadMore}>
+                {isLoadingMore ? '불러오는 중...' : '더 보기'}
+              </button>
+            ) : null}
           </div>
+          {isLoadMoreError ? <p className="profile-error-text">다음 로드맵을 불러오지 못했습니다. 다시 시도해 주세요.</p> : null}
 
           {selectedRoadmap ? (
             <section className="roadmap-detail-panel">

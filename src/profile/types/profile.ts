@@ -13,16 +13,15 @@ export interface ProfileSummary {
 export interface UpdateProfilePayload {
   name: string
   age: number
-  profileImageUrl?: string | null
+  profileImageObjectKey?: string
+  removeProfileImage?: boolean
 }
 
-export interface ReanalyzePayload {
-  reportTitle: string
-  portfolioFileName: string
-  categories: string[]
-  preferredCompanies: string[]
+export interface ProfileImagePresignResponse {
+  uploadUrl: string
+  objectKey: string
+  contentType: 'image/png' | 'image/jpeg'
+  expiresInMinutes: number
 }
 
-export interface DeleteAccountResponse {
-  success?: boolean
-}
+export type DeleteAccountResponse = void

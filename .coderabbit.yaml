@@ -1,0 +1,63 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+
+language: "ko-KR"
+tone_instructions: "모든 리뷰와 요약은 자연스러운 한국어로 작성하고, 근거 기반으로 실제 사용자 영향, 회귀 위험, 수정 방향을 명확히 설명하세요."
+early_access: false
+
+reviews:
+  profile: "assertive"
+  high_level_summary: true
+  review_status: true
+  poem: false
+  request_changes_workflow: false
+  auto_review:
+    enabled: true
+    drafts: false
+  path_instructions:
+    - path: "src/**/*.tsx"
+      instructions: |
+        다음 관점을 우선순위 높게 검토하세요.
+        - React 렌더링 안정성: useEffect/useMemo/useCallback 의존성 누락, stale closure, 불필요한 재렌더링, state 파생값 중복 저장, cleanup 누락, 비동기 요청 완료 전에 unmount되는 경우
+        - 라우팅/인가 안정성: ProtectedRoute, AdminGuard, 레이아웃 중첩, 페이지별 헤더/내비게이션 일관성, 로그인 전후 redirect 흐름, 잘못된 route path로 인한 dead link 여부
+        - 사용자 데이터 처리: localStorage 읽기/쓰기 키 일관성, 탭 간 동기화, 로그아웃 시 정리 누락, mock 데이터와 실제 API 응답 스키마 불일치 가능성
+        - UI 회귀 위험: 조건부 렌더링 누락, 로딩/에러/빈 상태 처리, 모바일 레이아웃 깨짐, 긴 텍스트/한글 콘텐츠에서 overflow 발생 가능성
+        - 접근성과 상호작용: button/link 역할 구분, aria 속성 적절성, 키보드 탐색 가능 여부, 클릭 가능한 카드의 접근성, 폼 입력/에러 메시지 연결
+        - 타입 안정성 및 유지보수성: any 남용, null/undefined 분기 누락, 중복 로직, 책임 분리 부족, 공통 컴포넌트로 추출 가능한 패턴
+        단순 스타일 지적보다 실제 동작 오류, 화면 회귀, 인증/상태 동기화 문제를 우선 보고하세요.
+    - path: "src/**/*.ts"
+      instructions: |
+        서비스, 유틸, API 클라이언트 코드는 다음을 중점 검토하세요.
+        - API 응답 언랩/매핑 과정에서 타입 불일치나 null 처리 누락이 없는지
+        - localStorage 파싱/직렬화 시 예외 가능성, 기본값 처리, 키 이름 불일치가 없는지
+        - 날짜/문자열/필터링 유틸이 한글 입력, 초성 검색, 빈 값, 잘못된 값에서도 안전하게 동작하는지
+        - 실제 네트워크 연동 시 mock 구현이 만들어낼 회귀 포인트가 없는지
+        - 공통 유틸이 여러 도메인에서 재사용될 때 숨은 결합도나 부작용이 없는지
+    - path: "src/routes/**/*.tsx"
+      instructions: |
+        라우트 가드와 라우터 변경은 인증 우회, 잘못된 리다이렉트, 권한별 접근 제어 누락, 뒤로가기 UX 회귀를 특히 엄격하게 검토하세요.
+    - path: "src/shared/components/**/*.tsx"
+      instructions: |
+        공통 컴포넌트 변경은 여러 페이지에 동시에 영향을 주므로, props 설계, 기본값, 조건부 분기, 스타일 확장성, 페이지별 중복 구현 제거 여부를 중점 검토하세요.
+    - path: "src/**/*.css"
+      instructions: |
+        CSS 변경은 다음을 우선 검토하세요.
+        - 데스크톱/모바일 반응형 회귀, 고정 width/height로 인한 깨짐, sticky/fixed 요소 충돌
+        - 공통 클래스 변경이 다른 페이지에 미치는 부작용
+        - hover 전용 상호작용으로 끝나지 않는지, 포커스 상태 누락 여부
+        - 텍스트 대비, 가독성, 스크롤 영역, overflow/clip, z-index 충돌
+        시각적 취향보다 실제 레이아웃 붕괴와 사용성 저하 가능성을 우선 보고하세요.
+    - path: "package.json"
+      instructions: |
+        프론트 빌드/린트 스크립트가 현재 Vite + TypeScript + ESLint 흐름과 맞는지, 불필요하거나 누락된 검증 단계가 없는지 확인하세요.
+    - path: "tsconfig*.json"
+      instructions: |
+        TypeScript 설정 변경은 path alias, module 해석, DOM 타입, strictness 저하, 빌드/개발 환경 불일치 위험을 중점 검토하세요.
+    - path: "src/**/*.{test,spec}.ts"
+      instructions: |
+        유틸/서비스 테스트는 경계값, 예외 입력, storage 동기화, 필터링/정렬 로직의 회귀를 충분히 검증하는지 확인하세요.
+    - path: "src/**/*.{test,spec}.tsx"
+      instructions: |
+        컴포넌트 테스트는 로딩/에러/빈 상태, 사용자 이벤트, 권한별 렌더링 분기, 접근성 쿼리 사용 여부를 중점 검토하세요.
+
+chat:
+  auto_reply: true

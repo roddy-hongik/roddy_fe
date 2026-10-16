@@ -1,24 +1,86 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import { getJobPostingMatch } from '../../api/services/jobService'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ROUTES } from '../../routes/paths'
 import { AUTH_CHANGE_EVENT } from '../../auth/utils/authEvents'
 import AppTopNav from '../../shared/components/AppTopNav'
 import JobScrapButton from '../components/JobScrapButton'
-import { jobPostings } from '../data/jobPostings'
-import { toJobPostingPreview } from '../services/jobScrapService'
-import type { JobPostingMatch } from '../types/jobMatching'
+import { getJobPosting, getJobPostingMatch } from '../services/jobPostingService'
+import type { JobPostingDetail, JobPostingMatch } from '../types/jobPosting'
+import { formatDeadline, formatPostedAt, orNotProvided } from '../utils/jobFormat'
 import '../styles/job-pages.css'
+
+/** 어느 요청의 결과인지 함께 들고 있으면 로딩/에러를 따로 저장하지 않고 지금 화면과 비교해 가려낼 수 있다. */
+type DetailResult = {
+  requestKey: string
+  job: JobPostingDetail | null
+  isError: boolean
+}
+
+const toRequestKey = (jobId: string, isLoggedIn: boolean) => `${jobId}::${isLoggedIn}`
+
+type MatchResult = {
+  requestKey: string
+  match: JobPostingMatch | null
+  isError: boolean
+}
+
+type MatchSummaryProps = {
+  isLoggedIn: boolean
+  isLoading: boolean
+  isError: boolean
+  match: JobPostingMatch | null
+}
+
+/** 매칭률 자리. 숫자를 낼 수 없는 경우마다 이유를 다르게 알린다. 0% 로 뭉뚱그리면 "적합하지 않다"로 읽힌다. */
+function MatchSummary({ isLoggedIn, isLoading, isError, match }: MatchSummaryProps) {
+  if (!isLoggedIn) {
+    return <p className="detail-note">로그인 후 내 기술 스택과의 매칭률을 확인할 수 있습니다.</p>
+  }
+
+  if (isLoading) {
+    return <p className="detail-note">매칭 분석을 불러오는 중입니다.</p>
+  }
+
+  if (isError || !match) {
+    return <p className="detail-note">매칭 분석을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>
+  }
+
+  if (match.userStackCount === 0) {
+    return (
+      <p className="detail-note">
+        아직 역량 분석 결과가 없어 매칭률을 낼 수 없습니다.{' '}
+        <Link className="detail-inline-link" to={ROUTES.profileReanalyze}>
+          역량 분석 받기
+        </Link>
+      </p>
+    )
+  }
+
+  if (match.matchRate === null) {
+    return <p className="detail-note">이 공고에서 요구 기술을 찾지 못해 매칭률을 계산할 수 없습니다.</p>
+  }
+
+  return (
+    <>
+      <strong className="hero-match">{match.matchRate}% Match</strong>
+      <p className="detail-note">
+        요구 기술 {match.requiredCount}개 중 {match.matchedCount}개를 갖고 있습니다.
+      </p>
+    </>
+  )
+}
 
 function JobPostingDetailPage() {
   const navigate = useNavigate()
   const { jobId } = useParams()
+  const [result, setResult] = useState<DetailResult | null>(null)
+  const [isScrapPending, setIsScrapPending] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(Boolean(localStorage.getItem('accessToken')))
-  const [jobMatch, setJobMatch] = useState<JobPostingMatch | null>(null)
-  const [loadedJobId, setLoadedJobId] = useState<string | null>(null)
+  const [matchResult, setMatchResult] = useState<MatchResult | null>(null)
 
-  const job = useMemo(() => jobPostings.find((item) => item.id === jobId) ?? jobPostings[0], [jobId])
-  const jobPreview = useMemo(() => toJobPostingPreview(job), [job])
+  /** 먼저 떠난 요청이 나중에 도착해 최신 화면을 덮어쓰지 않도록 한다. */
+  const requestIdRef = useRef(0)
+  const matchRequestIdRef = useRef(0)
 
   useEffect(() => {
     const syncLoginStatus = () => {
@@ -35,158 +97,199 @@ function JobPostingDetailPage() {
     }
   }, [])
 
-  const averageGap = useMemo(() => {
-    if (!isLoggedIn || !jobMatch || jobMatch.matchingInsights.length === 0) {
-      return null
-    }
-
-    const totalGap = jobMatch.matchingInsights.reduce((acc, item) => acc + (item.userScore - item.requiredScore), 0)
-    return Math.round(totalGap / jobMatch.matchingInsights.length)
-  }, [isLoggedIn, jobMatch])
+  const requestKey = jobId ? toRequestKey(jobId, isLoggedIn) : ''
 
   useEffect(() => {
-    if (!isLoggedIn) {
+    if (!jobId) {
       return
     }
 
-    let isMounted = true
-    const requestedJobId = job.id
+    const requestId = requestIdRef.current + 1
+    requestIdRef.current = requestId
 
-    getJobPostingMatch(job.id)
+    getJobPosting(jobId)
       .then((response) => {
-        if (!isMounted) {
+        if (requestIdRef.current !== requestId) {
           return
         }
 
-        setJobMatch(response)
-        setLoadedJobId(requestedJobId)
+        setResult({ requestKey, job: response, isError: false })
       })
       .catch(() => {
-        if (!isMounted) {
+        if (requestIdRef.current !== requestId) {
           return
         }
 
-        setJobMatch(null)
-        setLoadedJobId(requestedJobId)
+        setResult({ requestKey, job: null, isError: true })
       })
 
     return () => {
-      isMounted = false
+      requestIdRef.current += 1
     }
-  }, [isLoggedIn, job.id])
+  }, [jobId, requestKey])
 
-  const resolvedJobMatch = isLoggedIn && loadedJobId === job.id ? jobMatch : null
-  const resolvedJobMatchLoading = isLoggedIn && loadedJobId !== job.id
+  useEffect(() => {
+    // 매칭 분석은 로그인해야 받을 수 있다. 로그아웃 상태는 요청 없이 안내만 한다.
+    if (!jobId || !isLoggedIn) {
+      return
+    }
+
+    const requestId = matchRequestIdRef.current + 1
+    matchRequestIdRef.current = requestId
+
+    getJobPostingMatch(jobId)
+      .then((response) => {
+        if (matchRequestIdRef.current !== requestId) {
+          return
+        }
+
+        setMatchResult({ requestKey, match: response, isError: false })
+      })
+      .catch(() => {
+        if (matchRequestIdRef.current !== requestId) {
+          return
+        }
+
+        setMatchResult({ requestKey, match: null, isError: true })
+      })
+
+    return () => {
+      matchRequestIdRef.current += 1
+    }
+  }, [jobId, isLoggedIn, requestKey])
+
+  /** 지금 보고 있는 조건의 응답만 화면에 쓴다. 아직 없으면 그게 곧 로딩 중이라는 뜻이다. */
+  const currentResult = result && result.requestKey === requestKey ? result : null
+  const isLoading = currentResult === null
+  const isError = currentResult?.isError ?? false
+  const job = currentResult?.job ?? null
+
+  const currentMatch = matchResult && matchResult.requestKey === requestKey ? matchResult : null
+  const isMatchLoading = isLoggedIn && currentMatch === null
+  const match = currentMatch?.match ?? null
+  /** 분석 결과가 있을 때만 기술별로 편다. 분석 전에 전부 "보유하지 않음"으로 보이면 실력이 없다는 뜻으로 읽힌다. */
+  const canShowStackFit = Boolean(match && match.requiredCount > 0 && match.userStackCount > 0)
+
+  const handleScrapToggled = (isScrapped: boolean) => {
+    setResult((previous) => (previous?.job ? { ...previous, job: { ...previous.job, isScrapped } } : previous))
+  }
+
+  const topNav = <AppTopNav loginRedirectPath={ROUTES.jobs} />
+
+  const backToList = (
+    <div className="detail-toolbar">
+      <button type="button" className="detail-back-button" onClick={() => navigate(ROUTES.jobs)}>
+        목록으로
+      </button>
+    </div>
+  )
+
+  if (isLoading) {
+    return (
+      <main className="jobs-page detail-page">
+        {topNav}
+        {backToList}
+        <section className="detail-layout">
+          <article className="glass-panel detail-main">
+            <p className="detail-note">공고를 불러오는 중입니다.</p>
+          </article>
+        </section>
+      </main>
+    )
+  }
+
+  if (isError || !job) {
+    return (
+      <main className="jobs-page detail-page">
+        {topNav}
+        {backToList}
+        <section className="detail-layout">
+          <article className="glass-panel detail-main">
+            <p className="detail-note">공고를 찾을 수 없습니다. 마감되었거나 삭제된 공고일 수 있습니다.</p>
+            <button type="button" className="apply-btn-large" onClick={() => navigate(ROUTES.jobs)}>
+              목록으로 돌아가기
+            </button>
+          </article>
+        </section>
+      </main>
+    )
+  }
 
   return (
     <main className="jobs-page detail-page">
-      <AppTopNav
-        loginRedirectPath={ROUTES.jobs}
-        rightSlot={
-          <button type="button" className="app-top-nav__action-button" onClick={() => navigate(ROUTES.jobs)}>
-            목록으로
-          </button>
-        }
-      />
+      {topNav}
+      {backToList}
 
       <section className="detail-layout">
         <article className="glass-panel detail-main">
           <div className="detail-badge-row">
-            <span>{job.workType}</span>
-            <span>마감 {job.deadline}</span>
-            {jobPreview.matchingScore != null ? <span>추천 매칭률 {jobPreview.matchingScore}%</span> : null}
-            {isLoggedIn && resolvedJobMatch ? <span>매칭률 {resolvedJobMatch.matchRate}%</span> : null}
+            {job.workType ? <span>{job.workType}</span> : null}
+            {job.status === 'CLOSED' ? <span>마감된 공고</span> : null}
+            <span>마감 {formatDeadline(job.deadline)}</span>
           </div>
 
           <h1>{job.title}</h1>
           <p className="detail-company">{job.company}</p>
-          <p className="detail-summary">{job.summary}</p>
 
           <section className="hero-highlight">
             <div>
               <p className="label">지금 공고와 사용자 스택 적합도</p>
-              {isLoggedIn ? (
-                resolvedJobMatchLoading ? (
-                  <p className="detail-note">매칭 분석을 불러오는 중입니다.</p>
-                ) : resolvedJobMatch && averageGap !== null ? (
-                  <>
-                    <strong className="hero-match">{resolvedJobMatch.matchRate}% Match</strong>
-                    <p className="detail-note">핵심 스택 평균 대비 {averageGap >= 0 ? `+${averageGap}` : averageGap}점</p>
-                  </>
-                ) : (
-                  <p className="detail-note">개인화된 매칭 분석을 아직 불러오지 못했습니다.</p>
-                )
-              ) : (
-                <p className="detail-note">로그인 후 내 기술 스택과의 매칭률을 확인할 수 있습니다.</p>
-              )}
+              <MatchSummary
+                isLoggedIn={isLoggedIn}
+                isLoading={isMatchLoading}
+                isError={currentMatch?.isError ?? false}
+                match={match}
+              />
             </div>
             <div className="detail-hero-actions">
-              <JobScrapButton jobId={job.id} className="detail-scrap-button" />
-              <button type="button" className="apply-btn-large">
+              {isLoggedIn ? (
+                <JobScrapButton
+                  jobPostingId={job.id}
+                  isScrapped={job.isScrapped}
+                  className="detail-scrap-button"
+                  disabled={isScrapPending}
+                  onToggled={handleScrapToggled}
+                  onTogglingChange={setIsScrapPending}
+                />
+              ) : null}
+              <a className="apply-btn-large" href={job.applyUrl} target="_blank" rel="noreferrer noopener">
                 지원하기
-              </button>
+              </a>
             </div>
           </section>
 
-          {isLoggedIn ? (
+          {canShowStackFit && match ? (
             <section className="detail-section">
               <h2>기술 스택 매칭 분석</h2>
-              {resolvedJobMatchLoading ? (
-                <p className="detail-note">매칭 분석을 준비하고 있습니다.</p>
-              ) : resolvedJobMatch ? (
-                <div className="stack-fit-list">
-                  {resolvedJobMatch.matchingInsights.map((insight) => {
-                    const percentage = Math.max(insight.userScore, insight.requiredScore)
-                    const scoreLine = Math.min(insight.userScore, 100)
-                    return (
-                      <article key={insight.stack} className="stack-fit-card">
-                        <div className="stack-fit-head">
-                          <h3>{insight.stack}</h3>
-                          <p>
-                            사용자 {insight.userScore} / 요구 {insight.requiredScore}
-                          </p>
-                        </div>
-                        <div className="stack-progress-track" aria-hidden="true" style={{ width: `${percentage}%` }}>
-                          <span style={{ width: `${scoreLine}%` }} />
-                        </div>
-                        <p className="stack-note">{insight.note}</p>
-                      </article>
-                    )
-                  })}
-                </div>
-              ) : (
-                <p className="detail-note">로그인은 확인되었지만 개인화된 매칭 데이터를 가져오지 못했습니다.</p>
-              )}
+              <div className="stack-fit-list">
+                {match.stacks.map((stack) => (
+                  <article key={stack.name} className={`stack-fit-card ${stack.held ? '' : 'is-missing'}`.trim()}>
+                    <div className="stack-fit-head">
+                      <h3>{stack.name}</h3>
+                      <p>{stack.held ? `내 숙련도 ${stack.userScore}점` : '보유하지 않음'}</p>
+                    </div>
+                    <div className="stack-progress-track" aria-hidden="true">
+                      <span style={{ width: `${stack.userScore}%` }} />
+                    </div>
+                  </article>
+                ))}
+              </div>
+              {match.missingStacks.length > 0 ? (
+                <p className="stack-note">채우면 좋은 기술: {match.missingStacks.join(', ')}</p>
+              ) : null}
             </section>
           ) : null}
 
           <section className="detail-section">
-            <h2>주요 업무</h2>
-            <ul>
-              {job.responsibilities.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
+            <h2>공고 내용</h2>
+            {job.content ? (
+              <p className="detail-content">{job.content}</p>
+            ) : (
+              <p className="detail-note">
+                이 공고의 본문은 아직 수집되지 않았습니다. 지원하기를 눌러 채용 사이트에서 확인해주세요.
+              </p>
+            )}
           </section>
-
-          <section className="detail-section">
-            <h2>자격 요건</h2>
-            <ul>
-              {job.requirements.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </section>
-
-          <section className="detail-section">
-            <h2>우대 사항</h2>
-            <ul>
-              {job.preferred.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </section>
-
         </article>
 
         <aside className="glass-panel detail-side">
@@ -194,36 +297,52 @@ function JobPostingDetailPage() {
           <div className="side-meta">
             <p>
               <span>직무</span>
-              <strong>{job.team}</strong>
+              <strong>{orNotProvided(job.recruitField)}</strong>
             </p>
             <p>
               <span>경력</span>
-              <strong>{job.experience}</strong>
+              <strong>{orNotProvided(job.experience)}</strong>
             </p>
             <p>
               <span>근무지</span>
-              <strong>{job.location}</strong>
-            </p>
-            <p>
-              <span>연봉</span>
-              <strong>{job.salary}</strong>
+              <strong>{orNotProvided(job.location)}</strong>
             </p>
             <p>
               <span>근무 형태</span>
-              <strong>{job.workType}</strong>
+              <strong>{orNotProvided(job.workType)}</strong>
+            </p>
+            <p>
+              <span>등록일</span>
+              <strong>{formatPostedAt(job.postedAt) || '정보 없음'}</strong>
             </p>
           </div>
 
-          <div className="tech-chip-wrap">
-            {job.techStacks.map((stack) => (
-              <span key={stack}>{stack}</span>
-            ))}
-          </div>
+          {job.techStacks.length > 0 ? (
+            <div className="tech-chip-wrap">
+              {job.techStacks.map((stack) => (
+                <span key={stack}>{stack}</span>
+              ))}
+            </div>
+          ) : null}
 
-          <JobScrapButton jobId={job.id} className="detail-side-scrap-button" />
-          <button type="button" className="apply-btn-large full">
-            즉시 지원
-          </button>
+          {isLoggedIn ? (
+            <JobScrapButton
+              jobPostingId={job.id}
+              isScrapped={job.isScrapped}
+              className="detail-side-scrap-button"
+              disabled={isScrapPending}
+              onToggled={handleScrapToggled}
+              onTogglingChange={setIsScrapPending}
+            />
+          ) : null}
+          {isLoggedIn ? (
+            <Link className="apply-btn-large full" to={`/cover-letters/new?jobPostingId=${job.id}`}>
+              이 공고의 자기소개서 작성
+            </Link>
+          ) : null}
+          <a className="apply-btn-large full" href={job.applyUrl} target="_blank" rel="noreferrer noopener">
+            채용 사이트에서 지원
+          </a>
         </aside>
       </section>
     </main>

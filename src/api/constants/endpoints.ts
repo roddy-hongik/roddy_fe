@@ -14,6 +14,7 @@ export const API_ENDPOINTS = {
   profile: {
     summary: '/api/mypage/profile',
     update: '/api/mypage/profile',
+    imagePresign: '/api/mypage/profile-image/presign',
     deleteAccount: '/api/mypage/me',
     // Backend API is not available yet. Keep the frontend placeholder flow for now.
     reanalyze: '/api/reports/reanalyze',
@@ -22,8 +23,10 @@ export const API_ENDPOINTS = {
     posts: '/api/studies',
     detail: '/api/studies/:id',
     apply: '/api/studies/:id/applications',
+    updateApplicationStatus: '/api/studies/:id/applications/:applicationId',
     cancelApplication: '/api/studies/:id/applications/me',
     close: '/api/studies/:id/close',
+    reopen: '/api/studies/:id/reopen',
     myApplications: '/api/studies/applications/me',
   },
   community: {
@@ -32,34 +35,50 @@ export const API_ENDPOINTS = {
     like: '/api/community/posts/:id/like',
     report: '/api/community/posts/:id/report',
     comments: '/api/community/posts/:id/comments',
+    comment: '/api/community/comments/:id',
+    commentReport: '/api/community/comments/:id/report',
+    likedPosts: '/api/community/posts/likes/me',
+    filterOptions: '/api/community/posts/filter-options',
   },
-  // Mock domain until backend API is implemented.
   dashboard: {
     summary: '/api/dashboard/summary',
   },
-  // Mock domain until backend API is implemented.
   jobs: {
+    list: '/api/jobs',
+    detail: '/api/jobs/:id',
+    scrap: '/api/jobs/:id/scrap',
+    myScraps: '/api/jobs/scraps/me',
     match: '/api/jobs/:id/match',
   },
-  // Mock domain until backend API is implemented.
   roadmap: {
     summary: '/api/roadmap/summary',
     generate: '/api/roadmap/generate',
     saved: '/api/roadmap/saved',
   },
-  // Mock domain until backend API is implemented.
+  mockInterview: {
+    questions: '/api/mock-interview/questions',
+  },
+  notifications: {
+    list: '/api/notifications',
+    read: '/api/notifications/:id/read',
+    readAll: '/api/notifications/read-all',
+  },
   reports: {
-    myReports: '/api/reports/me',
-    detail: '/api/reports/:id',
-    detailAnalysis: '/api/reports/:id/detail-analysis',
+    myReports: '/api/analysis/reports/me',
+    detail: '/api/analysis/reports/:id',
     payment: '/api/reports/payment',
   },
-  // Mock domain until backend API is implemented.
   admin: {
     crawlingDashboard: '/api/admin/crawling/dashboard',
+    crawlingRun: '/api/admin/crawling/run',
     users: '/api/admin/users',
+    userStatus: '/api/admin/users/:id/status',
     reportedContents: '/api/admin/reported-contents',
+    reportedPost: '/api/admin/reported-contents/posts/:id',
+    reportedComment: '/api/admin/reported-contents/comments/:id',
     graphSearch: '/api/admin/graph/search',
     graphEdges: '/api/admin/graph/edges',
+    graphEdge: '/api/admin/graph/edges/:id',
+    graphRebuild: '/api/admin/graph/rebuild',
   },
 } as const

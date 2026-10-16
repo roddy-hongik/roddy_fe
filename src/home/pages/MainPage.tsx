@@ -4,9 +4,7 @@ import { PolarAngleAxis, PolarGrid, Radar, RadarChart, ResponsiveContainer, Tool
 import { getDashboardData } from '../../api/services/dashboardService'
 import { getCurrentAccountStorageId } from '../../auth/utils/accountStorage'
 import { AUTH_CHANGE_EVENT } from '../../auth/utils/authEvents'
-import NotificationsDropdown from '../../notifications/components/NotificationsDropdown'
 import { ROUTES, routePaths } from '../../routes/paths'
-import AppTopNav from '../../shared/components/AppTopNav'
 import type { DashboardData } from '../../api/types/dashboard'
 import '../styles/main-page.css'
 
@@ -38,6 +36,7 @@ function MainPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(Boolean(localStorage.getItem('accessToken')))
   const [authAccountId, setAuthAccountId] = useState(() => getCurrentAccountStorageId())
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
+  const [isDashboardError, setIsDashboardError] = useState(false)
   const [loadedDashboardAccountId, setLoadedDashboardAccountId] = useState<string | null>(null)
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null)
   const [chartAnimationKey, setChartAnimationKey] = useState(0)
@@ -75,6 +74,7 @@ function MainPage() {
         setDashboardData(data)
         setLoadedDashboardAccountId(requestedAccountId)
         setChartAnimationKey((prev) => prev + 1)
+        setIsDashboardError(false)
       })
       .catch(() => {
         if (!isMounted) {
@@ -83,6 +83,7 @@ function MainPage() {
 
         setDashboardData(null)
         setLoadedDashboardAccountId(requestedAccountId)
+        setIsDashboardError(true)
       })
 
     return () => {
@@ -91,21 +92,18 @@ function MainPage() {
   }, [authAccountId, isLoggedIn])
 
   const resolvedDashboardData = isLoggedIn && loadedDashboardAccountId === authAccountId ? dashboardData : null
-
-  const userName = useMemo(() => {
-    if (resolvedDashboardData?.userName) {
-      return resolvedDashboardData.userName
-    }
-
-    return localStorage.getItem('userName') ?? '신애'
-  }, [resolvedDashboardData])
+  const isDashboardLoading = isLoggedIn && loadedDashboardAccountId !== authAccountId
 
   const handleOpenJobPosting = (jobId: string) => {
     navigate(routePaths.jobDetail(jobId))
   }
 
   const handleOpenDetailedReport = () => {
-    navigate(ROUTES.reportsDetailAnalysis)
+    if (resolvedDashboardData?.reportId) {
+      navigate(routePaths.reportDetailAnalysis(resolvedDashboardData.reportId))
+      return
+    }
+    navigate(ROUTES.reports)
   }
 
   const handleLoginRedirect = () => {
@@ -141,14 +139,14 @@ function MainPage() {
 
   return (
     <main className="main-page">
-      <AppTopNav userNameOverride={userName} notificationSlot={<NotificationsDropdown />} />
-
       <section className="hero">
         <div className={`hero-content ${isLoggedIn ? '' : 'is-blurred'}`}>
           <div className="hero-top">
             <section className="glass-panel chart-panel">
               <h2>기술 스택 대시보드</h2>
               <p className="chart-guide">육각형 그래프 카테고리에 마우스를 올리면 상세 기술 분석이 오른쪽에 표시됩니다.</p>
+              {isDashboardLoading ? <p className="chart-guide">대시보드를 불러오는 중입니다...</p> : null}
+              {!isDashboardLoading && isDashboardError ? <p className="chart-guide">대시보드를 불러오지 못했습니다.</p> : null}
               <div className="chart-wrap">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart

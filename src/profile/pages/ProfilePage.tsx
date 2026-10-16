@@ -4,26 +4,23 @@ import { deleteAccount, getProfileSummary } from '../../api/services/profileServ
 import { emitAuthChange } from '../../auth/utils/authEvents'
 import { clearAuthSession } from '../../auth/utils/authStorage'
 import { ROUTES } from '../../routes/paths'
+import { toDesiredJobLabel, toExperienceLevelLabel } from '../../shared/utils/careerLabels'
 import type { ProfileSummary } from '../types/profile'
+import { clearProfileCache, readProfileCache, writeProfileCache } from '../utils/profileCache'
 
-const FALLBACK_PROFILE: ProfileSummary = {
-  name: localStorage.getItem('userName') ?? '사용자',
-  age: Number(localStorage.getItem('userAge') ?? 0),
-  profileImageUrl: localStorage.getItem('userImageUrl'),
-  desiredJob: localStorage.getItem('userDesiredJob') ?? '',
-  desiredCompany: localStorage.getItem('userPreferredCompanies') ?? '',
-  experienceYears: localStorage.getItem('userExperienceYears') ?? '',
-  portfolioFileName: localStorage.getItem('userPortfolioFileName') ?? '',
-  portfolioUrl: localStorage.getItem('userPortfolioUrl'),
-  githubConnected: localStorage.getItem('githubConnected') === 'true',
-}
+const emptyProfile = (): ProfileSummary => ({
+  name: localStorage.getItem('userName') ?? '사용자', age: 0, profileImageUrl: null,
+  desiredJob: '', desiredCompany: '', experienceYears: '', portfolioFileName: '',
+  portfolioUrl: null, githubConnected: false,
+})
 
 function ProfilePage() {
   const navigate = useNavigate()
-  const [profile, setProfile] = useState<ProfileSummary>(FALLBACK_PROFILE)
+  const [profile, setProfile] = useState<ProfileSummary>(() => readProfileCache() ?? emptyProfile())
   const [isLoading, setIsLoading] = useState(true)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const preferredCompanies = localStorage.getItem('userPreferredCompanies') ?? '-'
+  const [deleteError, setDeleteError] = useState('')
+  const [loadError, setLoadError] = useState('')
 
   useEffect(() => {
     let isMounted = true
@@ -34,24 +31,21 @@ function ProfilePage() {
           return
         }
 
+        setLoadError('')
         setProfile(data)
+        writeProfileCache(data)
         localStorage.setItem('userName', data.name)
-        localStorage.setItem('userAge', String(data.age))
-        if (data.profileImageUrl) {
-          localStorage.setItem('userImageUrl', data.profileImageUrl)
-        }
-        localStorage.setItem('userDesiredJob', data.desiredJob)
-        localStorage.setItem('userPreferredCompanies', data.desiredCompany)
-        localStorage.setItem('userExperienceYears', data.experienceYears)
-        localStorage.setItem('userPortfolioFileName', data.portfolioFileName)
-        localStorage.setItem('userPortfolioUrl', data.portfolioUrl ?? '')
       })
       .catch(() => {
         if (!isMounted) {
           return
         }
 
-        setProfile(FALLBACK_PROFILE)
+        const cached = readProfileCache()
+        setProfile(cached ?? emptyProfile())
+        setLoadError(cached
+          ? '프로필 정보를 최신 상태로 불러오지 못했습니다. 이 계정에 저장된 정보로 표시합니다.'
+          : '프로필 정보를 불러오지 못했습니다.')
       })
       .finally(() => {
         if (isMounted) {
@@ -68,29 +62,25 @@ function ProfilePage() {
 
   const handleDeleteAccount = async () => {
     try {
+      setDeleteError('')
       await deleteAccount()
-    } catch {
-      // Delete API failure should not block local logout flow.
-    } finally {
+      clearProfileCache()
       clearAuthSession()
-      localStorage.removeItem('userAge')
-      localStorage.removeItem('userImageUrl')
-      localStorage.removeItem('userDesiredJob')
-      localStorage.removeItem('userPreferredCompanies')
-      localStorage.removeItem('userExperienceYears')
-      localStorage.removeItem('userPortfolioFileName')
-      localStorage.removeItem('userPortfolioUrl')
       emitAuthChange()
       navigate(ROUTES.login, { replace: true })
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : '회원 탈퇴에 실패했습니다.')
     }
   }
 
   return (
     <div className="profile-page profile-fade-in">
+      <Link className="profile-action-btn" to={ROUTES.coverLetters}>내 자기소개서 관리</Link>
       <section className="profile-card">
         <header className="profile-card-header">
           <h1>마이페이지</h1>
           <p>개인 정보와 커리어 설정을 한 화면에서 관리하세요.</p>
+          {loadError ? <p className="profile-error-text">{loadError}</p> : null}
         </header>
 
         <section className="profile-hero-section glass-style">
@@ -119,15 +109,15 @@ function ProfilePage() {
                 </div>
                 <div className="profile-info-row">
                   <span>희망 직무</span>
-                  <strong>{profile.desiredJob || '-'}</strong>
+                  <strong>{toDesiredJobLabel(profile.desiredJob) || '-'}</strong>
                 </div>
                 <div className="profile-info-row">
                   <span>희망 기업</span>
-                  <strong>{profile.desiredCompany || preferredCompanies}</strong>
+                  <strong>{profile.desiredCompany || '-'}</strong>
                 </div>
                 <div className="profile-info-row">
                   <span>경력</span>
-                  <strong>{profile.experienceYears || '-'}</strong>
+                  <strong>{toExperienceLevelLabel(profile.experienceYears) || '-'}</strong>
                 </div>
                 <div className="profile-info-row">
                   <span>GitHub 연동</span>
@@ -164,6 +154,7 @@ function ProfilePage() {
           <div className="profile-modal">
             <h3 id="delete-title">회원 탈퇴</h3>
             <p>탈퇴 후 데이터는 복구할 수 없습니다. 정말 진행할까요?</p>
+            {deleteError ? <p className="profile-error-text">{deleteError}</p> : null}
             <div className="profile-modal-actions">
               <button type="button" className="profile-ghost-btn" onClick={() => setIsDeleteModalOpen(false)}>
                 취소

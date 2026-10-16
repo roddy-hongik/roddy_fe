@@ -19,6 +19,7 @@ export interface CommunityComment {
   depth: 0 | 1
   parentId: string | null
   createdAt: string
+  mine: boolean
 }
 
 interface BaseCommunityPost {
@@ -81,6 +82,20 @@ export interface InterviewPost extends BaseCommunityPost {
 export type CommunityPostSummary = GeneralPostSummary | RoadmapSharePost | InterviewPost
 export type CommunityPostDetail = GeneralPostDetail | RoadmapSharePost | InterviewPost
 
+/** 게시글 목록 한 페이지. page 는 0부터 센다. */
+export interface CommunityPostPage {
+  posts: CommunityPostSummary[]
+  page: number
+  totalPages: number
+}
+
+/** 목록 필터의 선택지. 불러온 페이지와 상관없이 전체 글에서 모은 값이다. */
+export interface CommunityFilterOptions {
+  companies: string[]
+  jobRoles: string[]
+  techStacks: string[]
+}
+
 export interface CommunityPostFilters {
   type?: CommunityPostListTab
   trackTag?: JobTrackTagKey | 'all'
@@ -109,6 +124,8 @@ export interface CreateCommunityPostPayload {
   jobRole?: string
   techStacks: string[]
   image?: File | null
+  /** 로드맵 공유 글이 싣는 저장한 로드맵. */
+  roadmap?: RoadmapShareCandidate | null
 }
 
 export interface CreateCommunityPostResponse {
