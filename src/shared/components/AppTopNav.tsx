@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { logoutFromServer } from '../../api/services/authService'
+import { logoutFromServer, takeTokensForLogout } from '../../api/services/authService'
 import { AUTH_CHANGE_EVENT, emitAuthChange } from '../../auth/utils/authEvents'
 import { clearAuthSession } from '../../auth/utils/authStorage'
 import { ROUTES } from '../../routes/paths'
@@ -55,14 +55,15 @@ function AppTopNav({ loginRedirectPath, onLogout, rightSlot, showSavedLink = fal
     navigate(ROUTES.login, { state: { from: { pathname: resolvedLoginRedirectPath } } })
   }
 
-  const handleLogout = async () => {
-    // 서버의 리프레시 토큰을 먼저 지운다. 실패해도 이 기기에서는 로그아웃한다.
-    await logoutFromServer()
+  const handleLogout = () => {
+    // 토큰을 꺼내 둔 뒤 이 기기의 세션부터 지운다. 서버 로그아웃은 기다리지 않는다.
+    const tokens = takeTokensForLogout()
     clearAuthSession()
     emitAuthChange()
     setAuthSnapshot(readAuthSnapshot())
     onLogout?.()
     navigate(ROUTES.login, { replace: true })
+    logoutFromServer(tokens)
   }
 
   return (
@@ -130,7 +131,7 @@ function AppTopNav({ loginRedirectPath, onLogout, rightSlot, showSavedLink = fal
             <span className="app-top-nav__divider">|</span>
             <span className="app-top-nav__user-name">{userName}님</span>
             <span className="app-top-nav__divider">|</span>
-            <button type="button" className="app-top-nav__action-button" onClick={() => void handleLogout()}>
+            <button type="button" className="app-top-nav__action-button" onClick={handleLogout}>
               로그아웃
             </button>
           </>

@@ -1,7 +1,7 @@
 import { readTokenPair } from '../../auth/utils/authStorage'
 import { httpClient } from '../client/httpClient'
 import { API_ENDPOINTS } from '../constants/endpoints'
-import type { LoginResponse, SocialLoginRequest, SocialProvider } from '../types/auth'
+import type { LoginResponse, SocialLoginRequest, SocialProvider, TokenPair } from '../types/auth'
 
 /** 제공자에서 받은 액세스 토큰을 넘기면 백엔드가 사용자를 찾거나 만들고 Roddy 토큰을 준다. */
 export function loginWithSocial(provider: SocialProvider, providerAccessToken: string): Promise<LoginResponse> {
@@ -12,16 +12,25 @@ export function loginWithSocial(provider: SocialProvider, providerAccessToken: s
   })
 }
 
+const LOGOUT_TIMEOUT_MS = 5000
+
+/** 지금 저장된 토큰. 로컬 세션을 먼저 지우기 전에 꺼내 둔다. */
+export const takeTokensForLogout = (): TokenPair | null => readTokenPair()
+
 /**
  * 서버의 리프레시 토큰을 지우고 액세스 토큰을 블랙리스트에 올린다.
- * 서버가 실패해도 화면에서는 로그아웃해야 하므로 오류는 삼킨다. 세션 정리는 부르는 쪽이 한다.
+ * 로컬 로그아웃은 이 요청을 기다리지 않는다. 응답이 늦어도 5초 뒤 끊고, 실패해도 오류를 삼킨다.
  */
-export async function logoutFromServer(): Promise<void> {
-  const tokens = readTokenPair()
+export function logoutFromServer(tokens: TokenPair | null): void {
   if (!tokens) return
 
-  await httpClient<null>(API_ENDPOINTS.auth.logout, {
+  const controller = new AbortController()
+  const timer = window.setTimeout(() => controller.abort(), LOGOUT_TIMEOUT_MS)
+  void httpClient<null>(API_ENDPOINTS.auth.logout, {
     method: 'POST',
     body: JSON.stringify(tokens),
-  }).catch(() => undefined)
+    signal: controller.signal,
+  })
+    .catch(() => undefined)
+    .finally(() => window.clearTimeout(timer))
 }
