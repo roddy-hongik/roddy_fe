@@ -30,18 +30,38 @@ type BackendAdminUserListResponse = {
 
 type BackendReportedContent = Omit<ReportedContent, 'id' | 'contentId'> & { id: number }
 
-/** 화면이 한 번에 받아 거르고 정렬한다. 백엔드가 허용하는 가장 큰 페이지다. */
+/** 백엔드가 허용하는 가장 큰 페이지다. */
 const ADMIN_USER_PAGE_SIZE = 100
+/** 페이지가 끝없이 이어지는 경우를 막는 안전장치. 100 × 200 = 2만 명까지 받는다. */
+const ADMIN_USER_MAX_PAGES = 200
 
 const replaceId = (path: string, id: string) => path.replace(':id', encodeURIComponent(id))
 
 const toAdminUser = (user: BackendAdminUser): AdminUser => ({ ...user, id: String(user.id) })
 
+/**
+ * 화면이 검색·상태 필터·정렬을 직접 하므로 모든 페이지를 받아 합친다.
+ * 백엔드 목록 API 는 검색 조건 없이 페이지만 받는다. 첫 페이지만 받으면 101번째 사용자부터는 찾을 수도, 정지할 수도 없다.
+ */
 export const getAdminUsers = async (): Promise<AdminUser[]> => {
-  const response = await httpClient<BackendAdminUserListResponse>(
-    `${API_ENDPOINTS.admin.users}?page=0&size=${ADMIN_USER_PAGE_SIZE}`,
-  )
-  return response.users.map(toAdminUser)
+  const users: AdminUser[] = []
+  const seen = new Set<string>()
+
+  for (let page = 0; page < ADMIN_USER_MAX_PAGES; page += 1) {
+    const response = await httpClient<BackendAdminUserListResponse>(
+      `${API_ENDPOINTS.admin.users}?page=${page}&size=${ADMIN_USER_PAGE_SIZE}`,
+    )
+    // 받는 사이 가입자가 늘면 페이지 경계가 밀려 같은 사람이 다시 온다.
+    response.users.map(toAdminUser).forEach((user) => {
+      if (!seen.has(user.id)) {
+        seen.add(user.id)
+        users.push(user)
+      }
+    })
+    if (page + 1 >= response.totalPages || response.users.length === 0) break
+  }
+
+  return users
 }
 
 /** 계정을 정지하거나 푼다. 어드민 계정은 정지할 수 없어 400 으로 실패한다. */
