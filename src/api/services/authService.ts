@@ -1,26 +1,27 @@
-import type { LoginResponse, SocialProvider } from '../types/auth'
+import { readTokenPair } from '../../auth/utils/authStorage'
+import { httpClient } from '../client/httpClient'
+import { API_ENDPOINTS } from '../constants/endpoints'
+import type { LoginResponse, SocialLoginRequest, SocialProvider } from '../types/auth'
 
-const getMockLoginResponse = (provider: SocialProvider): LoginResponse => {
-  const isOnboard = localStorage.getItem('isOnboard') === 'true'
-  const githubConnected = localStorage.getItem('githubConnected') === 'true'
-
-  return {
-    accessToken: `mock-${provider}-access-token`,
-    refreshToken: `mock-${provider}-refresh-token`,
-    isOnboard,
-    githubConnected,
-    // 소셜 로그인이 아직 목이라, 누구든 관리자로 들어오던 기존 동작을 유지한다.
-    // 실제 API 를 붙이면 서버가 준 role 을 그대로 저장한다.
-    role: 'ADMIN',
-  }
+/** 제공자에서 받은 액세스 토큰을 넘기면 백엔드가 사용자를 찾거나 만들고 Roddy 토큰을 준다. */
+export function loginWithSocial(provider: SocialProvider, providerAccessToken: string): Promise<LoginResponse> {
+  const body: SocialLoginRequest = { accessToken: providerAccessToken }
+  return httpClient<LoginResponse>(API_ENDPOINTS.auth.social[provider], {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
 }
 
-export async function loginWithKakao(token: string): Promise<LoginResponse> {
-  void token
-  return Promise.resolve(getMockLoginResponse('kakao'))
-}
+/**
+ * 서버의 리프레시 토큰을 지우고 액세스 토큰을 블랙리스트에 올린다.
+ * 서버가 실패해도 화면에서는 로그아웃해야 하므로 오류는 삼킨다. 세션 정리는 부르는 쪽이 한다.
+ */
+export async function logoutFromServer(): Promise<void> {
+  const tokens = readTokenPair()
+  if (!tokens) return
 
-export async function loginWithGoogle(token: string): Promise<LoginResponse> {
-  void token
-  return Promise.resolve(getMockLoginResponse('google'))
+  await httpClient<null>(API_ENDPOINTS.auth.logout, {
+    method: 'POST',
+    body: JSON.stringify(tokens),
+  }).catch(() => undefined)
 }

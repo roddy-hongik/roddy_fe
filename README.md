@@ -8,11 +8,35 @@
 
 아직 백엔드가 없는 도메인(`dashboard`, `reports`, `jobs`, `roadmap`, `notifications`, `mockInterview`, `admin`)은 의도적인 mock 서비스로 분리되어 있습니다.
 
+## 환경변수와 소셜 로그인 설정
+
+`.env.local` 에 넣는다. git 에 올라가지 않는다.
+
+| 이름 | 설명 |
+| --- | --- |
+| `VITE_API_BASE_URL` | 백엔드 주소. 로컬은 `http://localhost:8080` |
+| `VITE_GOOGLE_CLIENT_ID` | 구글 OAuth 웹 클라이언트 ID |
+| `VITE_KAKAO_REST_API_KEY` | 카카오 앱의 REST API 키 |
+
+로그인은 제공자 창으로 이동했다가 `/oauth/{google|kakao}/callback` 으로 돌아오는 방식이다. 콘솔에 아래를 등록해야 한다.
+
+- 구글 클라우드 콘솔 › OAuth 클라이언트(웹)
+  - 승인된 JavaScript 원본: `http://localhost:5173`, `https://jobdri.site`
+  - 승인된 리디렉션 URI: `http://localhost:5173/oauth/google/callback`, `https://jobdri.site/oauth/google/callback`
+- 카카오 디벨로퍼스 › 내 애플리케이션
+  - 카카오 로그인 활성화, Redirect URI: `http://localhost:5173/oauth/kakao/callback`, `https://jobdri.site/oauth/kakao/callback`
+  - 플랫폼 › Web 사이트 도메인에 같은 origin 등록
+  - 동의항목에서 카카오계정(이메일) 필수 동의. 백엔드가 이메일 없으면 가입을 거절한다
+  - 보안 › Client Secret 은 사용하지 않음으로 둔다. 브라우저에서 토큰을 바꾸므로 비밀값을 둘 수 없다
+
 ## Integrated APIs
 
 | 화면/도메인 | 프론트 엔드포인트 | 상태 | 비고 |
 | --- | --- | --- | --- |
-| 로그인 진입 | `mock fallback` | 프론트 임시 처리 | 소셜 로그인 API 부재로 `isOnboard`, `githubConnected` 기준 라우팅만 준비 |
+| 구글 로그인 | `POST /api/auth/google` | 실제 연동 | 구글 로그인 창에서 받은 액세스 토큰을 넘긴다 |
+| 카카오 로그인 | `POST /api/auth/kakao` | 실제 연동 | 카카오 인가 코드를 토큰으로 바꿔 넘긴다 |
+| 토큰 재발급 | `POST /api/auth/reissue` | 실제 연동 | 요청이 401 이면 한 번 재발급하고 다시 보낸다 |
+| 로그아웃 | `POST /api/auth/logout` | 실제 연동 | 서버의 리프레시 토큰을 지운 뒤 로컬 세션을 정리 |
 | 온보딩 저장 | `POST /api/onboarding` | 실제 연동 | presign 발급 후 업로드 완료 뒤 저장 |
 | 포트폴리오 presign | `POST /api/onboarding/portfolio/presign` | 실제 연동 | PDF만 허용 |
 | GitHub 상태 조회 | `GET /api/onboarding/github` | 실제 연동 | 콜백 후 상태 재조회 |
@@ -55,7 +79,6 @@
 
 ## Backend Still Needed
 
-- 소셜 로그인 API
 - 프로필 재분석 API
 - 스터디 지원자 승인/거절 API
 - 커뮤니티 대댓글 API
