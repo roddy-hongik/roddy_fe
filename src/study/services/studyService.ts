@@ -6,15 +6,36 @@ import type {
   StudyApplicationResponse,
   StudyApplicantSummary,
   StudyCloseResponse,
+  StudyMode,
   StudyPostDetail,
   StudyPostListResponse,
+  StudyStatus,
 } from '../types/study'
 
 const replaceStudyId = (path: string, studyId: string | number) => path.replace(':id', encodeURIComponent(String(studyId)))
 const replaceApplicationId = (path: string, applicationId: number) => path.replace(':applicationId', encodeURIComponent(String(applicationId)))
 
-export async function getStudies(): Promise<StudyPostListResponse> {
-  return httpClient<StudyPostListResponse>(API_ENDPOINTS.study.posts, {
+export const STUDY_PAGE_SIZE = 20
+
+export type StudyListQuery = {
+  status?: StudyStatus
+  mode?: StudyMode
+  keyword?: string
+  page?: number
+  size?: number
+}
+
+export async function getStudies(query: StudyListQuery = {}): Promise<StudyPostListResponse> {
+  const params = new URLSearchParams({
+    page: String(query.page ?? 0),
+    size: String(query.size ?? STUDY_PAGE_SIZE),
+  })
+  if (query.status) params.set('status', query.status)
+  if (query.mode) params.set('mode', query.mode)
+  const keyword = query.keyword?.trim()
+  if (keyword) params.set('keyword', keyword)
+
+  return httpClient<StudyPostListResponse>(`${API_ENDPOINTS.study.posts}?${params.toString()}`, {
     method: 'GET',
   })
 }

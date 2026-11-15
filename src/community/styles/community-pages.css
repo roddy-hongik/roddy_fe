@@ -256,6 +256,12 @@ a.community-meta-chip {
   font-size: 0.85rem;
 }
 
+.community-upload-error {
+  margin: 0;
+  color: #ff9a9a;
+  font-size: 0.85rem;
+}
+
 .community-post-list {
   margin-top: 16px;
   display: grid;

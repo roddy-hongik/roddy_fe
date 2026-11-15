@@ -16,6 +16,30 @@ type CommunityWriteLocationState = {
   initialRoadmapSummary?: string
 } | null
 
+// 백엔드(CommunityPostService)가 받는 형식과 용량(application.yaml multipart)에 맞춘다.
+const MAX_IMAGE_MB = 10
+const MAX_IMAGE_BYTES = MAX_IMAGE_MB * 1024 * 1024
+const ALLOWED_IMAGE_TYPES = new Set(['image/png', 'image/jpeg'])
+const ALLOWED_IMAGE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg'])
+const IMAGE_ACCEPT = '.png,.jpg,.jpeg,image/png,image/jpeg'
+
+const findImageProblem = (file: File) => {
+  const extension = file.name.includes('.') ? file.name.split('.').pop()?.toLowerCase() ?? '' : ''
+  if (!ALLOWED_IMAGE_TYPES.has(file.type) || !ALLOWED_IMAGE_EXTENSIONS.has(extension)) {
+    return 'PNG, JPG 파일만 올릴 수 있습니다. (GIF, WebP, HEIC 는 지원하지 않습니다)'
+  }
+  if (file.size > MAX_IMAGE_BYTES) {
+    return `이미지는 ${MAX_IMAGE_MB}MB 까지 올릴 수 있습니다. (선택한 파일 ${(file.size / 1024 / 1024).toFixed(1)}MB)`
+  }
+  return null
+}
+
+/** httpClient 는 "HTTP 400 [CODE]: 메시지" 로 던진다. 서버가 알려 준 이유를 그대로 보여 준다. */
+const toSubmitErrorMessage = (error: unknown) => {
+  const message = error instanceof Error ? error.message.replace(/^HTTP \d+(?: \[[^\]]+\])?: /, '').trim() : ''
+  return message ? `게시글 작성에 실패했습니다. ${message}` : '게시글 작성에 실패했습니다.'
+}
+
 function CommunityWritePage() {
   const navigate = useNavigate()
   const initialState = useLocation().state as CommunityWriteLocationState
@@ -28,6 +52,7 @@ function CommunityWritePage() {
   const [jobRole, setJobRole] = useState('')
   const [techStacksInput, setTechStacksInput] = useState('')
   const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imageError, setImageError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   /** 공유할 수 있는 저장한 로드맵. 로드맵 공유를 고르면 한 번 불러온다. null 이면 아직 받지 못했다. */
   const [roadmapCandidates, setRoadmapCandidates] = useState<RoadmapShareCandidate[] | null>(null)
@@ -65,7 +90,16 @@ function CommunityWritePage() {
   }
 
   const handleImageSelect = (event: ChangeEvent<HTMLInputElement>) => {
-    setImageFile(event.target.files?.[0] ?? null)
+    const file = event.target.files?.[0] ?? null
+    const problem = file ? findImageProblem(file) : null
+    setImageError(problem)
+    if (problem) {
+      // 같은 파일을 다시 고를 수 있게 선택을 비운다.
+      event.target.value = ''
+      setImageFile(null)
+      return
+    }
+    setImageFile(file)
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -106,8 +140,8 @@ function CommunityWritePage() {
       })
 
       navigate(`/community/${response.id}`)
-    } catch {
-      alert('게시글 작성에 실패했습니다.')
+    } catch (error) {
+      alert(toSubmitErrorMessage(error))
     } finally {
       setIsSubmitting(false)
     }
@@ -219,8 +253,15 @@ function CommunityWritePage() {
           {postType === 'general' ? (
             <div className="community-field-block">
               <label htmlFor="community-image">사진 첨부</label>
-              <input id="community-image" type="file" accept="image/*" onChange={handleImageSelect} />
-              <p className="community-upload-note">{imageFile ? `선택됨: ${imageFile.name}` : '일반 게시글만 이미지 첨부를 지원합니다.'}</p>
+              <input id="community-image" type="file" accept={IMAGE_ACCEPT} onChange={handleImageSelect} />
+              <p className="community-upload-note">
+                {imageFile ? `선택됨: ${imageFile.name}` : `PNG, JPG 파일을 ${MAX_IMAGE_MB}MB 까지 올릴 수 있습니다.`}
+              </p>
+              {imageError ? (
+                <p className="community-upload-error" role="alert">
+                  {imageError}
+                </p>
+              ) : null}
             </div>
           ) : (
             <p className="community-upload-note">로드맵 공유와 인터뷰 후기는 추가 메타 필드를 줄이고 공통 스키마로 저장합니다.</p>
