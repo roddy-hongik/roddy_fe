@@ -264,3 +264,56 @@
     align-items: flex-start;
   }
 }
+
+.study-filter-bar {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr)) auto;
+  align-items: end;
+  gap: 12px;
+}
+
+.study-filter-field {
+  display: grid;
+  gap: 6px;
+  color: #dbe6ff;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.study-filter-field input,
+.study-filter-field select {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(124, 165, 255, 0.3);
+  background: rgba(13, 24, 52, 0.66);
+  color: #edf4ff;
+  padding: 11px 13px;
+  font: inherit;
+  font-weight: 400;
+}
+
+.study-filter-submit {
+  height: 44px;
+}
+
+.study-result-count {
+  margin: 14px 0 0;
+}
+
+.study-load-more {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 720px) {
+  .study-filter-bar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .study-filter-keyword,
+  .study-filter-submit {
+    grid-column: 1 / -1;
+  }
+}

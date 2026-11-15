@@ -71,8 +71,21 @@ function StudyDetailPage() {
 
   const isAuthor = useMemo(() => study?.isAuthor ?? false, [study])
   const myApplicationStatus = useMemo(() => study?.myApplicationStatus ?? null, [study])
-  const canApply = useMemo(() => !isAuthor && study?.status === 'RECRUITING' && myApplicationStatus !== 'APPLIED', [isAuthor, myApplicationStatus, study])
-  const canCancel = useMemo(() => !isAuthor && myApplicationStatus === 'APPLIED', [isAuthor, myApplicationStatus])
+  // 백엔드 규칙: 지원 기록이 없거나 취소한 경우에만 (다시) 지원할 수 있고, 대기·수락 상태에서만 취소할 수 있다.
+  const canApply = useMemo(
+    () => !isAuthor && study?.status === 'RECRUITING' && (myApplicationStatus === null || myApplicationStatus === 'CANCELED'),
+    [isAuthor, myApplicationStatus, study],
+  )
+  const canCancel = useMemo(
+    () => !isAuthor && (myApplicationStatus === 'APPLIED' || myApplicationStatus === 'ACCEPTED'),
+    [isAuthor, myApplicationStatus],
+  )
+  const applyButtonLabel = (() => {
+    if (isApplying) return '지원 중...'
+    if (myApplicationStatus === 'REJECTED') return '거절된 지원'
+    if (study?.status === 'CLOSED') return '모집 마감'
+    return '스터디 지원하기'
+  })()
   const applicants = useMemo(() => sortStudyApplicants(study?.applicants ?? []), [study?.applicants])
 
   const handleApply = async () => {
@@ -213,6 +226,9 @@ function StudyDetailPage() {
             }
           : current,
       )
+      // 마지막 자리를 수락하면 서버가 모집을 마감한다. 응답에는 모집 상태가 없어서 상세를 다시 받는다.
+      const refreshed = await getStudyDetail(studyId).catch(() => null)
+      if (refreshed) setStudy(refreshed)
     } catch (error) {
       const message = error instanceof Error ? error.message : '지원 상태 변경에 실패했습니다.'
       alert(message)
@@ -272,11 +288,11 @@ function StudyDetailPage() {
               </button>
             ) : canCancel ? (
               <button type="button" className="profile-ghost-btn" onClick={() => void handleCancelApplication()} disabled={isApplying}>
-                {isApplying ? '처리 중...' : '지원 취소'}
+                {isApplying ? '처리 중...' : myApplicationStatus === 'ACCEPTED' ? '참여 취소' : '지원 취소'}
               </button>
             ) : (
               <button type="button" className="profile-action-btn" onClick={handleApply} disabled={!canApply || isApplying}>
-                {myApplicationStatus === 'APPLIED' ? '지원 완료' : isApplying ? '지원 중...' : '스터디 지원하기'}
+                {applyButtonLabel}
               </button>
             )}
           </div>
@@ -330,8 +346,9 @@ function StudyDetailPage() {
                   <div className="study-applications">
                     {applicants.map((applicant) => {
                       const isApplicationUpdating = managingApplicationId === applicant.applicationId
-                      const canAccept = applicant.status !== 'ACCEPTED' && applicant.status !== 'CANCELED'
-                      const canReject = applicant.status !== 'REJECTED' && applicant.status !== 'CANCELED'
+                      // 백엔드는 대기 중(APPLIED)인 지원만 수락·거절할 수 있다. 한 번 처리한 지원은 되돌리지 않는다.
+                      const canAccept = applicant.status === 'APPLIED' && study.status === 'RECRUITING'
+                      const canReject = applicant.status === 'APPLIED'
 
                       return (
                         <article key={applicant.applicationId} className="study-application-card">

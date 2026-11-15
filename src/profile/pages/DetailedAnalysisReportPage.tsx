@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getDetailedReport, getLatestDetailedReport } from '../../api/services/reportService'
+import { getAnalysisSummary } from '../../api/services/roadmapService'
 import { ROUTES } from '../../routes/paths'
 import CategoryScoreCard from '../components/CategoryScoreCard'
 import ReportSummaryCard from '../components/ReportSummaryCard'
@@ -8,7 +9,8 @@ import TechStackSection from '../components/TechStackSection'
 import type { DetailedReport } from '../types/report'
 import '../styles/profile-pages.css'
 
-const normalizeStackKey = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '')
+/** 부족 기술은 리포트가 아니라 로드맵 요약에서 온다. 최신 분석과 목표 직무의 모집 중 공고를 비교한 결과다. */
+type GapSkillsState = { status: 'loading' } | { status: 'ready'; skills: string[] } | { status: 'unavailable' }
 
 function DetailedAnalysisReportPage() {
   const navigate = useNavigate()
@@ -16,6 +18,24 @@ function DetailedAnalysisReportPage() {
   const [report, setReport] = useState<DetailedReport | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isError, setIsError] = useState(false)
+  const [gapSkills, setGapSkills] = useState<GapSkillsState>({ status: 'loading' })
+
+  useEffect(() => {
+    let isMounted = true
+
+    getAnalysisSummary()
+      .then((summary) => {
+        if (isMounted) setGapSkills({ status: 'ready', skills: summary.gapSkills ?? [] })
+      })
+      .catch(() => {
+        // 분석 리포트가 없거나 희망 직무가 비어 있으면 요약을 만들 수 없다.
+        if (isMounted) setGapSkills({ status: 'unavailable' })
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   useEffect(() => {
     let isMounted = true
@@ -67,19 +87,6 @@ function DetailedAnalysisReportPage() {
     )
   }
 
-  const discoveredStacks = [...report.githubStacks, ...report.resumeStacks]
-  const normalizedDiscoveredStacks = discoveredStacks.map(normalizeStackKey)
-  const missingStacks = Array.from(
-    new Set(
-      report.categories
-        .flatMap((category) => category.detailStacks)
-        .filter((stack) => {
-          const normalizedRequiredStack = normalizeStackKey(stack)
-          return !normalizedDiscoveredStacks.some((discoveredStack) => normalizedRequiredStack.includes(discoveredStack))
-        }),
-    ),
-  )
-
   return (
     <main className="profile-layout-shell">
       <section className="profile-layout-content profile-page profile-fade-in">
@@ -108,17 +115,24 @@ function DetailedAnalysisReportPage() {
           <div className="report-section-title">
             <h2>나에게 없는 기술 스택</h2>
           </div>
-          <p className="report-overview-copy">현재 GitHub와 이력서에서 직접 확인되지 않은 보완 필요 스택입니다.</p>
+          <p className="report-overview-copy">
+            최신 분석 결과와 희망 직무의 모집 중인 채용공고를 비교해, 공고가 자주 요구하지만 아직 확인되지 않은 기술입니다.
+          </p>
           <div className="report-chip-wrap">
-            {missingStacks.length > 0 ? (
-              missingStacks.map((stack) => (
-                <span key={stack} className="report-chip">
-                  {stack}
-                </span>
-              ))
-            ) : (
+            {gapSkills.status === 'loading' ? <span className="report-chip">불러오는 중...</span> : null}
+            {gapSkills.status === 'unavailable' ? (
+              <span className="report-chip">희망 직무와 분석 결과가 있어야 확인할 수 있습니다</span>
+            ) : null}
+            {gapSkills.status === 'ready' && gapSkills.skills.length > 0
+              ? gapSkills.skills.map((stack) => (
+                  <span key={stack} className="report-chip">
+                    {stack}
+                  </span>
+                ))
+              : null}
+            {gapSkills.status === 'ready' && gapSkills.skills.length === 0 ? (
               <span className="report-chip">현재 기준 부족 기술 스택 없음</span>
-            )}
+            ) : null}
           </div>
         </section>
 

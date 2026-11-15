@@ -23,7 +23,9 @@ export async function uploadPortfolioFile(presign: PortfolioPresignResponse, fil
   const response = await fetch(presign.uploadUrl, {
     method: 'PUT',
     headers: {
-      'Content-Type': file.type || presign.contentType || 'application/pdf',
+      // 서명에 들어간 Content-Type 과 한 글자라도 다르면 S3 가 403 을 낸다.
+      // 브라우저가 붙인 file.type(application/x-pdf, 빈 값 등)이 아니라 서버가 서명한 값을 그대로 보낸다.
+      'Content-Type': presign.contentType || 'application/pdf',
     },
     body: file,
   })

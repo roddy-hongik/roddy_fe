@@ -141,9 +141,16 @@ function AdminModerationPage() {
 
     try {
       await removeReportedContent(pendingDeleteContent, deleteReason)
-      const nextContents = contents.filter((content) => content.id !== pendingDeleteContent.id)
+      // 글을 지우면 서버가 그 글의 댓글과 댓글 신고도 함께 지운다. 화면에는 글 id 만 있어
+      // 어떤 댓글이 사라졌는지 알 수 없으므로 목록을 다시 받는다. 실패하면 지운 항목만 뺀다.
+      const nextContents =
+        pendingDeleteContent.type === 'post'
+          ? await getReportedContents().catch(() => contents.filter((content) => content.id !== pendingDeleteContent.id))
+          : contents.filter((content) => content.id !== pendingDeleteContent.id)
       setContents(nextContents)
-      setSelectedContent((previous) => (previous?.id === pendingDeleteContent.id ? (nextContents[0] ?? null) : previous))
+      setSelectedContent((previous) =>
+        previous && nextContents.some((content) => content.id === previous.id) ? previous : (nextContents[0] ?? null),
+      )
     } catch (error) {
       alert(error instanceof Error ? error.message : '콘텐츠를 지우지 못했습니다.')
     } finally {
