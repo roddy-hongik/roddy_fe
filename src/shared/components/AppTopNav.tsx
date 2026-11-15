@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { logoutFromServer, takeTokensForLogout } from '../../api/services/authService'
 import { AUTH_CHANGE_EVENT, emitAuthChange } from '../../auth/utils/authEvents'
 import { clearAuthSession } from '../../auth/utils/authStorage'
 import { ROUTES } from '../../routes/paths'
@@ -55,11 +56,14 @@ function AppTopNav({ loginRedirectPath, onLogout, rightSlot, showSavedLink = fal
   }
 
   const handleLogout = () => {
+    // 토큰을 꺼내 둔 뒤 이 기기의 세션부터 지운다. 서버 로그아웃은 기다리지 않는다.
+    const tokens = takeTokensForLogout()
     clearAuthSession()
     emitAuthChange()
     setAuthSnapshot(readAuthSnapshot())
     onLogout?.()
     navigate(ROUTES.login, { replace: true })
+    logoutFromServer(tokens)
   }
 
   return (

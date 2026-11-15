@@ -4,6 +4,10 @@ export const API_ENDPOINTS = {
     signup: '/api/auth/signup',
     reissue: '/api/auth/reissue',
     logout: '/api/auth/logout',
+    social: {
+      google: '/api/auth/google',
+      kakao: '/api/auth/kakao',
+    },
   },
   onboarding: {
     complete: '/api/onboarding',

@@ -14,6 +14,7 @@ const StudyListPage = lazy(() => import('@/study/pages/StudyListPage'))
 const StudyWritePage = lazy(() => import('@/study/pages/StudyWritePage'))
 const StudyDetailPage = lazy(() => import('@/study/pages/StudyDetailPage'))
 const LoginPage = lazy(() => import('@/login/pages/LoginPage'))
+const OAuthCallbackPage = lazy(() => import('@/login/pages/OAuthCallbackPage'))
 const OnboardingPage = lazy(() => import('@/onboarding/pages/OnboardingPage'))
 const GithubConnectPage = lazy(() => import('@/onboarding/pages/GithubConnectPage'))
 const AnalysisWaitingPage = lazy(() => import('@/onboarding/pages/AnalysisWaitingPage'))
@@ -52,6 +53,7 @@ export function AppRouter() {
       <div className="app-shell">
         <Routes>
           <Route path={ROUTES.login} element={<LoginPage />} />
+          <Route path={routePatterns.oauthCallback} element={<OAuthCallbackPage />} />
           <Route path={ROUTES.terms} element={<TermsPage />} />
           <Route element={<DefaultLayout />}>
             <Route path={ROUTES.home} element={<MainPage />} />

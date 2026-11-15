@@ -25,6 +25,11 @@ const readJwtUserId = (token: string) => {
   }
 }
 
+/** 액세스 토큰의 userId. 재발급 전후로 같은 계정의 토큰인지 비교할 때 쓴다. 읽을 수 없으면 null. */
+export function readTokenUserId(accessToken: string | null) {
+  return accessToken ? readJwtUserId(accessToken) : null
+}
+
 export function createAccountStorageId(accessToken: string) {
   const userId = readJwtUserId(accessToken)
   return userId ? `user-${userId}` : tokenFingerprint(accessToken)

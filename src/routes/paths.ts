@@ -37,4 +37,5 @@ export const routePatterns = {
   jobDetail: `${ROUTES.jobs}/:jobId`,
   reportDetailAnalysis: `${ROUTES.reports}/:reportId/detail-analysis`,
   studyDetail: `${ROUTES.study}/:studyId`,
+  oauthCallback: '/oauth/:provider/callback',
 } as const
